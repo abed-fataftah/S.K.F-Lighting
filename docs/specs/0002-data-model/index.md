@@ -1,7 +1,7 @@
 # 0002. Data model for the S.K.F Lighting shop
 
 **Date**: 2026-10-17
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

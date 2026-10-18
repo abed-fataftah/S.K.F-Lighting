@@ -18,6 +18,8 @@
     "db:stop": "supabase stop",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:check-rls": "tsx --conditions=react-server scripts/check-rls.ts",
+    "db:seed": "tsx --conditions=react-server scripts/seed-dev.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -48,6 +50,7 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "supabase": "^2.121.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.5",
     "wrangler": "^4.151.1"

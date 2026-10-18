@@ -23,13 +23,13 @@ code in `.prettierrc.json`, `eslint.config.mjs`, `lint-staged.config.mjs`, `.hus
 ### 3. Data model · in-progress
 The shape of everything the shop stores: products with size and colour options (each with its own price and availability), categories, users and roles, orders (guest, customer, and electrician on behalf of a customer), drafts, payments, coins, and returns.
 **Done when:** the model supports every later slice without a breaking change, order lines keep the price at the time of ordering, and one line's price can be adjusted without touching the catalog.
-spec [0002](../specs/0002-data-model/index.md)
+spec [0002](../specs/0002-data-model/index.md) · code in `src/server/db/`, `src/features/orders/`, `drizzle/`, `scripts/`
 - [x] Design it (spec): `/architect data model`
-- [ ] Build it: `/develop data model`
-  - [ ] Pure rules with unit tests: totals, order number, phone, slug (AC-6, AC-7, AC-10)
-  - [ ] Core schema and migration with the lockdown, signup trigger, and backfill (AC-1 to AC-5, AC-8, AC-9)
-  - [ ] Order number and totals helpers, plus database tests (AC-3 to AC-9)
-  - [ ] RLS check, dev seed, and a coverage review against the scope (AC-2, AC-11, AC-12)
+- [x] Build it: `/develop data model`
+  - [x] Pure rules with unit tests: totals, order number, phone, slug (AC-6, AC-7, AC-10)
+  - [x] Core schema and migration with the lockdown, signup trigger, and backfill (AC-1 to AC-5, AC-8, AC-9)
+  - [x] Order number and totals helpers, plus database tests (AC-3 to AC-9)
+  - [x] RLS check, dev seed, and a coverage review against the scope (AC-2, AC-11, AC-12)
 - [ ] Verify it: `/check verify data model`
 - [ ] Test it: `/test data model`
 
