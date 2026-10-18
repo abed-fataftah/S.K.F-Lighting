@@ -8,6 +8,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // Database tests (*.db.test.ts) share the local database, so files run one at a time.
+    fileParallelism: false,
     // next-intl imports `next/server` without an extension; Node cannot resolve that
     // (Next has no exports map), so let Vite bundle next-intl instead.
     server: { deps: { inline: ["next-intl"] } },
