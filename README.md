@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# S.K.F Lighting shop
 
-## Getting Started
+Arabic first online shop and owner dashboard. Next.js 16 on Cloudflare Workers (OpenNext), Supabase (Postgres, Auth, Storage), Drizzle. The full stack decision is in [spec 0001](docs/specs/0001-stack-architecture/index.md); the plan is in [docs/scope](docs/scope/index.md).
 
-First, run the development server:
+## Run it locally
+
+You need Node 24 (see `.nvmrc`), pnpm 10, and Docker Desktop running.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm db:start            # local Supabase: Postgres, Auth, Storage (first run downloads images)
+cp .env.example .env.local
+# fill NEXT_PUBLIC_SUPABASE_ANON_KEY from the `pnpm db:start` output (the publishable/anon key)
+pnpm dev                 # http://localhost:3000 (the shop is Arabic only)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Useful scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script                                 | What it does                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `pnpm dev`                             | Next.js dev server with Worker bindings available                        |
+| `pnpm build`                           | Next.js production build                                                 |
+| `pnpm preview`                         | Build for Workers and run it locally on workerd (do this before pushing) |
+| `pnpm deploy`                          | Build and deploy to Cloudflare                                           |
+| `pnpm typecheck` / `pnpm lint`         | Type check and lint                                                      |
+| `pnpm db:generate` / `pnpm db:migrate` | Create and apply Drizzle migrations (public schema)                      |
+| `pnpm db:start` / `pnpm db:stop`       | Start or stop the local Supabase stack                                   |
+| `pnpm cf-typegen`                      | Regenerate `cloudflare-env.d.ts` after changing `wrangler.jsonc`         |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Runbooks
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Production Supabase settings](docs/runbooks/supabase-production.md)
+- [Admin sign in and authenticator codes](docs/runbooks/admin-mfa.md)

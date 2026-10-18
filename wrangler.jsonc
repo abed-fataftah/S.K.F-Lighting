@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "skf-pro",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-12",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "services": [
+    {
+      // Self reference used by OpenNext; the service name must match the Worker name.
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "skf-pro",
+    },
+  ],
+  // Run the Worker next to the Supabase database in Frankfurt.
+  "placement": {
+    "mode": "targeted",
+    "region": "aws:eu-central-1",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      // Replace with the id from `pnpm wrangler hyperdrive create skf-pro-db --connection-string=<session pooler URL>`.
+      "id": "00000000000000000000000000000000",
+      // Local `supabase start` database, used by `next dev` and `pnpm preview`.
+      "localConnectionString": "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    },
+  ],
+}
