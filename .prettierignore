@@ -1,0 +1,20 @@
+# Generated or vendored
+.next/
+.open-next/
+.wrangler/
+node_modules/
+pnpm-lock.yaml
+next-env.d.ts
+cloudflare-env.d.ts
+drizzle/meta/
+test-results/
+playwright-report/
+supabase/.temp/
+
+# Agent tooling and owned prose: specs, scope, and AGENTS.md are edited by their skills
+.agents/
+.claude/
+docs/
+AGENTS.md
+CLAUDE.md
+skills-lock.json
