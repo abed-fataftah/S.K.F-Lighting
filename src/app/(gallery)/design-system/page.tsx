@@ -4,7 +4,10 @@ import { SkipLink } from "@/components/skip-link";
 import { serverEnv } from "@/server/env";
 import { assertDesignSystemPageOn } from "./gate";
 import { ButtonsSection } from "./sections/buttons";
+import { ChoicesSection } from "./sections/choices";
 import { ColoursSection } from "./sections/colours";
+import { DisplaySection } from "./sections/display";
+import { FormsSection } from "./sections/forms";
 import { TypeSection } from "./sections/type";
 
 // Every token, type role, component, and shell part in each state, in Arabic
@@ -19,6 +22,9 @@ export default async function DesignSystemPage() {
     { id: "colours", title: t("colours.title") },
     { id: "type", title: t("type.title") },
     { id: "buttons", title: t("buttons.title") },
+    { id: "forms", title: t("forms.title") },
+    { id: "choices", title: t("choices.title") },
+    { id: "display", title: t("display.title") },
   ];
 
   return (
@@ -53,6 +59,9 @@ export default async function DesignSystemPage() {
         <ColoursSection />
         <TypeSection />
         <ButtonsSection />
+        <FormsSection />
+        <ChoicesSection />
+        <DisplaySection />
       </main>
     </>
   );

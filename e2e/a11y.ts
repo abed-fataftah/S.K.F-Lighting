@@ -35,7 +35,8 @@ export async function expectTouchTargets(page: Page) {
       "[role=radio]",
       "[role=switch]",
       "[role=tab]",
-      "[tabindex]:not([tabindex='-1'])",
+      // A tab panel is focusable for keyboard reading, not a thing to tap.
+      "[tabindex]:not([tabindex='-1']):not([role=tabpanel])",
     ].join(",");
     return [...document.querySelectorAll<HTMLElement>(selector)].flatMap((el) => {
       const style = getComputedStyle(el);

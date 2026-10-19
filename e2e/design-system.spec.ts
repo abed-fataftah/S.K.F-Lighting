@@ -72,6 +72,67 @@ test.describe("design system gallery", () => {
   });
 });
 
+test.describe("gallery primitives", () => {
+  // covers: AC-8
+  test("shows a field error with a danger border, aria-invalid, and a linked alert", async ({
+    page,
+  }) => {
+    const input = page.getByLabel("رقم الهاتف").and(page.locator("[aria-invalid=true]"));
+    await expect(input).toHaveAttribute("aria-describedby", "ds-phone-bad-error");
+    await expect(input).toHaveCSS("border-top-color", "rgb(179, 38, 30)");
+    const error = page.locator("#ds-phone-bad-error");
+    await expect(error).toHaveAttribute("role", "alert");
+    await expect(error).toHaveText("أدخل رقم هاتف صحيح.");
+    await expect(error).toHaveCSS("font-weight", "700");
+    await expect(error.locator("svg")).toHaveCount(1);
+  });
+
+  // covers: AC-7, AC-13 (sheet behaviour)
+  test("opens the sheet with focus on close, traps it, and returns it on Escape", async ({
+    page,
+  }) => {
+    const trigger = page.getByRole("button", { name: "افتح اللوحة" });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: "القائمة" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "إغلاق" })).toBeFocused();
+
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("button", { name: "إغلاق" })).toBeFocused();
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+
+  test("anchors the sheet to the inline start edge (the right, in Arabic)", async ({ page }) => {
+    await page.getByRole("button", { name: "افتح اللوحة" }).click();
+    const dialog = page.getByRole("dialog", { name: "القائمة" });
+    await expect(dialog).toBeVisible();
+    const width = page.viewportSize()!.width;
+    // Wait for the slide to finish, then the panel's end edge sits on the right edge.
+    await expect
+      .poll(async () => {
+        const box = await dialog.boundingBox();
+        return Math.round(box!.x + box!.width);
+      })
+      .toBe(width);
+  });
+});
+
+// covers: AC-21
+test.describe("with reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  test("keeps the skeleton still and the sheet from sliding", async ({ page }) => {
+    const block = page.locator('[data-testid="skeleton-sample"] [data-slot="skeleton"]').first();
+    await expect(block).toHaveCSS("animation-duration", "0s");
+
+    await page.getByRole("button", { name: "افتح اللوحة" }).click();
+    await expect(page.getByRole("dialog")).toHaveCSS("transition-duration", "0s");
+  });
+});
+
 test("returns 404 for the gallery path with a trailing segment that does not exist", async ({
   request,
 }) => {
