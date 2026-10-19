@@ -28,6 +28,47 @@
     "whatsappMessages": {
       "general": "مرحباً S.K.F lighting، أريد الاستفسار.",
       "help": "مرحباً، لم أجد ما أبحث عنه وأحتاج مساعدة."
+    },
+    "infoStrip": "توصيل: الضفة ₪20 · الداخل ₪70",
+    "menu": "القائمة",
+    "menuTitle": "القائمة",
+    "close": "إغلاق",
+    "menuWhatsapp": "تواصل معنا عبر واتساب",
+    "home": "الصفحة الرئيسية",
+    "cart": "السلة",
+    "cartWithCount": "{count, plural, zero {السلة، لا منتجات} one {السلة، منتج واحد} two {السلة، منتجان} few {السلة، {shown} منتجات} many {السلة، {shown} منتجًا} other {السلة، {shown} منتج}}",
+    "searchLabel": "ابحث في المتجر",
+    "searchPlaceholder": "ابحث بالاسم أو الكود",
+    "searchSubmit": "بحث",
+    "mainNav": "التنقل الرئيسي",
+    "whatsapp": "واتساب",
+    "footerLinks": "روابط السياسات",
+    "tabs": {
+      "home": "الرئيسية",
+      "cats": "الأقسام",
+      "cart": "السلة",
+      "search": "بحث",
+      "account": "حسابي"
+    },
+    "policies": {
+      "privacy": "سياسة الخصوصية",
+      "terms": "الشروط والأحكام",
+      "returns": "سياسة الإرجاع"
+    }
+  },
+  "AdminShell": {
+    "caption": "لوحة التحكم",
+    "nav": "لوحة التحكم",
+    "viewStore": "عرض المتجر",
+    "links": {
+      "home": "الرئيسية",
+      "orders": "الطلبات",
+      "customers": "العملاء",
+      "reports": "التقارير",
+      "products": "المنتجات",
+      "categories": "الأقسام",
+      "homepage": "الصفحة الرئيسية",
+      "settings": "الإعدادات"
     }
   },
   "DesignSystem": {
@@ -223,6 +264,20 @@
       "orderNumber": "رقم الطلب",
       "phone": "الهاتف",
       "code": "الكود"
+    },
+    "shell": {
+      "title": "أجزاء الواجهة المشتركة",
+      "text": "الترويسة والتذييل والشريط السفلي وزر واتساب والقائمة الجانبية للوحة التحكم. تظهر هنا داخل الصفحة، وفي المتجر تكون مثبّتة.",
+      "headerGroup": "الترويسة مع شريط التوصيل",
+      "headerCountGroup": "الترويسة مع عدد في السلة",
+      "footerGroup": "التذييل",
+      "footerEmptyGroup": "التذييل دون بيانات تواصل",
+      "sampleAddress": "نابلس، شارع فيصل",
+      "bottomBarGroup": "الشريط السفلي",
+      "fabGroup": "زر واتساب العائم",
+      "adminGroup": "لوحة التحكم",
+      "adminTitle": "الطلبات",
+      "adminText": "يجلس الشريط الجانبي بجانب المحتوى على الشاشات الواسعة، وينتقل فوقه على الهاتف."
     }
   }
 }

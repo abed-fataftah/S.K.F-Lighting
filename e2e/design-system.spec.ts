@@ -218,6 +218,55 @@ test.describe("gallery custom controls", () => {
   });
 });
 
+test.describe("gallery shell parts", () => {
+  // covers: AC-14
+  test("names the cart with its count in Arabic and shows a hidden badge", async ({ page }) => {
+    const header = page.getByTestId("header-with-count");
+    const cart = header.getByRole("link", { name: "السلة، 3 منتجات" });
+    await expect(cart).toBeVisible();
+    const badge = cart.locator('[data-slot="badge"]');
+    await expect(badge).toHaveText("3");
+    await expect(badge).toHaveAttribute("aria-hidden", "true");
+    await expect(badge).toHaveCSS("background-color", "rgb(252, 244, 44)");
+  });
+
+  // covers: AC-15
+  test("shows the phone left to right with the address, and hides an empty line", async ({
+    page,
+  }) => {
+    const line = page.locator('[data-testid="footer-contact"]').first();
+    await expect(line).toHaveText("0599 123 456 · نابلس، شارع فيصل");
+    await expect(line.locator("bdi")).toHaveAttribute("dir", "ltr");
+    await expect(
+      page.getByTestId("footer-no-contact").locator('[data-testid="footer-contact"]'),
+    ).toHaveCount(0);
+    for (const link of await page.locator("footer").getByRole("link").all()) {
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  // covers: AC-18
+  test("marks the current dashboard link and wraps the sidebar on a phone", async ({
+    page,
+  }, testInfo) => {
+    const frame = page.getByTestId("dashboard-frame");
+    const nav = frame.getByRole("navigation", { name: "لوحة التحكم" });
+    await expect(nav.getByRole("link")).toHaveCount(8);
+    const current = nav.getByRole("link", { name: "الطلبات" });
+    await expect(current).toHaveAttribute("aria-current", "page");
+    await expect(nav.locator("[aria-current]")).toHaveCount(1);
+    await expect(frame.getByRole("link", { name: "عرض المتجر" })).toHaveAttribute("href", "/");
+
+    const side = (await frame.locator("aside").boundingBox())!;
+    const content = (await frame.locator("aside + div").boundingBox())!;
+    if (testInfo.project.name === "desktop") {
+      expect(Math.abs(side.y - content.y)).toBeLessThan(1);
+    } else {
+      expect(content.y).toBeGreaterThanOrEqual(side.y + side.height - 1);
+    }
+  });
+});
+
 // covers: AC-21
 test.describe("with reduced motion", () => {
   test.use({ reducedMotion: "reduce" });

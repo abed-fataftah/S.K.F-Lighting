@@ -1,0 +1,41 @@
+// The URL map (spec 0003, adopted from the design handoff; products by slug).
+// Every link in the app is built here, so a route changes in one place.
+const segment = (value: string) => encodeURIComponent(value);
+
+export const routes = {
+  home: "/",
+  categories: "/c",
+  category: (category: string) => `/c/${segment(category)}`,
+  subcategory: (category: string, sub: string) => `/c/${segment(category)}/${segment(sub)}`,
+  product: (slug: string) => `/p/${segment(slug)}`,
+  search: (query?: string) => (query ? `/search?q=${encodeURIComponent(query)}` : "/search"),
+  cart: "/cart",
+  checkout: "/checkout",
+  checkoutDone: (number: string) => `/checkout/done/${segment(number)}`,
+  order: (number: string) => `/orders/${segment(number)}`,
+  orderTrack: "/orders/track",
+  signIn: "/account/sign-in",
+  accountOrders: "/account/orders",
+  quickOrder: "/account/quick-order",
+  drafts: "/account/drafts",
+  privacy: "/policies/privacy",
+  terms: "/policies/terms",
+  returns: "/policies/returns",
+  designSystem: "/design-system",
+  admin: {
+    home: "/admin",
+    orders: "/admin/orders",
+    order: (number: string) => `/admin/orders/${segment(number)}`,
+    customers: "/admin/customers",
+    reports: "/admin/reports",
+    products: "/admin/products",
+    productNew: "/admin/products/new",
+    product: (id: string) => `/admin/products/${segment(id)}`,
+    productImport: "/admin/products/import",
+    categories: "/admin/categories",
+    homepage: "/admin/homepage",
+    settings: "/admin/settings",
+    login: "/admin/login",
+    mfa: "/admin/mfa",
+  },
+} as const;

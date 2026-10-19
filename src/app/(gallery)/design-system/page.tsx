@@ -10,6 +10,7 @@ import { ColoursSection } from "./sections/colours";
 import { ControlsSection } from "./sections/controls";
 import { DisplaySection } from "./sections/display";
 import { FormsSection } from "./sections/forms";
+import { ShellSection } from "./sections/shell";
 import { TypeSection } from "./sections/type";
 
 // Every token, type role, component, and shell part in each state, in Arabic
@@ -29,6 +30,7 @@ export default async function DesignSystemPage() {
     { id: "choices", title: t("choices.title") },
     { id: "display", title: t("display.title") },
     { id: "controls", title: t("controls.title") },
+    { id: "shell", title: t("shell.title") },
   ];
 
   return (
@@ -67,6 +69,7 @@ export default async function DesignSystemPage() {
         <ChoicesSection />
         <DisplaySection />
         <ControlsSection whatsappNumber={whatsappNumber} />
+        <ShellSection whatsappNumber={whatsappNumber} />
       </main>
     </>
   );

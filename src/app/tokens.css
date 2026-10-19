@@ -107,6 +107,7 @@
   --page-pad: 16px; /* side padding of every storefront page */
   --page-max: 480px; /* storefront column width, centered */
   --admin-sidebar-max: 260px; /* sidebar flex-basis 220px, max 260px */
+  --admin-sidebar-basis: 220px; /* sidebar flex-basis (design.md section 4; added in spec 0003) */
   --admin-content-basis: 560px; /* below this the sidebar wraps above the content */
   --admin-pad: 24px 28px 48px; /* dashboard content padding (top, sides, bottom) */
   --admin-form-max: 960px; /* widest form column in the dashboard */
@@ -184,6 +185,38 @@
     [role="option"]
   ):focus-visible {
   outline: var(--focus-ring-on-dark);
+}
+/* A light box inside a black surface (the header search) goes back to the ink outline. */
+.on-dark
+  .on-light
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [tabindex],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"],
+    [role="tab"],
+    [role="option"]
+  ):focus-visible {
+  outline: var(--focus-ring);
+}
+/* A field that fills its box hands the outline to the box (data-focus-ring="parent"),
+   so the outline sits outside the white box where it can be seen. */
+:where(:has(> [data-focus-ring="parent"]:focus-visible)) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+.on-dark :where(:has(> [data-focus-ring="parent"]:focus-visible)) {
+  outline: var(--focus-ring-on-dark);
+}
+:where([data-focus-ring="parent"]):focus-visible,
+.on-dark :where([data-focus-ring="parent"]):focus-visible,
+.on-dark .on-light :where([data-focus-ring="parent"]):focus-visible {
+  outline: none;
 }
 /* Programmatic focus targets (main, popups) draw no outline. */
 :where([tabindex="-1"]):focus-visible,
