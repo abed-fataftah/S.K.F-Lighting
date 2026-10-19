@@ -24,6 +24,15 @@ describe("normalizePhone", () => {
     expect(new Set(forms.map(normalizePhone))).toEqual(new Set(["+970599123456"]));
   });
 
+  // Regression (review 2026-10-18): the typed country code used to win over the network prefix.
+  it.each([
+    [["0599123456", "+972599123456", "00972 599 123 456"], "+970599123456"],
+    [["0561234567", "+972561234567", "00972561234567"], "+970561234567"],
+    [["0541234567", "+970541234567", "00970 54 123 4567"], "+972541234567"],
+  ])("lets the network prefix pick the country code for %j", (forms, expected) => {
+    expect(new Set(forms.map(normalizePhone))).toEqual(new Set([expected]));
+  });
+
   it.each([
     ["", "empty"],
     ["02 274 1234", "a landline"],

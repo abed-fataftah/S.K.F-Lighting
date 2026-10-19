@@ -230,6 +230,60 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
       });
     });
 
+    // Regression (review 2026-10-18): the 0001 backfill copied blank and padded names as typed.
+    it("names backfilled users the way the trigger does, once 0003 has run", async () => {
+      const fixForward = readFileSync("drizzle/0003_align_profile_backfill.sql", "utf8")
+        .split("--> statement-breakpoint")
+        .map((statement) => statement.trim());
+
+      await withRollback(db, async (tx) => {
+        const metas: Record<string, string>[] = [
+          { full_name: "  أحمد خليل  " },
+          { full_name: "", name: "Sara Haddad" },
+          { full_name: "   ", name: "  " },
+          { name: " Lina " },
+          {},
+        ];
+        const users = [];
+        for (const meta of metas) users.push(rows(await insertAuthUser(tx, meta))[0]);
+        const ids = users.map((u) => u.id);
+        const nameByTrigger = new Map(
+          (await tx.select().from(profiles))
+            .filter((p) => ids.includes(p.id))
+            .map((p) => [p.id, p.fullName]),
+        );
+
+        for (const id of ids) await tx.delete(profiles).where(eq(profiles.id, id));
+        await tx.execute(sql.raw(BACKFILL));
+        for (const statement of fixForward) await tx.execute(sql.raw(statement));
+        const backfilled = (await tx.select().from(profiles)).filter((p) => ids.includes(p.id));
+
+        expect(new Map(backfilled.map((p) => [p.id, p.fullName]))).toEqual(nameByTrigger);
+        expect([...nameByTrigger.values()]).toEqual([
+          "أحمد خليل",
+          "Sara Haddad",
+          null,
+          "Lina",
+          null,
+        ]);
+      });
+    });
+
+    it("leaves a name that differs from the raw sign up value alone", async () => {
+      const fixForward = readFileSync("drizzle/0003_align_profile_backfill.sql", "utf8")
+        .split("--> statement-breakpoint")
+        .map((statement) => statement.trim());
+
+      await withRollback(db, async (tx) => {
+        const [user] = rows(await insertAuthUser(tx, { full_name: "  قديم  " }));
+        await tx.update(profiles).set({ fullName: "اسم جديد" }).where(eq(profiles.id, user.id));
+        for (const statement of fixForward) await tx.execute(sql.raw(statement));
+        const [profile] = await tx.select().from(profiles).where(eq(profiles.id, user.id));
+
+        expect(profile.fullName).toBe("اسم جديد");
+      });
+    });
+
     it("leaves no auth user without a profile", async () => {
       const [missing] = rows(
         await db.execute<{ count: number }>(sql`

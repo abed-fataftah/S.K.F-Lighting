@@ -22,6 +22,13 @@
       "when": 1792330303770,
       "tag": "0002_revoke_function_execute_globally",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792336526202,
+      "tag": "0003_align_profile_backfill",
+      "breakpoints": true
     }
   ]
 }

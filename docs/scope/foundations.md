@@ -32,6 +32,7 @@ spec [0002](../specs/0002-data-model/index.md) · code in `src/server/db/`, `src
   - [x] RLS check, dev seed, and a coverage review against the scope (AC-2, AC-11, AC-12)
 - [ ] Verify it: `/check verify data model`
 - [ ] Test it: `/test data model`
+- [x] Review it: `/check review data model`
 
 ### 4. Design system & UI foundation · needs a decision
 A visual language and base components built right to left first, for phones first, and meeting a common accessibility standard (WCAG AA).
