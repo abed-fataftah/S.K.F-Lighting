@@ -114,6 +114,8 @@ const srcDir = join(process.cwd(), "src");
 const skipped = new Set([
   join("app", "tokens.css"),
   "design-rules.test.ts",
+  // Names the removed classes on purpose, to prove they produce no CSS.
+  join("app", "tailwind-lock.test.ts"),
   // Inserts a product colour row: its swatch hex is catalog data (colours.hex), not a style.
   join("server", "db", "testing.ts"),
 ]);
