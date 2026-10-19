@@ -24,7 +24,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 1 | Stack & architecture | Foundation | in-progress |
 | 2 | Coding standards & tooling | Foundation | in-progress |
 | 3 | Data model | Foundation | in-progress |
-| 4 | Design system & UI foundation | Foundation | planned |
+| 4 | Design system & UI foundation | Foundation | in-progress |
 | 5 | Arabic language | Foundation | planned |
 | 6 | First order end to end | Slice 1 | planned |
 | 7 | Product management | Slice 2 | planned |

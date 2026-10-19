@@ -3,6 +3,7 @@
 **Date**: 2026-10-16
 **Status**: In Progress
 **Amended**: 2026-10-17. The shop is Arabic only (no English site at `/en`, no language switch). The Languages, Architecture pattern, and Framework rows and the code layout reflect this.
+**Amended**: 2026-10-19. shadcn/ui sits on Base UI, not Radix (spec 0003). The Styling and components row reflects this.
 
 ## Summary
 
@@ -47,7 +48,7 @@ Reasoning, options, and the landscape check: see [rationale.md](rationale.md).
 | File storage | Supabase Storage, public bucket `product-media`, declared in `supabase/config.toml`: file size limit 50 MB, allowed types `image/jpeg`, `image/png`, `image/webp`, `video/mp4`. Photos capped at 10 MB in the upload form. Object keys `products/{productId}/{uuid}.{ext}` | Same service as DB and auth, one admin upload flow. |
 | Uploads | The admin's browser uploads straight to Storage using a signed upload URL created by an admin only Server Action (`requireAdmin()`, service role key) | Files never pass through the Worker, so its request size limit never matters. |
 | Image delivery | Supabase image transformations through a custom `next/image` loader (`images.loader: 'custom'`) that builds `/storage/v1/render/image/public/product-media/...?width=&quality=` URLs. Next's own image optimizer is off; files in `/public` (logo, icons) use plain `<img>` or `unoptimized` | No image work runs on the Worker (also sidesteps the October image optimizer advisory). Videos are served as is from Storage. |
-| Styling and components | Tailwind CSS v4 + shadcn/ui (Radix based), using logical properties (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`) only | Right to left Arabic works without mirrored CSS. The look itself is decided in feature 4. |
+| Styling and components | Tailwind CSS v4 + shadcn/ui on Base UI, using logical properties (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`) only | Right to left Arabic works without mirrored CSS. The look and the Base UI choice are in [spec 0003](../0003-design-system-ui-foundation/index.md). |
 | Languages | Arabic only. next-intl with a single locale `ar` served at `/` (no prefix; `/ar` redirects to `/`). No English site, no language switch, no locale cookie, no browser language detection. `<html lang="ar" dir="rtl">` | Clean Arabic URLs. Keeping next-intl puts every interface string in one messages file, so English could be added later as a config change. Digit style and Arabic text rules are decided in feature 5. |
 | Forms and validation | Zod schemas shared by react-hook-form (`@hookform/resolvers/zod`) in the browser and the Server Action on the server | Instant messages in the customer's language, and the server never trusts the browser. |
 | Dates and time | Store every timestamp as `timestamptz` in UTC; display in `Asia/Jerusalem` | One rule for order dates, reports, and payment dates. |
