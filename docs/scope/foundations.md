@@ -40,7 +40,7 @@ A visual language and base components built right to left first, for phones firs
 spec [0003](../specs/0003-design-system-ui-foundation/index.md) · design in `docs/design/` · code in `src/app/`, `src/components/`, `src/features/shell/`
 - [x] Design it (spec): `/architect design system & UI foundation`
 - [ ] Build it: `/develop design system & UI foundation`
-  - [ ] Thin thread: tokens, font, Tailwind lock, Button, gallery page, rule and contrast tests, axe in Playwright (AC-1 to AC-6, AC-19, AC-20)
+  - [x] Thin thread: tokens, font, Tailwind lock, Button, gallery page, rule and contrast tests, axe in Playwright (AC-1 to AC-6, AC-19, AC-20)
   - [ ] The rest of the shadcn primitives, restyled, with the field error pattern (AC-7, AC-8, AC-21)
   - [ ] Custom controls, icons, and the WhatsApp link builder (AC-9, AC-10, AC-17)
   - [ ] Shells on the real storefront: header, menu sheet, footer, bottom bar, float, sidebar (AC-11 to AC-18, AC-20)

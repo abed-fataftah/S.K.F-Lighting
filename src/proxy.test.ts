@@ -91,7 +91,7 @@ describe("proxy", () => {
       expect(response.cookies.get("NEXT_LOCALE")).toBeUndefined();
     });
 
-    it.each(["/administrator", "/authors"])(
+    it.each(["/administrator", "/authors", "/design-systems"])(
       "still locale routes %s, which only starts with a reserved word",
       async (path) => {
         const response = await proxy(request(path));
@@ -102,16 +102,20 @@ describe("proxy", () => {
   });
 
   describe("paths outside locale routing", () => {
-    it.each(["/admin", "/admin/", "/admin/orders/42", "/auth/callback", "/auth/confirm"])(
-      "passes %s straight through, with no locale rewrite or redirect",
-      async (path) => {
-        const response = await proxy(request(path));
+    it.each([
+      "/admin",
+      "/admin/",
+      "/admin/orders/42",
+      "/auth/callback",
+      "/auth/confirm",
+      "/design-system",
+    ])("passes %s straight through, with no locale rewrite or redirect", async (path) => {
+      const response = await proxy(request(path));
 
-        expect(rewrittenTo(response)).toBeNull();
-        expect(redirectedTo(response)).toBeNull();
-        expect(response.headers.get("x-middleware-next")).toBe("1");
-      },
-    );
+      expect(rewrittenTo(response)).toBeNull();
+      expect(redirectedTo(response)).toBeNull();
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+    });
   });
 
   describe("session refresh", () => {

@@ -5,9 +5,9 @@ import { refreshSession } from "@/server/auth/proxy-session";
 
 const handleI18nRouting = createIntlMiddleware(routing);
 
-// The dashboard and auth callbacks are not translated routes.
+// The dashboard, auth callbacks, and the design system gallery are not translated routes.
 function isOutsideLocaleRouting(pathname: string) {
-  return /^\/(admin|auth)(\/|$)/.test(pathname);
+  return /^\/(admin|auth|design-system)(\/|$)/.test(pathname);
 }
 
 export async function proxy(request: NextRequest) {

@@ -1,2 +1,5 @@
 # Worker secrets for `pnpm preview` (copy to .dev.vars). Production: `pnpm wrangler secret put <NAME>`.
 SUPABASE_SERVICE_ROLE_KEY=
+
+# "1" turns on the design system gallery at /design-system (spec 0003). Never set in production.
+DESIGN_SYSTEM_PAGE=1

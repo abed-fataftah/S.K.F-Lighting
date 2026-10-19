@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { HtmlDocument } from "@/components/html-document";
 import { routing } from "@/i18n/routing";
 
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
@@ -16,10 +17,8 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   if (!hasLocale(routing.locales, locale)) notFound();
 
   return (
-    <html lang={locale} dir="rtl" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
-      </body>
-    </html>
+    <HtmlDocument>
+      <NextIntlClientProvider>{children}</NextIntlClientProvider>
+    </HtmlDocument>
   );
 }
