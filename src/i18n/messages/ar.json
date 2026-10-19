@@ -8,7 +8,27 @@
     "comingSoon": "المتجر قيد الإنشاء."
   },
   "Shell": {
-    "skipToContent": "تخطي إلى المحتوى"
+    "skipToContent": "تخطي إلى المحتوى",
+    "unavailable": "غير متوفر",
+    "remove": "إزالة {label}",
+    "quantity": "الكمية",
+    "decrease": "إنقاص الكمية",
+    "increase": "زيادة الكمية",
+    "loading": "جارٍ التحميل...",
+    "empty": {
+      "title": "لا يوجد شيء هنا بعد",
+      "text": "عندما تتوفر عناصر هنا ستظهر في هذه الصفحة."
+    },
+    "error": {
+      "title": "تعذّر التحميل",
+      "text": "تحقق من الاتصال بالإنترنت ثم حاول مرة أخرى.",
+      "retry": "إعادة المحاولة",
+      "whatsapp": "اطلب عبر واتساب"
+    },
+    "whatsappMessages": {
+      "general": "مرحباً S.K.F lighting، أريد الاستفسار.",
+      "help": "مرحباً، لم أجد ما أبحث عنه وأحتاج مساعدة."
+    }
   },
   "DesignSystem": {
     "metaTitle": "نظام التصميم · S.K.F للإنارة",
@@ -166,6 +186,43 @@
       "sheetTitle": "القائمة",
       "sheetText": "تنزلق اللوحة من جهة البداية، ولا تتحرك عند تقليل الحركة.",
       "close": "إغلاق"
+    },
+    "controls": {
+      "title": "عناصر المتجر",
+      "text": "الشرائح وبطاقات الاختيار وعدّاد الكمية وحالات الصفحة والأيقونات، كما تظهر في صفحات المتجر.",
+      "chipsGroup": "شرائح الخيارات",
+      "sizeLabel": "الحجم",
+      "size40": "40 سم",
+      "size60": "60 سم",
+      "size80": "80 سم",
+      "appliedGroup": "تصفية مطبّقة",
+      "appliedGold": "ذهبي",
+      "appliedInStock": "متوفر فقط",
+      "radioCardsGroup": "بطاقات اختيار",
+      "pickupTitle": "استلام من المعرض",
+      "pickupText": "بدون رسوم",
+      "deliveryTitle": "توصيل",
+      "deliveryText": "إلى العنوان الذي تحدده",
+      "stepperGroup": "عدّاد الكمية",
+      "stepperCart": "في السلة",
+      "stepperProduct": "في صفحة المنتج",
+      "emptyGroup": "حالة فارغة",
+      "emptyTitle": "لا توجد طلبات بعد",
+      "emptyText": "عند إرسال أول طلب سيظهر هنا.",
+      "emptyAction": "تصفّح الأقسام",
+      "errorGroup": "حالة خطأ",
+      "errorTitle": "تعذّر تحميل المنتجات",
+      "loadingGroup": "حالة التحميل",
+      "loadingLabel": "جارٍ تحميل المنتجات",
+      "placeholderGroup": "صورة بديلة",
+      "placeholderTone": "خلفية {tone}",
+      "iconsGroup": "الأيقونات",
+      "iconsFlip": "تنقلب مع اتجاه القراءة",
+      "iconsFixed": "لا تنقلب",
+      "ltrGroup": "أرقام ورموز",
+      "orderNumber": "رقم الطلب",
+      "phone": "الهاتف",
+      "code": "الكود"
     }
   }
 }

@@ -1,10 +1,13 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 // design.md section 6. Focus comes from the global rule in tokens.css, never a ring here.
 // A loading button is the caller's job: pass `disabled` and swap the label.
-// For a link, use `render={<Link href="…" />}` with `nativeButton={false}`.
+// For a link, use ButtonLink below.
 const buttonVariants = cva(
   "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 border border-transparent whitespace-nowrap select-none data-disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5.5",
   {
@@ -56,4 +59,25 @@ function Button({
   );
 }
 
-export { Button, buttonVariants };
+// A link that looks like a Button. Base UI's Button gives a rendered <a> role="button",
+// which hides that it navigates, so links use this instead. For a Next link:
+// render={<Link href="…" />}.
+function ButtonLink({
+  className,
+  variant = "default",
+  size = "sm",
+  render,
+  ...props
+}: useRender.ComponentProps<"a"> & VariantProps<typeof buttonVariants>) {
+  return useRender({
+    defaultTagName: "a",
+    props: mergeProps<"a">(
+      { className: cn(buttonVariants({ variant, size, className })) },
+      { "data-slot": "button" } as React.ComponentProps<"a">,
+      props,
+    ),
+    render,
+  });
+}
+
+export { Button, ButtonLink, buttonVariants };

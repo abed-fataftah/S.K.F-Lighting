@@ -1,5 +1,6 @@
 import { Menu, ShoppingCart } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Button } from "@/components/ui/button";
 import { GallerySection, Labelled, SampleGroup } from "../gallery-section";
 
@@ -35,6 +36,7 @@ export async function ButtonsSection() {
                   {states.map((state) => (
                     <Labelled key={state} label={t(`states.${state}`)}>
                       <Button variant={row.variant} size={size} {...stateProps(state)}>
+                        {row.variant === "whatsapp" ? <WhatsAppIcon /> : null}
                         {size === "lg" ? row.lg : row.sm}
                       </Button>
                     </Labelled>
@@ -60,6 +62,11 @@ export async function ButtonsSection() {
 
       <SampleGroup title={b("icon")}>
         <div className="flex flex-wrap gap-3 p-1">
+          <Labelled label={b("whatsapp")}>
+            <Button variant="whatsapp" size="icon" aria-label={b("askWhatsapp")}>
+              <WhatsAppIcon />
+            </Button>
+          </Labelled>
           {(["default", "focus"] as const).map((state) => (
             <Labelled key={state} label={t(`states.${state}`)}>
               <Button variant="ghost" size="icon" aria-label={b("cart")} {...stateProps(state)}>

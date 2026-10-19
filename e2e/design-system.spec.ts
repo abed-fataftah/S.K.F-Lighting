@@ -120,6 +120,104 @@ test.describe("gallery primitives", () => {
   });
 });
 
+test.describe("gallery custom controls", () => {
+  // covers: AC-9
+  test("marks a chosen chip with aria-pressed and a check, and an unavailable one in words", async ({
+    page,
+  }) => {
+    const group = page.getByRole("group", { name: "الحجم" });
+    const chosen = group.getByRole("button", { name: "60 سم" });
+    await expect(chosen).toHaveAttribute("aria-pressed", "true");
+    await expect(chosen.locator("svg")).toBeVisible();
+
+    const other = group.getByRole("button", { name: "40 سم" });
+    await expect(other.locator("svg")).toBeHidden();
+    await other.click();
+    await expect(other).toHaveAttribute("aria-pressed", "true");
+    await expect(chosen).toHaveAttribute("aria-pressed", "false");
+
+    const unavailable = group.getByRole("button", { name: /80 سم/ });
+    await expect(unavailable).toBeDisabled();
+    await expect(unavailable).toContainText("غير متوفر");
+  });
+
+  test("removes an applied filter by its named button", async ({ page }) => {
+    const remove = page.getByRole("button", { name: "إزالة ذهبي" });
+    await remove.click();
+    await expect(remove).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "إزالة متوفر فقط" })).toBeVisible();
+  });
+
+  test("selects a radio card without shifting its size", async ({ page }) => {
+    const card = page.locator('#controls [data-slot="check-row"]').filter({ hasText: "توصيل" });
+    const delivery = card.getByRole("radio");
+    const before = await card.boundingBox();
+    await delivery.click();
+    await expect(delivery).toHaveAttribute("aria-checked", "true");
+    await expect(card).toHaveCSS("border-top-width", "2px");
+    await expect(card).toHaveCSS("background-color", "rgb(255, 246, 208)");
+    const after = await card.boundingBox();
+    expect(after!.height).toBe(before!.height);
+  });
+
+  test("steps, clamps typed values, and keeps focus on a limit button", async ({ page }) => {
+    const stepper = page.locator('[data-slot="quantity-stepper"]').first();
+    const value = stepper.getByRole("textbox", { name: "الكمية" });
+    const minus = stepper.getByRole("button", { name: "إنقاص الكمية" });
+    const plus = stepper.getByRole("button", { name: "زيادة الكمية" });
+
+    await expect(value).toHaveValue("1");
+    await expect(value).toHaveAttribute("aria-live", "polite");
+    await expect(value).toHaveAttribute("inputmode", "numeric");
+    await expect(minus).toHaveAttribute("aria-disabled", "true");
+    await minus.focus();
+    await page.keyboard.press("Enter");
+    await expect(value).toHaveValue("1");
+    await expect(minus).toBeFocused();
+
+    await plus.click();
+    await expect(value).toHaveValue("2");
+
+    await value.fill("150");
+    await value.press("Enter");
+    await expect(value).toHaveValue("99");
+    await expect(plus).toHaveAttribute("aria-disabled", "true");
+
+    await value.fill("abc");
+    await value.blur();
+    await expect(value).toHaveValue("99");
+
+    await value.fill("0");
+    await value.blur();
+    await expect(value).toHaveValue("1");
+  });
+
+  // covers: AC-9, AC-17
+  test("shows the error card as an alert with retry and a WhatsApp link", async ({ page }) => {
+    const card = page.locator('[data-slot="error-state"]');
+    await expect(card).toHaveAttribute("role", "alert");
+    await expect(card.getByRole("button", { name: "إعادة المحاولة" })).toBeVisible();
+    const whatsapp = card.getByRole("link", { name: "اطلب عبر واتساب" });
+    await expect(whatsapp).toHaveAttribute("target", "_blank");
+    await expect(whatsapp).toHaveAttribute("rel", "noopener");
+    const href = new URL((await whatsapp.getAttribute("href"))!);
+    expect(href.origin + href.pathname).toBe("https://wa.me/970500000000");
+    expect(href.searchParams.get("text")).toBe("مرحباً، لم أجد ما أبحث عنه وأحتاج مساعدة.");
+  });
+
+  test("announces loading in a hidden status sentence", async ({ page }) => {
+    await expect(page.getByRole("status").filter({ hasText: "جارٍ تحميل المنتجات" })).toHaveCount(
+      1,
+    );
+  });
+
+  // covers: AC-10
+  test("flips the directional icons in right to left", async ({ page }) => {
+    const icon = page.locator('[data-testid="icons-flip"] svg').first();
+    await expect(icon).toHaveCSS("scale", "-1 1");
+  });
+});
+
 // covers: AC-21
 test.describe("with reduced motion", () => {
   test.use({ reducedMotion: "reduce" });

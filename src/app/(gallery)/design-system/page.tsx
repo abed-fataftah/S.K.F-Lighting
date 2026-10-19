@@ -1,11 +1,13 @@
 import { getTranslations } from "next-intl/server";
 import { connection } from "next/server";
 import { SkipLink } from "@/components/skip-link";
+import { parsePublicEnv } from "@/lib/public-env";
 import { serverEnv } from "@/server/env";
 import { assertDesignSystemPageOn } from "./gate";
 import { ButtonsSection } from "./sections/buttons";
 import { ChoicesSection } from "./sections/choices";
 import { ColoursSection } from "./sections/colours";
+import { ControlsSection } from "./sections/controls";
 import { DisplaySection } from "./sections/display";
 import { FormsSection } from "./sections/forms";
 import { TypeSection } from "./sections/type";
@@ -17,6 +19,7 @@ export default async function DesignSystemPage() {
   assertDesignSystemPageOn(serverEnv());
   const t = await getTranslations("DesignSystem");
   const shop = await getTranslations("Metadata");
+  const { whatsappNumber } = parsePublicEnv();
 
   const sections = [
     { id: "colours", title: t("colours.title") },
@@ -25,6 +28,7 @@ export default async function DesignSystemPage() {
     { id: "forms", title: t("forms.title") },
     { id: "choices", title: t("choices.title") },
     { id: "display", title: t("display.title") },
+    { id: "controls", title: t("controls.title") },
   ];
 
   return (
@@ -62,6 +66,7 @@ export default async function DesignSystemPage() {
         <FormsSection />
         <ChoicesSection />
         <DisplaySection />
+        <ControlsSection whatsappNumber={whatsappNumber} />
       </main>
     </>
   );
