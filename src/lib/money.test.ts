@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPrice } from "./money";
+import { formatPrice, parseShekels } from "./money";
 
 // covers: AC-2 (spec 0005)
 describe("formatPrice", () => {
@@ -34,5 +34,49 @@ describe("formatPrice", () => {
 
   it("throws on a string", () => {
     expect(() => formatPrice("2000" as unknown as number)).toThrow(RangeError);
+  });
+});
+
+// covers: AC-2 (spec 0004), AC-9 (spec 0005)
+describe("parseShekels", () => {
+  it.each([
+    ["20", 2000],
+    ["19.9", 1990],
+    ["19.90", 1990],
+    ["19.05", 1905],
+    ["0.01", 1],
+    ["1250", 125_000],
+    ["1,250", 125_000],
+    ["1,000,000", 100_000_000],
+    ["007", 700],
+    [" 12 ", 1200],
+  ])("%j is %d agorot", (text, agorot) => {
+    expect(parseShekels(text)).toBe(agorot);
+  });
+
+  it.each([
+    "",
+    "0",
+    "0.00",
+    "-5",
+    "19.999",
+    "1.",
+    ".5",
+    "12,50",
+    "1,2500",
+    ",250",
+    "1,000,000.01",
+    "1000001",
+    "9999999999",
+    "١٢",
+    "12 ₪",
+    "1e3",
+    "abc",
+  ])("refuses %j", (text) => {
+    expect(parseShekels(text)).toBeNull();
+  });
+
+  it("round trips with formatPrice", () => {
+    expect(formatPrice(parseShekels("1,234.5") ?? 0)).toBe("₪1,234.50");
   });
 });

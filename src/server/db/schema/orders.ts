@@ -31,7 +31,8 @@ export const orders = pgTable(
     customerName: text("customer_name").notNull(),
     customerPhone: text("customer_phone").notNull(),
     customerPhoneE164: text("customer_phone_e164").notNull(),
-    city: text("city").notNull(),
+    // Null for pickup (spec 0004); a delivery order must have one (`orders_city_check`).
+    city: text("city"),
     area: text("area"),
     address: text("address"),
     notes: text("notes"),
@@ -53,6 +54,8 @@ export const orders = pgTable(
     cancelledBy: actorKind("cancelled_by"),
     cancelReason: text("cancel_reason"),
     deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    // The checkout attempt that placed this order (spec 0004 AC-9); written once, never updated.
+    idempotencyKey: uuid("idempotency_key").unique(),
     ...timestamps(),
   },
   (t) => [
@@ -72,6 +75,10 @@ export const orders = pgTable(
     check(
       "orders_delivery_check",
       sql`${t.fulfilment} <> 'delivery' or (${t.deliveryZoneId} is not null and ${t.deliveryZoneName} is not null and ${t.address} is not null and btrim(${t.address}) <> '')`,
+    ),
+    check(
+      "orders_city_check",
+      sql`${t.fulfilment} <> 'delivery' or btrim(coalesce(${t.city}, '')) <> ''`,
     ),
     check(
       "orders_pickup_check",

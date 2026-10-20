@@ -29,6 +29,13 @@
       "when": 1792336526202,
       "tag": "0003_align_profile_backfill",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792488446836,
+      "tag": "0004_first_order",
+      "breakpoints": true
     }
   ]
 }

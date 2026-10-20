@@ -22,6 +22,7 @@ vi.mock("@/features/shell/server/shop-contact", () => ({
   getShopContact: async () => ({ phone: null, address: null }),
 }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
+vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 
 // Translations come from the real Arabic catalog; only next-intl's request plumbing is replaced.
 vi.mock("next-intl/server", () => ({

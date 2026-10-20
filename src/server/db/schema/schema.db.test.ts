@@ -124,6 +124,8 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
           "orders_total_check",
           "orders_delivery_check",
           "orders_pickup_check",
+          "orders_city_check",
+          "orders_idempotency_key_unique",
           "orders_cancelled_check",
           "order_lines_line_total_check",
           "order_lines_variant_product_fk",
@@ -448,6 +450,52 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
 
         const placed = await tx.select({ n: orders.orderNumber }).from(orders);
         expect(placed.map((o) => o.n)).toEqual(expect.arrayContaining(["T-5", "T-6"]));
+      });
+    });
+
+    // covers: AC-6, AC-7 (spec 0004)
+    it("lets a pickup order have no city, but not a delivery order", async () => {
+      await withRollback(db, async (tx) => {
+        const [zone] = await tx.select().from(deliveryZones).limit(1);
+        const delivery = {
+          ...base,
+          fulfilment: "delivery" as const,
+          address: "شارع الإرسال 4",
+          deliveryZoneId: zone.id,
+          deliveryZoneName: zone.name,
+          deliveryFee: zone.fee,
+          total: base.subtotal + zone.fee,
+        };
+
+        await tx.insert(orders).values({
+          ...base,
+          orderNumber: "T-10",
+          fulfilment: "pickup",
+          city: null,
+          total: base.subtotal,
+        });
+        await expectViolation(tx, "orders_city_check", (sp) =>
+          sp.insert(orders).values({ ...delivery, orderNumber: "T-11", city: null }),
+        );
+        await expectViolation(tx, "orders_city_check", (sp) =>
+          sp.insert(orders).values({ ...delivery, orderNumber: "T-12", city: "  " }),
+        );
+      });
+    });
+
+    // covers: AC-9 (spec 0004)
+    it("allows one order per idempotency key, and many orders with none", async () => {
+      await withRollback(db, async (tx) => {
+        const key = "3f6c1a52-8e1b-4c1e-9a55-2b1f0e7d9c11";
+        const pickup = { ...base, fulfilment: "pickup" as const, total: base.subtotal };
+        await tx.insert(orders).values([
+          { ...pickup, orderNumber: "T-13", idempotencyKey: key },
+          { ...pickup, orderNumber: "T-14" },
+          { ...pickup, orderNumber: "T-15" },
+        ]);
+        await expectViolation(tx, "orders_idempotency_key_unique", (sp) =>
+          sp.insert(orders).values({ ...pickup, orderNumber: "T-16", idempotencyKey: key }),
+        );
       });
     });
 
