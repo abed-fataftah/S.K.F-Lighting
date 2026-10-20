@@ -16,6 +16,9 @@ export const getDb = cache(async () => {
     max: 1,
     prepare: false,
     fetch_types: false,
+    // On Workers the socket closes with the request. Under `next dev` it is a real Node socket
+    // that outlives it, so an idle client closes itself instead of piling up connections.
+    idle_timeout: 5,
   });
   return drizzle(sql, { schema });
 });

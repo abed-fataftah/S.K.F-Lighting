@@ -4,6 +4,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { HtmlDocument } from "@/components/html-document";
 import { SkipLink } from "@/components/skip-link";
+import { readCartCount } from "@/features/cart/server/queries";
 import { BottomBar } from "@/features/shell/components/bottom-bar";
 import { InfoStrip } from "@/features/shell/components/info-strip";
 import { SiteFooter } from "@/features/shell/components/site-footer";
@@ -27,7 +28,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const { whatsappNumber } = parsePublicEnv();
-  const contact = await getShopContact();
+  const [contact, cartCount] = await Promise.all([getShopContact(), readCartCount()]);
 
   return (
     <HtmlDocument className="scroll-pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))]">
@@ -35,13 +36,13 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
         <div className="mx-auto flex min-h-dvh w-full max-w-(--page-max) flex-col pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))]">
           <SkipLink />
           <InfoStrip />
-          <SiteHeader whatsappNumber={whatsappNumber} />
+          <SiteHeader whatsappNumber={whatsappNumber} cartCount={cartCount} />
           <main id="main" tabIndex={-1} className="flex flex-1 flex-col">
             {children}
           </main>
           <SiteFooter contact={contact} />
         </div>
-        <BottomBar />
+        <BottomBar cartCount={cartCount} />
         <WhatsAppFab whatsappNumber={whatsappNumber} />
       </NextIntlClientProvider>
     </HtmlDocument>

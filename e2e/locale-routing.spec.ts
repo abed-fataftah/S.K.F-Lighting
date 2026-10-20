@@ -12,8 +12,10 @@ test.describe("Arabic storefront", () => {
 
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await expect(page.getByRole("heading", { level: 1, name: "S.K.F للإنارة" })).toBeVisible();
-    await expect(page.getByText("المتجر قيد الإنشاء.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "أحدث المنتجات" })).toBeVisible();
+    await expect(
+      page.getByText("ثريات، أباجورات، ومواد كهربائية من معرضنا، تصلك أينما كنت."),
+    ).toBeVisible();
     await expect(page).toHaveTitle("S.K.F للإنارة");
   });
 

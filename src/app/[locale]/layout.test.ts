@@ -21,6 +21,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/features/shell/server/shop-contact", () => ({
   getShopContact: async () => ({ phone: null, address: null }),
 }));
+vi.mock("@/features/cart/server/queries", () => ({ readCartCount: async () => 0 }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 

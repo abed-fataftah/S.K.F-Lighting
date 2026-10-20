@@ -4,15 +4,17 @@ import { cn } from "@/lib/utils";
 
 // The empty and error card (design.md section 6): white, 1px border, radius 12, padding
 // 32 20, centered; a 72px muted disc with a 34px icon, an 18/800 title, 14px muted text,
-// and buttons stacked 10px apart.
+// and buttons stacked 10px apart. `heading="h1"` when the card is the whole page (an empty cart).
 export function StateCard({
   icon: Icon,
   title,
   text,
   actions,
+  heading: Heading = "h2",
   className,
   ...props
 }: Omit<ComponentProps<"div">, "title"> & {
+  readonly heading?: "h1" | "h2";
   readonly icon: LucideIcon;
   readonly title: ReactNode;
   readonly text?: ReactNode;
@@ -29,7 +31,7 @@ export function StateCard({
       <span className="flex size-18 items-center justify-center rounded-full bg-fill-muted text-muted">
         <Icon aria-hidden className="size-8.5" strokeWidth={1.75} />
       </span>
-      <h2 className="type-title-s">{title}</h2>
+      <Heading className="type-title-s">{title}</Heading>
       {text ? <p className="max-w-(--page-max) text-muted">{text}</p> : null}
       {actions ? <div className="mt-1 flex w-full flex-col gap-2.5">{actions}</div> : null}
     </div>
