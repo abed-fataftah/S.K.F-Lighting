@@ -1,8 +1,14 @@
 import { getTranslations } from "next-intl/server";
+import { Ltr } from "@/components/ltr";
+import { formatPrice } from "@/lib/money";
 import { GallerySection } from "../gallery-section";
 
 // Number samples hold no words, so they live here rather than in ar.json (whose test wants Arabic in every message).
-const samples = { price: "₪1,250", kpi: "₪48,300", notFound: "404" } as const;
+const samples = {
+  price: formatPrice(125_000),
+  kpi: formatPrice(4_830_000),
+  notFound: "404",
+} as const;
 
 // Every type-* role from tokens.css (design.md section 3): size / weight / line height.
 const roles = [
@@ -38,7 +44,7 @@ export async function TypeSection() {
             </span>
             <span className={role.className}>
               {role.id in samples ? (
-                <bdi dir="ltr">{samples[role.id as keyof typeof samples]}</bdi>
+                <Ltr>{samples[role.id as keyof typeof samples]}</Ltr>
               ) : (
                 t("sample")
               )}

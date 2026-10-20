@@ -13,11 +13,22 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup } from "@/components/ui/toggle-group";
+import { formatDateTime, formatNumber, formatPhone } from "@/lib/format";
+import { formatPrice } from "@/lib/money";
 import { GallerySection, Labelled, SampleGroup } from "../gallery-section";
 import { AppliedFiltersDemo, ErrorStateDemo } from "./controls-demo";
 
 // Board samples (gallery only): numbers and codes are not words, so they stay here.
-const samples = { orderNumber: "26-00123", phone: "0599 123 456", code: "CH-2041" } as const;
+const samples = {
+  orderNumber: "26-00123",
+  phone: "+970599123456",
+  code: "CH-2041",
+  price: 125_000,
+  refund: -5000,
+  count: 1250,
+  // A fixed instant, so the gallery reads 20/10/2026 · 4:45 م in every browser (spec 0005, AC-16).
+  placedAt: new Date("2026-10-20T13:45:00Z"),
+} as const;
 
 // The custom controls, icons, and the WhatsApp link (AC-9, AC-10, AC-17).
 export async function ControlsSection({ whatsappNumber }: { readonly whatsappNumber: string }) {
@@ -121,14 +132,30 @@ export async function ControlsSection({ whatsappNumber }: { readonly whatsappNum
       </SampleGroup>
 
       <SampleGroup title={c("ltrGroup")}>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1" data-testid="formats-sample">
+          <dt className="text-muted">{c("price")}</dt>
+          <dd className="font-bold">
+            <Ltr>{formatPrice(samples.price)}</Ltr>
+          </dd>
+          <dt className="text-muted">{c("refund")}</dt>
+          <dd className="font-bold">
+            <Ltr>{formatPrice(samples.refund)}</Ltr>
+          </dd>
+          <dt className="text-muted">{c("count")}</dt>
+          <dd className="font-bold">{formatNumber(samples.count)}</dd>
+          <dt className="text-muted">{c("placedAt")}</dt>
+          <dd className="font-bold">
+            <time dateTime={samples.placedAt.toISOString()}>
+              {formatDateTime(samples.placedAt)}
+            </time>
+          </dd>
           <dt className="text-muted">{c("orderNumber")}</dt>
           <dd className="font-bold">
             <Ltr>{samples.orderNumber}</Ltr>
           </dd>
           <dt className="text-muted">{c("phone")}</dt>
           <dd className="font-bold">
-            <Ltr>{samples.phone}</Ltr>
+            <Ltr>{formatPhone(samples.phone)}</Ltr>
           </dd>
           <dt className="text-muted">{c("code")}</dt>
           <dd className="font-bold">

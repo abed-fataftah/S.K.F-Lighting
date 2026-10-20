@@ -2,6 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
+import { formatNumber } from "@/lib/format";
 import { routes } from "@/lib/routes";
 
 // The header cart link (spec 0003, AC-14): 44x44, a white 26px cart. A yellow count badge
@@ -9,7 +10,8 @@ import { routes } from "@/lib/routes";
 // badge itself is hidden from screen readers. Feature 12 passes the count.
 export function CartButton({ count }: { readonly count?: number }) {
   const t = useTranslations("Shell");
-  const shown = count && count > 0 ? (count > 99 ? "99+" : String(count)) : null;
+  const shown =
+    count && count > 0 ? (count > 99 ? `${formatNumber(99)}+` : formatNumber(count)) : null;
 
   return (
     <Link

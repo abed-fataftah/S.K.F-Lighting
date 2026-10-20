@@ -1,12 +1,10 @@
 // Short order numbers a customer can read over WhatsApp: `YY-NNNNN`, for example `26-00042`.
 
-const SHOP_TIME_ZONE = "Asia/Jerusalem";
+import { shopYear } from "@/lib/format";
 
-const yearFormat = new Intl.DateTimeFormat("en-US", { timeZone: SHOP_TIME_ZONE, year: "numeric" });
-
-/** The calendar year of `placedAt` in the shop's time zone, which names the order's number series. */
+/** The calendar year of `placedAt` on the shop's clock, which names the order's number series. */
 export function orderYear(placedAt: Date): number {
-  return Number(yearFormat.format(placedAt));
+  return shopYear(placedAt);
 }
 
 /** `formatOrderNumber(2026, 42)` is `"26-00042"`; past 99999 the sequence simply grows longer. */

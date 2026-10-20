@@ -38,6 +38,6 @@ describe("i18n request config", () => {
   it("formats dates in the shop's time zone", async () => {
     const config = await requestConfig({ requestLocale: Promise.resolve("ar") });
 
-    expect(config.timeZone).toBe("Asia/Jerusalem");
+    expect(config.timeZone).toBe("Asia/Hebron");
   });
 });

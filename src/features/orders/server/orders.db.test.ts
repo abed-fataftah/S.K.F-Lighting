@@ -243,9 +243,9 @@ describe.skipIf(!hasLocalDb)("order numbers", () => {
     expect(next).toBe("91-00001");
   });
 
-  it("restarts at 00001 in a new year, taking the year in Asia/Jerusalem", async () => {
+  it("restarts at 00001 in a new year, taking the year on the shop's clock", async () => {
     await db.transaction((tx) => allocateOrderNumber(tx, inYear(COMMIT_YEAR)));
-    // 22:30 UTC on 31 December is already 1 January in Jerusalem.
+    // 22:30 UTC on 31 December is already 1 January on the shop's clock.
     const newYear = new Date(`${CONCURRENT_YEAR - 1}-12-31T22:30:00Z`);
     const first = await db.transaction((tx) => allocateOrderNumber(tx, newYear));
 

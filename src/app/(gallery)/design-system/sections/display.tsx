@@ -28,12 +28,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Ltr } from "@/components/ltr";
+import { formatNumber } from "@/lib/format";
+import { formatPrice } from "@/lib/money";
 import { GallerySection, SampleGroup } from "../gallery-section";
 
 // Board samples (gallery only): order numbers and totals are not words, so they stay here.
 const orders = [
-  { number: "26-00123", customer: "customerA", status: "new", total: "₪1,250" },
-  { number: "26-00122", customer: "customerB", status: "proc", total: "₪340" },
+  { number: "26-00123", customer: "customerA", status: "new", totalAgorot: 125_000 },
+  { number: "26-00122", customer: "customerB", status: "proc", totalAgorot: 34_000 },
 ] as const;
 
 // Badge, card, table, notice, skeleton, breadcrumb, and sheet (AC-7, AC-21).
@@ -51,8 +54,8 @@ export async function DisplaySection() {
           <Badge variant="spec">{d("specChip")}</Badge>
           <span className="inline-flex items-center gap-1.5 rounded-btn bg-ink p-2 text-white">
             <span className="type-caption">{d("countLabel")}</span>
-            <Badge variant="count">3</Badge>
-            <Badge variant="count">99+</Badge>
+            <Badge variant="count">{formatNumber(3)}</Badge>
+            <Badge variant="count">{`${formatNumber(99)}+`}</Badge>
           </span>
         </div>
       </SampleGroup>
@@ -80,7 +83,7 @@ export async function DisplaySection() {
             {orders.map((order) => (
               <TableRow key={order.number}>
                 <TableCell>
-                  <bdi dir="ltr">{order.number}</bdi>
+                  <Ltr>{order.number}</Ltr>
                 </TableCell>
                 <TableCell className="whitespace-nowrap">{d(order.customer)}</TableCell>
                 <TableCell>
@@ -89,7 +92,7 @@ export async function DisplaySection() {
                   </Badge>
                 </TableCell>
                 <TableCell className="font-bold">
-                  <bdi dir="ltr">{order.total}</bdi>
+                  <Ltr>{formatPrice(order.totalAgorot)}</Ltr>
                 </TableCell>
               </TableRow>
             ))}

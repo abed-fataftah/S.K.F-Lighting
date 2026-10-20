@@ -23,11 +23,11 @@ describe("formatOrderNumber", () => {
 });
 
 describe("orderYear", () => {
-  it("uses the shop's time zone, so 00:30 on 1 January in Jerusalem is already the new year", () => {
+  it("uses the shop's clock, where 22:30 UTC on 31 December is already the new year", () => {
     expect(orderYear(new Date("2026-12-31T22:30:00Z"))).toBe(2027);
   });
 
-  it("keeps the old year until midnight in Jerusalem", () => {
+  it("keeps the old year until midnight on the shop's clock", () => {
     expect(orderYear(new Date("2026-12-31T21:59:59Z"))).toBe(2026);
   });
 

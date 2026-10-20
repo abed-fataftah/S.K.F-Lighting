@@ -5,7 +5,7 @@ import type { Transaction } from "@/server/db/types";
 import { formatOrderNumber, orderYear } from "../order-number";
 
 /**
- * The next order number for the year of `placedAt` (Asia/Jerusalem), for example `26-00042`.
+ * The next order number for the year of `placedAt` (on the shop's clock, `SHOP_TIME_ZONE`), for example `26-00042`.
  * Call inside the transaction that inserts the order, with the same `placedAt` the order stores:
  * the counter row lock queues concurrent orders, and a rolled back order releases its number.
  */

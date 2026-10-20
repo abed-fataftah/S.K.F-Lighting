@@ -260,7 +260,11 @@
       "iconsGroup": "الأيقونات",
       "iconsFlip": "تنقلب مع اتجاه القراءة",
       "iconsFixed": "لا تنقلب",
-      "ltrGroup": "أرقام ورموز",
+      "ltrGroup": "أرقام وتواريخ ورموز",
+      "price": "السعر",
+      "refund": "مبلغ مسترد",
+      "count": "عدد القطع",
+      "placedAt": "وقت الطلب",
       "orderNumber": "رقم الطلب",
       "phone": "الهاتف",
       "code": "الكود"
