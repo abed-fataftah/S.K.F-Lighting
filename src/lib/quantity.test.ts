@@ -11,11 +11,15 @@ describe("commitQuantity", () => {
     ["100", 99],
     ["007", 7],
     [" 5 ", 5],
+    // covers: AC-9 (spec 0005)
+    ["١٢", 12],
+    ["۷", 7],
+    ["\u200f15", 15],
   ])("turns %j into %i", (typed, expected) => {
     expect(commitQuantity(typed, 3)).toBe(expected);
   });
 
-  it.each(["", "  ", "abc", "-4", "2.5", "١٢"])("keeps the last value for %j", (typed) => {
+  it.each(["", "  ", "abc", "-4", "2.5", "١٫٥"])("keeps the last value for %j", (typed) => {
     expect(commitQuantity(typed, 3)).toBe(3);
   });
 });

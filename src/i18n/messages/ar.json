@@ -71,6 +71,11 @@
       "settings": "الإعدادات"
     }
   },
+  "Validation": {
+    "arabicRequired": "اكتب هذا الحقل بالعربية",
+    "tooShort": "النص قصير جدًا، الحد الأدنى {min} أحرف",
+    "tooLong": "النص طويل جدًا، الحد الأقصى {max} حرفًا"
+  },
   "DesignSystem": {
     "metaTitle": "نظام التصميم · S.K.F للإنارة",
     "title": "نظام التصميم",

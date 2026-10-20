@@ -1,7 +1,6 @@
 // URL slugs that keep the Arabic name readable, for example `ثريا-كريستال-CH-1020`.
+import { stripArabicMarks } from "@/lib/arabic";
 
-// Tashkeel (harakat, tanween, shadda, sukun, and the other combining marks) and tatweel.
-const ARABIC_MARKS = /[ؐ-ًؚ-ٰٟۖ-ۭـ]/g;
 const KEPT = /[\p{Script=Arabic}\p{Script=Latin}0-9]/u;
 const LETTER_OR_DIGIT = /[\p{L}\p{Nd}]/u;
 
@@ -9,7 +8,7 @@ const isKept = (char: string): boolean => KEPT.test(char) && LETTER_OR_DIGIT.tes
 
 /** The cleaned name part shared by product and category slugs. Category actions append `-2`, `-3` on a clash. */
 export function slugify(name: string): string {
-  return Array.from(name.replace(ARABIC_MARKS, ""))
+  return Array.from(stripArabicMarks(name))
     .map((char) => (isKept(char) ? char.toLowerCase() : "-"))
     .join("")
     .replace(/-+/g, "-")

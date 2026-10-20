@@ -14,6 +14,11 @@ describe("normalizePhone", () => {
     ["0521234567", "+972521234567"],
     ["+972 54 123 4567", "+972541234567"],
     ["00972541234567", "+972541234567"],
+    // covers: AC-9 (spec 0005): Arabic and Persian digits, and a pasted direction mark.
+    ["٠٥٩٩١٢٣٤٥٦", "+970599123456"],
+    ["۰۵۹۹۱۲۳۴۵۶", "+970599123456"],
+    ["\u200f0599 123 456", "+970599123456"],
+    ["+٩٧٢٥٤١٢٣٤٥٦٧", "+972541234567"],
   ])("turns %s into %s", (raw, expected) => {
     expect(normalizePhone(raw)).toBe(expected);
   });
@@ -42,7 +47,7 @@ describe("normalizePhone", () => {
     ["+1 202 555 0100", "another country"],
     ["0599a23456", "a letter in it"],
     ["970599123456", "a country code without + or 00"],
-    ["٠٥٩٩١٢٣٤٥٦", "Arabic numerals (not accepted yet; feature 13 decides)"],
+    ["٠٢ ٢٧٤ ١٢٣٤", "a landline in Arabic digits"],
   ])("returns null for %s (%s)", (raw) => {
     expect(normalizePhone(raw)).toBeNull();
   });
