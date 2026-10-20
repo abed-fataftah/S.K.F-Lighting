@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { FocusHeading } from "@/components/focus-heading";
+import { Ltr } from "@/components/ltr";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -52,11 +53,10 @@ export default async function ConfirmationPage({
         <FocusHeading className="type-title-l">{t("title")}</FocusHeading>
         <p className="text-muted">{t("numberLabel")}</p>
         <p
-          dir="ltr"
           data-testid="order-number"
           className="rounded-tile border border-dashed border-ink px-5 py-2 type-price"
         >
-          {order.orderNumber}
+          <Ltr>{order.orderNumber}</Ltr>
         </p>
         <p className="type-small text-muted">{t("keep")}</p>
       </Card>

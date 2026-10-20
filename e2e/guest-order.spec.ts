@@ -79,6 +79,7 @@ test("a guest finds a product, checks out, and lands on WhatsApp with the order 
   // Back on the confirmation page: the flag is gone, so it does not hand off again.
   await page.goto(`/checkout/done/${number}`);
   await expect(page.getByTestId("order-number")).toHaveText(number!);
+  await expect(page.getByTestId("order-number").locator("bdi[dir=ltr]")).toHaveText(number!);
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
   await expect(page.getByTestId("open-whatsapp")).toHaveAttribute("href", /wa\.me/);
   await checkA11y(page);
