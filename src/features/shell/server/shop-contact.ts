@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { getDb } from "@/server/db";
 import { shopSettings } from "@/server/db/schema";
+import { withTimeLimit } from "@/server/db/time-limit";
 import { noContact, type ShopContact } from "../contact";
 
 // The footer's contact details (spec 0003, AC-15). Public shop data, never customer data.
@@ -13,25 +14,16 @@ export async function readShopContact(
   read: () => Promise<ShopContact>,
   timeoutMs: number = CONTACT_TIMEOUT_MS,
 ): Promise<ShopContact> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<"timeout">((resolve) => {
-    timer = setTimeout(() => resolve("timeout"), timeoutMs);
-  });
-  try {
-    const result = await Promise.race([read(), timeout]);
-    if (result === "timeout") {
-      console.error("getShopContact: no answer within the time limit", { timeoutMs });
-      return noContact;
-    }
-    return result;
-  } catch (error) {
+  const result = await withTimeLimit(read, timeoutMs);
+  if (result.ok) return result.data;
+  if (result.error === "timeout") {
+    console.error("getShopContact: no answer within the time limit", { timeoutMs });
+  } else {
     console.error("getShopContact: read failed", {
-      error: error instanceof Error ? error.name : "unknown",
+      error: result.cause instanceof Error ? result.cause.name : "unknown",
     });
-    return noContact;
-  } finally {
-    clearTimeout(timer);
   }
+  return noContact;
 }
 
 export const getShopContact = cache(() =>

@@ -2,7 +2,8 @@
 
 import { CircleAlert, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import type { ComponentProps, ReactNode } from "react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { StateCard } from "@/components/state-card";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -57,4 +58,10 @@ export function ErrorState({
       }
     />
   );
+}
+
+// The error card for a server page whose data did not load: retry renders the page again.
+export function PageErrorState(props: Omit<ComponentProps<typeof ErrorState>, "onRetry">) {
+  const router = useRouter();
+  return <ErrorState {...props} onRetry={() => router.refresh()} />;
 }
