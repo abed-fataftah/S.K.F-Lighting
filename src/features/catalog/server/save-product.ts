@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, inArray, isNull, like, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import {
   categories,
   colours,
@@ -12,8 +12,9 @@ import { isForeignKeyViolation, isUniqueViolation } from "@/server/db/pg-error";
 import type { Database, Transaction } from "@/server/db/types";
 import { orderMedia } from "../media-rules";
 import { optionKey, type ProductEditorData } from "../schemas";
-import { buildProductSlug, nextFreeSlug, slugify } from "../slug";
+import { buildProductSlug } from "../slug";
 import { planVariants, tempLabel, type VariantPlan } from "../variant-plan";
+import { findOrCreateTopCategory } from "./categories";
 
 // The database half of `saveProduct` (spec 0006 AC-2 to AC-13, saveProduct order of work, step 3):
 // one transaction that checks the version, resolves the category and colours, reconciles the
@@ -63,37 +64,6 @@ export async function whyNoRow(tx: Tx | Database, id: string): Promise<SaveRefus
     .limit(1);
   if (!row) return { kind: "not_found" };
   return row.status === "archived" ? { kind: "archived" } : { kind: "stale" };
-}
-
-/** A typed name reuses a top level category with that name; otherwise a new top level one (spec 0004). */
-async function findOrCreateTopCategory(tx: Tx, name: string): Promise<string> {
-  const [existing] = await tx
-    .select({ id: categories.id })
-    .from(categories)
-    .where(and(eq(sql`btrim(${categories.name})`, name), isNull(categories.parentId)))
-    .orderBy(asc(categories.sort))
-    .limit(1);
-  if (existing) return existing.id;
-
-  const base = slugify(name);
-  const clashes = await tx
-    .select({ slug: categories.slug })
-    .from(categories)
-    .where(or(eq(categories.slug, base), like(categories.slug, `${base}-%`)));
-  const [created] = await tx
-    .insert(categories)
-    .values({
-      name,
-      slug: nextFreeSlug(
-        base,
-        clashes.map((row) => row.slug),
-      ),
-      parentId: null,
-      sort: 0,
-      isVisible: true,
-    })
-    .returning({ id: categories.id });
-  return created.id;
 }
 
 type ResolvedCategory = { readonly mainId: string; readonly subId: string | null };

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { toShekelsInput } from "@/lib/money";
 import { pageWindow, splitPage } from "@/lib/paging";
@@ -182,6 +182,39 @@ export async function readEditorLookups(db: Db): Promise<EditorLookups> {
       })),
     colours: allColours,
   };
+}
+
+export type ProductByCode = {
+  readonly code: string;
+  readonly id: string;
+  readonly status: "active" | "hidden" | "archived";
+  /** The product's main category: its category's parent when it sits in a sub, else its own. */
+  readonly mainCategoryId: string;
+};
+
+/** The products behind these codes, any status (spec 0007 `readImportContext`); missing codes are left out. */
+export async function readProductsByCodes(
+  db: Db,
+  codes: readonly string[],
+): Promise<readonly ProductByCode[]> {
+  if (!codes.length) return [];
+  const rows = await db
+    .select({
+      code: products.code,
+      id: products.id,
+      status: products.status,
+      categoryId: products.categoryId,
+      parentId: categories.parentId,
+    })
+    .from(products)
+    .innerJoin(categories, eq(categories.id, products.categoryId))
+    .where(inArray(products.code, [...codes]));
+  return rows.map((row) => ({
+    code: row.code,
+    id: row.id,
+    status: row.status,
+    mainCategoryId: row.parentId ?? row.categoryId,
+  }));
 }
 
 /** Top level categories with their children, and every colour (spec 0006 `getEditorLookups`). */
