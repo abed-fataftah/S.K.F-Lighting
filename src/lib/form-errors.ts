@@ -14,6 +14,8 @@ export const fieldErrorKeys = {
   code_taken: "codeTaken",
   category_required: "categoryRequired",
   zone_required: "zoneRequired",
+  email_invalid: "emailInvalid",
+  totp_format: "totpFormat",
 } as const;
 
 export type FieldErrorCode = keyof typeof fieldErrorKeys;

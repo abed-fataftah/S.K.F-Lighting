@@ -116,6 +116,25 @@ describe("proxy", () => {
       expect(redirectedTo(response)).toBeNull();
       expect(response.headers.get("x-middleware-next")).toBe("1");
     });
+
+    // covers: AC-1 (spec 0004), the guard's `?next=`
+    it("tells the dashboard which path was asked for, over any value the browser sent", async () => {
+      const response = await proxy(
+        new NextRequest("http://localhost/admin/orders?page=2", {
+          headers: { "x-admin-path": "//evil.com" },
+        }),
+      );
+
+      expect(response.headers.get("x-middleware-request-x-admin-path")).toBe(
+        "/admin/orders?page=2",
+      );
+    });
+
+    it("adds no path header outside the dashboard", async () => {
+      const response = await proxy(request("/auth/callback"));
+
+      expect(response.headers.get("x-middleware-request-x-admin-path")).toBeNull();
+    });
   });
 
   describe("session refresh", () => {

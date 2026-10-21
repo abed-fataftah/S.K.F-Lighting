@@ -20,6 +20,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:check-rls": "tsx --conditions=react-server scripts/check-rls.ts",
     "db:seed": "tsx --conditions=react-server scripts/seed-dev.ts",
+    "admin:promote": "tsx --conditions=react-server scripts/admin-promote.ts",
+    "admin:mfa-reset": "tsx scripts/admin-mfa-reset.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -55,6 +57,7 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
+    "otpauth": "^9.5.2",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "supabase": "^2.121.0",

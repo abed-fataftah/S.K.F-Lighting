@@ -4,6 +4,7 @@ import { Store } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { activeAdminLink, adminLinks } from "../nav";
@@ -14,14 +15,16 @@ import { adminIcons } from "./nav-icons";
 // caption, eight links 48 high, then "عرض المتجر". The current link has the active fill, a
 // 4px yellow bar on the inline start edge, and aria-current="page". In the dashboard's
 // flex row it takes 220px up to 260px and wraps above the content below 780px.
-// The /admin layout and its guard come with the first dashboard page (feature 6).
-// `pathname` overrides the current path (the gallery).
+// `pathname` overrides the current path (the gallery); `children` sit under "عرض المتجر"
+// (the dashboard layout puts the sign out button there).
 export function AdminSide({
   pathname: forced,
   className,
+  children,
 }: {
   readonly pathname?: string;
   readonly className?: string;
+  readonly children?: ReactNode;
 }) {
   const t = useTranslations("AdminShell");
   const pathname = usePathname();
@@ -71,6 +74,7 @@ export function AdminSide({
           <Store aria-hidden className="size-5" />
           {t("viewStore")}
         </Link>
+        {children}
       </div>
     </aside>
   );

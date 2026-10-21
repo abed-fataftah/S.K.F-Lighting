@@ -6,7 +6,7 @@ import "./globals.css";
 export const viewport: Viewport = { viewportFit: "cover" };
 
 // The real root layouts are `[locale]/layout.tsx` (storefront), `(gallery)/design-system/layout.tsx`,
-// and, later, `admin/layout.tsx` (dashboard). Each renders <html> through HtmlDocument.
+// and `admin/layout.tsx` (dashboard). Each renders <html> through HtmlDocument.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return children;
 }
