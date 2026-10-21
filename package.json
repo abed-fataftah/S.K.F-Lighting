@@ -22,6 +22,7 @@
     "db:seed": "tsx --conditions=react-server scripts/seed-dev.ts",
     "admin:promote": "tsx --conditions=react-server scripts/admin-promote.ts",
     "admin:mfa-reset": "tsx scripts/admin-mfa-reset.ts",
+    "media:sweep": "tsx --conditions=react-server scripts/media-sweep.ts",
     "prepare": "husky"
   },
   "dependencies": {
