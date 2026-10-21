@@ -14,7 +14,7 @@ From spec [0001](../specs/0001-stack-architecture/index.md). Local settings live
 - [ ] Redirect URLs: `http://localhost:3000/**`, the production domain, and the Workers preview URL pattern.
 - [ ] Email + password sign in on. Email confirmations as decided by the accounts feature (18).
 - [ ] Google provider on, with the client id and secret from Google Cloud. Google callbacks work on production and localhost only, not on preview deploys.
-- [ ] MFA: authenticator app (TOTP) enroll and verify on. Phone MFA off.
+- [ ] MFA: authenticator app (TOTP) enroll and verify on. Phone MFA off. The dashboard needs it (spec 0004): without it `/admin/mfa` cannot set up or check a code.
 - [ ] Custom SMTP: Resend, sending from the shop domain (SPF and DKIM verified in Cloudflare DNS first).
 - [ ] Raise the auth email rate limit after custom SMTP is on (it starts low).
 
@@ -34,3 +34,8 @@ Applied by Drizzle migrations from the data model feature (3) onwards, listed he
 
 - [ ] Hyperdrive config created against the **session pooler** URL (`pnpm wrangler hyperdrive create skf-pro-db --connection-string=...`), and its id set in `wrangler.jsonc`.
 - [ ] `DATABASE_URL_DIRECT` (session pooler, port 5432) stored as a CI secret for migrations and backups.
+
+## Worker settings that go with it
+
+- [ ] `ORDER_RATE_LIMITER` (spec 0004): the order spam limit, 5 submissions a minute per IP. It is declared in `wrangler.jsonc` (`ratelimits`) and deploys with the Worker, so there is nothing to click. Its `namespace_id` must be unique within the Cloudflare account; change it there if another Worker already uses `1004`. Without the binding the limit is skipped, never blocking an order.
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` is **not** a Worker secret today. Only `pnpm admin:mfa-reset` uses it, run from a trusted machine (see [admin-mfa.md](admin-mfa.md)).

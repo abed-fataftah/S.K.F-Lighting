@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildProductSlug, slugify } from "./slug";
+import { buildProductSlug, nextFreeSlug, slugify } from "./slug";
 
 describe("buildProductSlug", () => {
   it.each([
@@ -34,5 +34,18 @@ describe("slugify", () => {
 
   it("gives an empty string for punctuation only", () => {
     expect(slugify("---")).toBe("");
+  });
+});
+
+// covers: AC-2 (spec 0004), a new category's slug
+describe("nextFreeSlug", () => {
+  it("keeps a free slug", () => {
+    expect(nextFreeSlug("ثريات", ["إنارة"])).toBe("ثريات");
+  });
+
+  it("adds -2, -3 on a clash, filling the first gap", () => {
+    expect(nextFreeSlug("ثريات", ["ثريات"])).toBe("ثريات-2");
+    expect(nextFreeSlug("ثريات", ["ثريات", "ثريات-2", "ثريات-3"])).toBe("ثريات-4");
+    expect(nextFreeSlug("ثريات", ["ثريات", "ثريات-3"])).toBe("ثريات-2");
   });
 });

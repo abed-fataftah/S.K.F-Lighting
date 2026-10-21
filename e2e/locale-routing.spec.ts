@@ -66,13 +66,15 @@ test.describe("Arabic storefront", () => {
 });
 
 test.describe("routes outside the storefront", () => {
-  test("leaves /admin to its own routes: no locale rewrite, 404 until the dashboard exists", async ({
+  // The dashboard exists since spec 0004: a signed out visitor goes to its sign in page.
+  test("leaves /admin to its own routes: no locale rewrite, signed out goes to sign in", async ({
     request,
   }) => {
     const response = await request.get("/admin", { maxRedirects: 0 });
 
-    expect(response.status()).toBe(404);
     expect(response.headers()["x-middleware-rewrite"]).toBeUndefined();
+    expect(response.status()).toBe(307);
+    expect(response.headers()["location"]).toMatch(/^\/admin\/login(\?|$)/);
   });
 
   test("shows the Arabic not found page, right to left, for an unknown path", async ({ page }) => {

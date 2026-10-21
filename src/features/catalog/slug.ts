@@ -15,6 +15,15 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/** `base`, or `base-2`, `base-3`, … : the first one not in `taken` (category slugs, spec 0004 AC-2). */
+export function nextFreeSlug(base: string, taken: Iterable<string>): string {
+  const used = new Set(taken);
+  if (!used.has(base)) return base;
+  let n = 2;
+  while (used.has(`${base}-${n}`)) n += 1;
+  return `${base}-${n}`;
+}
+
 /** Set once when a product is created and never regenerated on rename, so shared links keep working. */
 export function buildProductSlug(name: string, code: string): string {
   const base = slugify(name);

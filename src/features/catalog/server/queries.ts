@@ -1,5 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, isNull, min } from "drizzle-orm";
+import { routes } from "@/lib/routes";
+import { requireAdminPage } from "@/server/auth/admin";
 import { getDb } from "@/server/db";
 import { categories, colours, products, productVariants } from "@/server/db/schema";
 import { pickVariantToAdd } from "../sellable";
@@ -117,4 +119,16 @@ export async function getProductBySlug(slug: string): Promise<ProductPageData | 
       : null,
     price: picked?.price ?? fallback?.price ?? null,
   };
+}
+
+export type CategoryOption = { readonly id: string; readonly name: string };
+
+/** Every category for the product form's select, by `sort` then name (spec 0004 AC-2). Admin only. */
+export async function listCategoriesForForm(): Promise<readonly CategoryOption[]> {
+  await requireAdminPage(routes.admin.productNew);
+  const db = await getDb();
+  return db
+    .select({ id: categories.id, name: categories.name })
+    .from(categories)
+    .orderBy(asc(categories.sort), asc(categories.name));
 }

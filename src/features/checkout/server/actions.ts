@@ -11,6 +11,7 @@ import { checkoutSchema } from "../schemas";
 import type { DeliveryZoneOption } from "./checkout-options";
 import { placeOrderInDb } from "./place-order";
 import { rememberPlacedOrder } from "./placed";
+import { orderRateCheck } from "./rate-limit";
 
 export type CheckoutError =
   | "invalid"
@@ -44,6 +45,12 @@ export async function placeOrder(_previous: CheckoutState, form: FormData): Prom
     const fieldErrors = fieldErrorsOf(parsed.error);
     logFailure("invalid", Object.keys(fieldErrors));
     return { ok: false, error: "invalid", fieldErrors };
+  }
+
+  // Step 2: every submission that parses counts, replays included (AC-10).
+  if ((await orderRateCheck()) === "limited") {
+    logFailure("rate_limited");
+    return { ok: false, error: "rate_limited" };
   }
 
   let outcome: Awaited<ReturnType<typeof placeOrderInDb>>;

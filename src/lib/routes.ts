@@ -25,6 +25,8 @@ export const routes = {
   admin: {
     home: "/admin",
     orders: "/admin/orders",
+    /** The orders list page `page` (1 based); page 1 is the plain list. */
+    ordersPage: (page: number) => (page > 1 ? `/admin/orders?page=${page}` : "/admin/orders"),
     order: (number: string) => `/admin/orders/${segment(number)}`,
     customers: "/admin/customers",
     reports: "/admin/reports",

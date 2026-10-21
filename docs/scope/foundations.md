@@ -65,12 +65,12 @@ spec [0005](../specs/0005-arabic-language/index.md) · code in `src/lib/` (`form
 ### 6. First order end to end · in-progress
 The thinnest real path through the whole shop: you sign in to the dashboard and add one simple product; a guest sees it, adds it to a cart, fills a short form, and sends the order. The order is saved, WhatsApp opens with the order message, and it appears in your dashboard. Rests on the foundation specs; no options, search, or accounts yet.
 **Done when:** one real order goes from a product page to the dashboard and to a prefilled WhatsApp message with its order number, on a phone, in Arabic.
-spec [0004](../specs/0004-first-order-end-to-end/index.md) · code in `src/features/cart/`, `src/features/checkout/`, `src/features/catalog/`, `src/features/orders/`, `src/app/[locale]/`, `drizzle/0004_first_order.sql`
+spec [0004](../specs/0004-first-order-end-to-end/index.md) · code in `src/features/cart/`, `src/features/checkout/`, `src/features/catalog/`, `src/features/orders/`, `src/features/admin-auth/`, `src/server/auth/admin.ts`, `src/app/[locale]/`, `src/app/admin/`, `scripts/admin-*.ts`, `drizzle/0004_first_order.sql`
 - [x] Design it (spec): `/architect first order end to end`
-- [ ] Build it: `/develop first order end to end`
+- [x] Build it: `/develop first order end to end`
   - [x] Pure rules and the orders migration: money, cart and placed cookies, checkout and product schemas, W5 builder (AC-6, AC-9, AC-12, AC-14)
   - [x] Thin thread: one guest order on the dev seed, from `/` to the WhatsApp link (AC-3 to AC-9, AC-11, AC-12, AC-15)
-  - [ ] Admin sign in with TOTP, `requireAdmin()`, and the promote and reset scripts (AC-1)
-  - [ ] Owner adds the product and sees the order, with the rate limit and the full phone flow (AC-2, AC-10, AC-13, AC-16)
+  - [x] Admin sign in with TOTP, `requireAdmin()`, and the promote and reset scripts (AC-1)
+  - [x] Owner adds the product and sees the order, with the rate limit and the full phone flow (AC-2, AC-10, AC-13, AC-16)
 - [ ] Verify it: `/check verify first order end to end`
 - [ ] Test it: `/test first order end to end`
