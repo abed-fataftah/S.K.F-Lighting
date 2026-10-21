@@ -46,8 +46,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The products list (spec 0006 AC-1; docs/design/pages/admin-products.md). Search, category, and
-// status live in the address and combine; 50 a page, newest first. The import button comes with
-// feature 8, which builds the page it opens.
+// status live in the address and combine; 50 a page, newest first. "استيراد من جدول" opens the
+// spreadsheet import (spec 0007 AC-1).
 export default async function AdminProductsPage({ searchParams }: PageProps<"/admin/products">) {
   const params = await searchParams;
   const filters = {
@@ -69,9 +69,18 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="type-display-s">{t("title")}</h1>
-        <ButtonLink render={<Link href={routes.admin.productNew} />} data-testid="product-add">
-          {t("add")}
-        </ButtonLink>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink
+            variant="outline"
+            render={<Link href={routes.admin.productImport} />}
+            data-testid="product-import-link"
+          >
+            {t("import")}
+          </ButtonLink>
+          <ButtonLink render={<Link href={routes.admin.productNew} />} data-testid="product-add">
+            {t("add")}
+          </ButtonLink>
+        </div>
       </div>
 
       <Card>
