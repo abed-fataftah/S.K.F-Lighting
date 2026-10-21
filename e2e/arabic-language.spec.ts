@@ -85,6 +85,24 @@ test.describe("storefront in an ar-PS browser on America/New_York time", () => {
     await slow(page).toHaveURL(/\/checkout$/);
     await expectStorefrontNumbers(page);
   });
+
+  // covers: AC-1, AC-7, AC-13 (a limit in a field error arrives through formatNumber)
+  test("shows a field error's limit in Western digits", async ({ page }) => {
+    const slow = expect.configure({ timeout: 15_000 });
+    await page.goto("/");
+    await page.getByTestId("home-products").getByRole("link").first().click();
+    await page.getByTestId("add-to-cart").click();
+    await slow(page.getByRole("link", { name: "عرض السلة" })).toBeVisible();
+    await page.goto("/checkout");
+
+    await page.getByLabel("الاسم الكامل").fill("ا");
+    await page.getByLabel("رقم الهاتف").fill("0599123456");
+    await page.getByTestId("place-order").click();
+
+    const error = page.getByRole("alert").filter({ hasText: "النص قصير جدًا" });
+    await slow(error).toHaveText("النص قصير جدًا، الحد الأدنى 2 أحرف");
+    await expect(page.getByLabel("الاسم الكامل")).toBeFocused();
+  });
 });
 
 test.describe("gallery number direction and typing", () => {
