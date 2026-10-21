@@ -13,6 +13,7 @@ export const fieldErrorKeys = {
   code_invalid: "codeInvalid",
   code_taken: "codeTaken",
   category_required: "categoryRequired",
+  duplicate: "duplicate",
   zone_required: "zoneRequired",
   email_invalid: "emailInvalid",
   totp_format: "totpFormat",
@@ -35,10 +36,13 @@ function numericParams(params: unknown): Readonly<Record<string, number>> | unde
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
-/** The first issue per top level field, as a code (a missing or wrong typed value is `required`). */
+/**
+ * The first issue per field, as a code (a missing or wrong typed value is `required`). A field is
+ * its full path, so a row inside a list reads `sizes.1.label`; a flat form's keys are its names.
+ */
 export function fieldErrorsOf(error: z.ZodError): FieldErrors {
   return error.issues.reduce<Record<string, FieldError>>((errors, issue) => {
-    const field = String(issue.path[0] ?? "form");
+    const field = issue.path.length ? issue.path.map(String).join(".") : "form";
     if (errors[field]) return errors;
     const code: FieldErrorCode = isCode(issue.message)
       ? issue.message

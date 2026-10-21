@@ -14,10 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { parseAdminPage } from "@/features/orders/admin-list";
 import { listAdminOrders } from "@/features/orders/server/admin-queries";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
+import { parsePage } from "@/lib/paging";
 import { routes } from "@/lib/routes";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // The orders list (spec 0004 AC-13; docs/design/pages/admin-orders.md, without the filters and
 // the status and payment columns, which come with feature 15). Newest first, 50 a page.
 export default async function AdminOrdersPage({ searchParams }: PageProps<"/admin/orders">) {
-  const page = parseAdminPage((await searchParams).page);
+  const page = parsePage((await searchParams).page);
   const [t, { rows, hasNext }] = await Promise.all([
     getTranslations("AdminOrders"),
     listAdminOrders(page),

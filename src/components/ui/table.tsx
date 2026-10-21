@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 // design.md section 6 (dashboard table): a white box with its own sideways scroll, so
 // the page never scrolls sideways. Header row on the page colour, 13/700 muted, padding 10 12.
 // The scroll box is a named, focusable region so a keyboard can scroll it: pass aria-label.
+// It is `relative`, so a visually hidden (absolute) header label stays inside it instead of
+// widening the page in right to left.
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
@@ -11,7 +13,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       role="region"
       aria-label={props["aria-label"]}
       tabIndex={0}
-      className="w-full overflow-x-auto rounded-card border border-border bg-white"
+      className="relative w-full overflow-x-auto rounded-card border border-border bg-white"
     >
       <table
         data-slot="table"

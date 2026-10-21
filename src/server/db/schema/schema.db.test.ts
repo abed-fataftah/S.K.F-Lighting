@@ -373,6 +373,45 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
   });
 
   // covers: AC-8
+  // covers: AC-11, AC-15, AC-16 (spec 0006)
+  describe("product management migration", () => {
+    it("starts every product at version 1", async () => {
+      await withRollback(db, async (tx) => {
+        const { product } = await insertSimpleProduct(tx, "TEST-V1");
+        expect(product.version).toBe(1);
+      });
+    });
+
+    it("allows one video per product, and many photos", async () => {
+      await withRollback(db, async (tx) => {
+        const { product } = await insertSimpleProduct(tx, "TEST-VID");
+        const key = (n: number, ext: string) => `products/${product.id}/test-${n}.${ext}`;
+        await tx.insert(productMedia).values([
+          { productId: product.id, kind: "image", storageKey: key(1, "webp"), sort: 0 },
+          { productId: product.id, kind: "image", storageKey: key(2, "webp"), sort: 1 },
+          { productId: product.id, kind: "video", storageKey: key(3, "mp4"), sort: 2 },
+        ]);
+        await expectViolation(tx, "product_media_one_video_idx", (sp) =>
+          sp
+            .insert(productMedia)
+            .values({ productId: product.id, kind: "video", storageKey: key(4, "mp4") }),
+        );
+      });
+    });
+
+    it("lets the media sweep login read product ids and nothing else", async () => {
+      const access = rows(
+        await db.execute<{ login: boolean; id: boolean; name: boolean; orders: boolean }>(sql`
+          select r.rolcanlogin as login,
+            has_column_privilege('media_sweep', 'public.products', 'id', 'select') as id,
+            has_column_privilege('media_sweep', 'public.products', 'name', 'select') as name,
+            has_table_privilege('media_sweep', 'public.orders', 'select') as orders
+          from pg_roles r where r.rolname = 'media_sweep'`),
+      );
+      expect(access).toEqual([{ login: true, id: true, name: false, orders: false }]);
+    });
+  });
+
   describe("fulfilment rules on orders", () => {
     const base = {
       customerName: "زبون",

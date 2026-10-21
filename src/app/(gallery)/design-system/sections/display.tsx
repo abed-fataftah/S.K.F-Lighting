@@ -1,5 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import { Alert } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogActions,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
@@ -39,7 +48,8 @@ const orders = [
   { number: "26-00122", customer: "customerB", status: "proc", totalAgorot: 34_000 },
 ] as const;
 
-// Badge, card, table, notice, skeleton, breadcrumb, and sheet (AC-7, AC-21).
+// Badge, card, table, notice, skeleton, breadcrumb, sheet (AC-7, AC-21), and the confirm dialog
+// (spec 0006).
 export async function DisplaySection() {
   const d = await getTranslations("DesignSystem.display");
 
@@ -143,6 +153,24 @@ export async function DisplaySection() {
             <SheetDescription className="px-4">{d("sheetText")}</SheetDescription>
           </SheetContent>
         </Sheet>
+      </SampleGroup>
+
+      <SampleGroup title={d("dialogGroup")}>
+        <AlertDialog>
+          <AlertDialogTrigger render={<Button variant="outline" />}>
+            {d("openDialog")}
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogTitle>{d("dialogTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{d("dialogText")}</AlertDialogDescription>
+            <AlertDialogActions>
+              <AlertDialogClose render={<Button />}>{d("dialogConfirm")}</AlertDialogClose>
+              <AlertDialogClose render={<Button variant="outline" />}>
+                {d("dialogCancel")}
+              </AlertDialogClose>
+            </AlertDialogActions>
+          </AlertDialogContent>
+        </AlertDialog>
       </SampleGroup>
     </GallerySection>
   );

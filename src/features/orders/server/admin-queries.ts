@@ -5,12 +5,14 @@ import { requireAdminPage } from "@/server/auth/admin";
 import { getDb } from "@/server/db";
 import { orderEvents, orderLines, orders } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
-import { pageWindow, splitPage } from "../admin-list";
+import { pageWindow, splitPage } from "@/lib/paging";
 
 // The dashboard's order reads (spec 0004 AC-13). Each public query runs `requireAdminPage()` itself,
 // so a page that forgets the layout guard still shows nothing to anyone else.
 
 type Db = Database | Transaction;
+
+export const ADMIN_ORDERS_PAGE_SIZE = 50;
 
 export type AdminOrderRow = {
   readonly number: string;
@@ -36,7 +38,7 @@ export async function readAdminOrders(
   db: Db,
   page: number,
 ): Promise<{ readonly rows: readonly AdminOrderRow[]; readonly hasNext: boolean }> {
-  const { limit, offset } = pageWindow(page);
+  const { limit, offset } = pageWindow(page, ADMIN_ORDERS_PAGE_SIZE);
   const rows = await db
     .select({
       number: orders.orderNumber,
@@ -51,7 +53,7 @@ export async function readAdminOrders(
     .orderBy(desc(orders.placedAt), desc(orders.orderNumber))
     .limit(limit)
     .offset(offset);
-  return splitPage(rows);
+  return splitPage(rows, ADMIN_ORDERS_PAGE_SIZE);
 }
 
 export async function listAdminOrders(page: number) {

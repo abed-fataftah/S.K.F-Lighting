@@ -7,9 +7,10 @@ import {
   usePhoneWidth,
 } from "./a11y";
 
-// covers: AC-2, AC-7, AC-11, AC-13, AC-16 (spec 0004). The tracer bullet end to end on a phone
-// sized right to left screen: the owner signs in with a code and adds a product, a guest orders it
-// for delivery, and the owner sees the order flagged "جديد" until they open it.
+// covers: AC-2, AC-7, AC-11, AC-13, AC-16 (spec 0004); AC-11 (spec 0005); AC-2, AC-17 (spec 0006).
+// The tracer bullet end to end on a phone sized right to left screen: the owner signs in with a code
+// and adds a product in the product editor, a guest orders it for delivery, and the owner sees the
+// order flagged "جديد" until they open it.
 
 const expect = baseExpect.configure({ timeout: 15_000 });
 const accounts = adminAccounts();
@@ -112,7 +113,8 @@ test("a taken code is refused on its field and nothing is saved", async ({ page 
   await addProduct(page, { name: "لمبة تجربة", code, price: "20" });
   await expect(page.getByTestId("product-saved")).toBeVisible();
 
-  await page.getByRole("button", { name: "إضافة منتج آخر" }).click();
+  await page.getByRole("link", { name: "+ إضافة منتج آخر" }).click();
+  await expect(page).toHaveURL(/\/admin\/products\/new$/);
   await addProduct(page, {
     name: "لمبة تجربة ثانية",
     code: ` ${code.toLowerCase()} `,
@@ -121,4 +123,18 @@ test("a taken code is refused on its field and nothing is saved", async ({ page 
   await expect(page.getByLabel("كود المنتج")).toBeFocused();
   await expect(page.getByText("هذا الرمز مستخدم لمنتج آخر")).toBeVisible();
   await expect(page.getByTestId("product-saved")).toHaveCount(0);
+});
+
+test("a name with no Arabic is refused on its field, and Arabic beside it saves", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await signInAdmin(page, accounts!, "/admin/products/new");
+  await addProduct(page, { name: "Philips 60W", code: uniqueCode(), price: "20" });
+  await expect(page.getByLabel("اسم المنتج")).toBeFocused();
+  await expect(page.getByText("اكتب هذا الحقل بالعربية")).toBeVisible();
+
+  await page.getByLabel("اسم المنتج").fill("لمبة Philips 60W");
+  await page.getByTestId("product-save").click();
+  await expect(page.getByTestId("product-saved")).toBeVisible();
 });

@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { expect } from "vitest";
 import { categories, colours, products, productVariants } from "./schema";
 import { isLocalDatabaseUrl } from "./local";
+import { pgErrorOf } from "./pg-error";
 import type { Database, Transaction } from "./types";
 
 if (!process.env.DATABASE_URL_DIRECT && existsSync(".env.local")) process.loadEnvFile(".env.local");
@@ -32,13 +33,6 @@ export async function withRollback<T>(db: Database, fn: (tx: Transaction) => Pro
       if (!(error instanceof Rollback)) throw error;
     });
   return result as T;
-}
-
-type PgError = { readonly code?: string; readonly constraint_name?: string };
-
-function pgErrorOf(error: unknown): PgError {
-  const candidate = error as { cause?: unknown } & PgError;
-  return candidate?.code ? candidate : (candidate?.cause as PgError);
 }
 
 /**

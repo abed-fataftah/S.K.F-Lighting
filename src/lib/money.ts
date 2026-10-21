@@ -35,3 +35,13 @@ export function parseShekels(text: string): number | null {
   const agorot = Number(whole) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
   return agorot > 0 && agorot <= MAX_PRICE_AGOROT ? agorot : null;
 }
+
+/** Agorot back to what an owner would type in a price field: `1250`, `19.90`. No thousands commas. */
+export function toShekelsInput(agorot: number): string {
+  if (!Number.isSafeInteger(agorot) || agorot < 0) {
+    throw new RangeError(`toShekelsInput needs a whole, non negative agorot amount, got ${agorot}`);
+  }
+  const rest = agorot % 100;
+  const shekels = String((agorot - rest) / 100);
+  return rest === 0 ? shekels : `${shekels}.${String(rest).padStart(2, "0")}`;
+}

@@ -31,6 +31,21 @@ export const routes = {
     customers: "/admin/customers",
     reports: "/admin/reports",
     products: "/admin/products",
+    /** The products list with its filters (spec 0006 AC-1); empty values and page 1 stay out. */
+    productsList: (filters: {
+      readonly q?: string | null;
+      readonly categoryId?: string | null;
+      readonly filter?: string | null;
+      readonly page?: number;
+    }) => {
+      const params = new URLSearchParams();
+      if (filters.q) params.set("q", filters.q);
+      if (filters.categoryId) params.set("categoryId", filters.categoryId);
+      if (filters.filter && filters.filter !== "all") params.set("filter", filters.filter);
+      if (filters.page && filters.page > 1) params.set("page", String(filters.page));
+      const query = params.toString();
+      return query ? `/admin/products?${query}` : "/admin/products";
+    },
     productNew: "/admin/products/new",
     product: (id: string) => `/admin/products/${segment(id)}`,
     productImport: "/admin/products/import",

@@ -105,6 +105,26 @@ test.describe("gallery primitives", () => {
     await expect(trigger).toBeFocused();
   });
 
+  // covers: AC-12, AC-14 (spec 0006: the confirm dialog behind delete and leave without saving)
+  test("opens the confirm dialog with focus inside, traps it, and returns it on Escape", async ({
+    page,
+  }) => {
+    const trigger = page.getByRole("button", { name: "افتح نافذة التأكيد" });
+    await trigger.click();
+    const dialog = page.getByRole("alertdialog", { name: "حذف العنصر؟" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "حذف" })).toBeFocused();
+
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("button", { name: "تراجع" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("button", { name: "حذف" })).toBeFocused();
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+
   test("anchors the sheet to the inline start edge (the right, in Arabic)", async ({ page }) => {
     await page.getByRole("button", { name: "افتح اللوحة" }).click();
     const dialog = page.getByRole("dialog", { name: "القائمة" });

@@ -36,6 +36,13 @@
       "when": 1792488446836,
       "tag": "0004_first_order",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792588032964,
+      "tag": "0005_product_management",
+      "breakpoints": true
     }
   ]
 }

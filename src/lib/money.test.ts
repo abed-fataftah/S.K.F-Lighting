@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPrice, parseShekels } from "./money";
+import { formatPrice, parseShekels, toShekelsInput } from "./money";
 
 // covers: AC-2 (spec 0005)
 describe("formatPrice", () => {
@@ -78,5 +78,29 @@ describe("parseShekels", () => {
 
   it("round trips with formatPrice", () => {
     expect(formatPrice(parseShekels("1,234.5") ?? 0)).toBe("₪1,234.50");
+  });
+});
+
+// covers: AC-3, AC-4 (spec 0006)
+describe("toShekelsInput", () => {
+  it.each([
+    [125_000, "1250"],
+    [1990, "19.90"],
+    [1905, "19.05"],
+    [1, "0.01"],
+    [100_000_000, "1000000"],
+  ])("shows %i agorot as %j", (agorot, text) => {
+    expect(toShekelsInput(agorot)).toBe(text);
+  });
+
+  it("reads back to the same amount", () => {
+    for (const agorot of [1, 99, 100, 12_550, 99_999_999]) {
+      expect(parseShekels(toShekelsInput(agorot))).toBe(agorot);
+    }
+  });
+
+  it("refuses a fraction or a negative amount", () => {
+    expect(() => toShekelsInput(1.5)).toThrow(RangeError);
+    expect(() => toShekelsInput(-1)).toThrow(RangeError);
   });
 });

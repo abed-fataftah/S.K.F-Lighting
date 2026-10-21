@@ -53,6 +53,7 @@ export const colours = pgTable(
 
 // `code` never changes after create (import upserts and photos match by it);
 // `slug` is set once from `buildProductSlug(name, code)` and never regenerated.
+// Migration 0005 also lets the `media_sweep` login read `id` only (policy `products_media_sweep_read`).
 export const products = pgTable(
   "products",
   {
@@ -67,6 +68,9 @@ export const products = pgTable(
     specs: jsonb("specs").$type<readonly ProductSpec[]>().notNull().default([]),
     status: productStatus("status").notNull().default("active"),
     isAvailable: boolean("is_available").notNull().default(true),
+    // Grows by 1 on every save, archive, and restore; a write with an older version changes nothing
+    // (spec 0006 AC-11). Feature 8's import bumps it too.
+    version: integer("version").notNull().default(1),
     ...timestamps(),
   },
   (t) => [
@@ -135,5 +139,9 @@ export const productMedia = pgTable(
   (t) => [
     index("product_media_product_id_idx").on(t.productId),
     index("product_media_variant_id_idx").on(t.variantId),
+    // At most one video per product (spec 0006); photos are capped at 8 by the save action.
+    uniqueIndex("product_media_one_video_idx")
+      .on(t.productId)
+      .where(sql`${t.kind} = 'video'`),
   ],
 ).enableRLS();
