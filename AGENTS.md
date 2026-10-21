@@ -30,6 +30,9 @@ pnpm db:start                # Local Supabase (Docker), then: pnpm db:migrate
 pnpm dev                     # Dev server
 pnpm preview                 # Build and run on workerd (the real Workers runtime)
 pnpm lint && pnpm typecheck  # Lint, typecheck
+pnpm format                  # Prettier write (pnpm format:check in CI)
+pnpm db:seed                 # Dev seed, local database only
+pnpm db:check-rls            # Fails on a public table without RLS or with anon/authenticated grants
 pnpm exec vitest run         # Unit tests (src/**/*.test.ts)
 pnpm exec playwright test    # E2E tests (e2e/*.spec.ts)
 pnpm db:generate             # New Drizzle migration into drizzle/
@@ -47,11 +50,14 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md`. Scope lives i
 - **Functional style**: pure functions by default, immutable data (`const`, `readonly`), no shared mutable state; side effects (DB, Supabase, network) stay at the edges in `server/` modules. Money, totals, fees, and balances are pure and unit tested without mocks. Prefer plain functions over classes.
 - **Layout**: group by feature, `src/features/<area>/` with `components/`, `server/`, `schemas.ts`; shared server code in `src/server/` (`db/`, `auth/`); shadcn base components in `src/components/ui/`.
 - **Server boundary**: anything touching the database or a secret lives in a `server/` folder and imports `server-only`. The browser never queries the database.
-- **Database**: create the Drizzle client per request with `getDb()`, never at module level. RLS on every `public` table, no grants to `anon`/`authenticated`. Migrations only add; fix forward. Money is integer agorot, timestamps `timestamptz` in UTC, shown in `Asia/Jerusalem`.
+- **Database**: create the Drizzle client per request with `getDb()`, never at module level. RLS on every `public` table, no grants to `anon`/`authenticated`. Migrations only add; fix forward. Money is integer agorot, timestamps `timestamptz` in UTC, shown in `Asia/Hebron` (`SHOP_TIME_ZONE` in `src/lib/format.ts`, spec 0005).
 - **Auth**: `getClaims()` for reads; `getUser()` before admin writes and money changes. `requireAdmin()` (role `admin` + `aal2`) runs inside **every** admin Server Action and route handler, not only the layout.
 - **Errors**: Server Actions return a typed result (`{ ok: true, data } | { ok: false, error }`) for expected failures; throw only for bugs. Validate all input with the shared Zod schema on the server too.
 - **Env**: parse every env var and secret with Zod once at startup and fail fast; read config only through that module. Never log customer phone or address.
 - **UI**: Arabic only, RTL; logical CSS properties only (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`), never `left`/`right`. All strings in `src/i18n/messages/ar.json`. WCAG AA on every screen (labels, focus, contrast, keyboard).
+- **Design tokens**: style only with the tokens in `src/app/tokens.css`; `src/design-rules.test.ts` fails on raw hex, dark mode, shadows, rings, physical directions, and the stock Tailwind scales.
+- **Formatting**: show numbers, prices, dates, and times only through `src/lib/format.ts` and `src/lib/money.ts`; Arabic digits and text rules only through `src/lib/arabic.ts` (Zod helpers in `src/lib/text-schemas.ts`). `src/language-rules.test.ts` fails on `Intl`, `toLocale*`, `useFormatter`, `.toFixed(`, local date getters, or a time zone name anywhere else.
+- **Links**: build every URL from `routes` in `src/lib/routes.ts`, never a hand written path.
 - **Tests**: every feature ships Vitest unit tests beside the source for all logic, plus Playwright flows on a phone sized RTL screen for each user facing path. Bar: unit + e2e before done.
 - **Commits**: Conventional Commits, e.g. `feat(cart): add quantity stepper`.
 - **Supabase client**: auth (and Storage uploads) only, never data; all data goes through Drizzle `getDb()`. Read the user with the helpers in `src/server/auth/session.ts` (`getClaims()`, `getVerifiedUser()`).
@@ -61,9 +67,9 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md`. Scope lives i
 ## Tooling
 
 Chosen in feature 2; `/develop tooling` installs what is not there yet.
-- Lint + format: ESLint (`eslint-config-next`, installed) + Prettier with `prettier-plugin-tailwindcss` (to add).
-- Pre commit: lint and format staged files, plus a full typecheck, on every commit (to add).
-- CI: GitHub Actions on each push: typecheck, lint, Vitest, build, Playwright against the Workers preview, RLS check; on `main` migrate then deploy (to add).
+- Lint + format: ESLint (`eslint-config-next`) + Prettier with `prettier-plugin-tailwindcss` (`.prettierrc.json`).
+- Pre commit: Husky runs lint-staged (ESLint fix and Prettier on staged files), then `pnpm typecheck` (`.husky/pre-commit`).
+- CI: `.github/workflows/ci.yml` on each push: typecheck, lint, format check, Vitest, then OpenNext build and Playwright on workerd; on `main` migrate then deploy.
 
 ## Git
 
@@ -86,5 +92,7 @@ MCP servers: supabase (recommended), playwright (recommended), context7 (recomme
 ## Context files
 
 <!-- Nested AGENTS.md files are listed here as they are created -->
+- [src/server/db/AGENTS.md](src/server/db/AGENTS.md) (Drizzle schema, getDb vs getDirectDb, migrations, database tests)
+- [src/components/AGENTS.md](src/components/AGENTS.md) (shadcn on Base UI, design tokens, the design rule test, gallery)
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

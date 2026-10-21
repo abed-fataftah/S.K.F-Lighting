@@ -2,7 +2,7 @@
 
 **Date**: 2026-10-16
 **Status**: In Progress
-**Amended**: 2026-10-17. The shop is Arabic only (no English site at `/en`, no language switch). The Languages, Architecture pattern, and Framework rows and the code layout reflect this.
+**Amended**: 2026-10-17. The shop is Arabic only (no English site at `/en`, no language switch). The Languages, Architecture pattern, and Framework rows and the code layout reflect this. Amended again 2026-10-20 by spec 0005: the display time zone is `Asia/Hebron`, not `Asia/Jerusalem`.
 **Amended**: 2026-10-19. shadcn/ui sits on Base UI, not Radix (spec 0003). The Styling and components row reflects this.
 
 ## Summary
@@ -51,7 +51,7 @@ Reasoning, options, and the landscape check: see [rationale.md](rationale.md).
 | Styling and components | Tailwind CSS v4 + shadcn/ui on Base UI, using logical properties (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`) only | Right to left Arabic works without mirrored CSS. The look and the Base UI choice are in [spec 0003](../0003-design-system-ui-foundation/index.md). |
 | Languages | Arabic only. next-intl with a single locale `ar` served at `/` (no prefix; `/ar` redirects to `/`). No English site, no language switch, no locale cookie, no browser language detection. `<html lang="ar" dir="rtl">` | Clean Arabic URLs. Keeping next-intl puts every interface string in one messages file, so English could be added later as a config change. Digit style and Arabic text rules are decided in feature 5. |
 | Forms and validation | Zod schemas shared by react-hook-form (`@hookform/resolvers/zod`) in the browser and the Server Action on the server | Instant messages in the customer's language, and the server never trusts the browser. |
-| Dates and time | Store every timestamp as `timestamptz` in UTC; display in `Asia/Jerusalem` | One rule for order dates, reports, and payment dates. |
+| Dates and time | Store every timestamp as `timestamptz` in UTC; display in `Asia/Hebron` (West Bank clock), formatted per [spec 0005](../0005-arabic-language/index.md) | One rule for order dates, reports, and payment dates. |
 | Background work | None at launch. Scheduled jobs run as GitHub Actions cron workflows | No feature needs a queue yet. The database is the queue if one appears. |
 | Backups | Supabase Pro daily backups (7 days) + a weekly GitHub Actions job: `pg_dump` with the Postgres 17 client over the session pooler, encrypted with `age` (public key in the repo, private key kept offline by the owner), uploaded to a private Cloudflare R2 bucket, keeping 12 weekly copies. A monthly keepalive commit or `workflow_dispatch` keeps the schedule alive (GitHub pauses cron after 60 days without repo activity) | Covers mistakes noticed after 7 days and account level loss. Dumps hold customer phones and addresses, so they are encrypted. A restore is rehearsed in feature 30. |
 | Search | Postgres built in search first (decided in feature 11) | No separate search engine until Postgres cannot meet the need. |

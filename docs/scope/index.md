@@ -22,11 +22,11 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
 | 1 | Stack & architecture | Foundation | in-progress |
-| 2 | Coding standards & tooling | Foundation | in-progress |
+| 2 | Coding standards & tooling | Foundation | done |
 | 3 | Data model | Foundation | in-progress |
 | 4 | Design system & UI foundation | Foundation | in-progress |
-| 5 | Arabic language | Foundation | planned |
-| 6 | First order end to end | Slice 1 | planned |
+| 5 | Arabic language | Foundation | in-progress |
+| 6 | First order end to end | Slice 1 | in-progress |
 | 7 | Product management | Slice 2 | planned |
 | 8 | Spreadsheet import & bulk photos | Slice 2 | planned |
 | 9 | Categories & browsing | Slice 2 | planned |
@@ -58,7 +58,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 ## Areas
 
-- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 0 of 6 done.
+- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 1 of 6 done.
 - [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 0 of 6 done.
 - [Ordering](ordering.md): features 12 to 17 (cart, checkout, confirmation, order management, lookup, cancel). 0 of 6 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
