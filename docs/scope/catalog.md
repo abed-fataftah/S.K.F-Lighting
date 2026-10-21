@@ -18,10 +18,19 @@ spec [0006](../specs/0006-product-management/index.md) · code in `src/features/
 - [ ] Verify it: `/check verify product management`
 - [ ] Test it: `/test product management`
 
-### 8. Spreadsheet import & bulk photos · needs a decision
+### 8. Spreadsheet import & bulk photos · in-progress
 A ready made spreadsheet template you (or a helper) fill in, uploaded once to create many products, then photos uploaded in bulk and matched by product code in the file name.
 **Done when:** a filled template creates products with options and prices, any bad rows are listed clearly without breaking the rest, and bulk photos attach to the right products.
-- [ ] Design it (spec): `/architect spreadsheet import & bulk photos`
+spec [0007](../specs/0007-spreadsheet-import-bulk-photos/index.md) · code in `src/features/catalog/` (import files `import-*.ts`, `photo-names.ts`, `components/import/`, `server/import-*.ts`)
+- [x] Design it (spec): `/architect spreadsheet import & bulk photos`
+- [x] Build it: `/develop spreadsheet import & bulk photos`
+  - [x] Thin thread: one simple product from an .xlsx through `importProducts` to the products list (AC-1, AC-3, AC-4, AC-7, AC-16)
+  - [x] Options, updates, categories, colours, all or nothing per product, CSV (AC-5, AC-6, AC-8, AC-9, AC-10, AC-11)
+  - [x] Review and the batched run with progress (AC-14, AC-15)
+  - [x] Photos: name matching, resize and upload queue, `setProductPhotos` (AC-12, AC-13, AC-16)
+  - [x] Finish: template download, problems download, full phone flow and axe (AC-2, AC-15, AC-17)
+- [ ] Verify it: `/check verify spreadsheet import & bulk photos`
+- [ ] Test it: `/test spreadsheet import & bulk photos`
 
 ### 9. Categories & browsing
 Manage categories in the dashboard, and let customers browse a category's products as a list with photo, name, code, price, and availability.

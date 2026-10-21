@@ -28,7 +28,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 5 | Arabic language | Foundation | in-progress |
 | 6 | First order end to end | Slice 1 | in-progress |
 | 7 | Product management | Slice 2 | in-progress |
-| 8 | Spreadsheet import & bulk photos | Slice 2 | planned |
+| 8 | Spreadsheet import & bulk photos | Slice 2 | in-progress |
 | 9 | Categories & browsing | Slice 2 | planned |
 | 10 | Product page | Slice 2 | planned |
 | 11 | Search & filters | Slice 2 | planned |
