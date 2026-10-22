@@ -30,7 +30,7 @@ export default async function HomePage() {
     getTranslations("Shell"),
     loadHomeProducts(),
   ]);
-  const { whatsappNumber } = parsePublicEnv();
+  const { whatsappNumber, siteUrl } = parsePublicEnv();
 
   return (
     <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
@@ -45,7 +45,12 @@ export default async function HomePage() {
         <ul className="grid grid-cols-2 gap-3" data-testid="home-products">
           {products.map((product, index) => (
             <li key={product.slug} className="flex">
-              <ProductCard product={product} index={index} />
+              <ProductCard
+                product={product}
+                index={index}
+                whatsappNumber={whatsappNumber}
+                siteUrl={siteUrl}
+              />
             </li>
           ))}
         </ul>

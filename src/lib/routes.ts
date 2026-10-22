@@ -2,11 +2,22 @@
 // Every link in the app is built here, so a route changes in one place.
 const segment = (value: string) => encodeURIComponent(value);
 
+const categoryPath = (category: string, sub: string | null) =>
+  sub ? `/c/${segment(category)}/${segment(sub)}` : `/c/${segment(category)}`;
+
+const categoryPage = (category: string, sub: string | null, page = 1) =>
+  page > 1 ? `${categoryPath(category, sub)}?page=${page}` : categoryPath(category, sub);
+
 export const routes = {
   home: "/",
   categories: "/c",
-  category: (category: string) => `/c/${segment(category)}`,
-  subcategory: (category: string, sub: string) => `/c/${segment(category)}/${segment(sub)}`,
+  category: (category: string) => categoryPath(category, null),
+  subcategory: (category: string, sub: string) => categoryPath(category, sub),
+  /** A main (no `sub`) or sub page; page 1 is the plain address (spec 0008 AC-11). */
+  categoryPage,
+  /** "Load more": the next page, jumping to its first new card `p-<position>`. */
+  categoryMore: (category: string, sub: string | null, page: number, position: number) =>
+    `${categoryPage(category, sub, page)}#p-${position}`,
   product: (slug: string) => `/p/${segment(slug)}`,
   search: (query?: string) => (query ? `/search?q=${encodeURIComponent(query)}` : "/search"),
   cart: "/cart",

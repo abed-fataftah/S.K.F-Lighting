@@ -19,7 +19,7 @@ vi.mock("server-only", () => ({}));
 const { getDirectDb } = await import("@/server/db/direct");
 const { placeOrderInDb } = await import("./place-order");
 
-// covers: AC-5, AC-7, AC-8, AC-9 (spec 0004)
+// covers: AC-5, AC-7, AC-8, AC-9 (spec 0004); AC-7 (spec 0008)
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
 // A far future year keeps these committed orders away from real numbers.
@@ -253,5 +253,26 @@ describe.skipIf(!hasLocalDb)("placeOrderInDb on the local database", () => {
     expect(await placeOrderInDb(db, { input: pickup(), cart: [], placedAt })).toEqual({
       kind: "cart_empty",
     });
+  });
+
+  it("refuses a line whose category was hidden after it went in the cart", async () => {
+    const hide = (isVisible: boolean) =>
+      db.update(categories).set({ isVisible }).where(eq(categories.slug, "po-test"));
+    const before = await db.select({ id: orders.id }).from(orders);
+    await hide(false);
+    try {
+      const outcome = await placeOrderInDb(db, {
+        input: pickup({ expectedTotal: 12_500 }),
+        cart: [{ variantId: variantA, quantity: 1 }],
+        placedAt,
+      });
+      expect(outcome).toMatchObject({ kind: "not_sellable" });
+      if (outcome.kind === "not_sellable") {
+        expect(outcome.cart.lines[0]).toMatchObject({ sellable: false, slug: null });
+      }
+    } finally {
+      await hide(true);
+    }
+    expect(await db.select({ id: orders.id }).from(orders)).toHaveLength(before.length);
   });
 });

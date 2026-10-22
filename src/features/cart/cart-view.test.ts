@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCartView, checkoutTotal, type CartRow } from "./cart-view";
 
-// covers: AC-4, AC-5, AC-8 (spec 0004)
+// covers: AC-4, AC-5, AC-8 (spec 0004); AC-7 (spec 0008)
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
@@ -13,6 +13,7 @@ const row = (n: number, over: Partial<CartRow> = {}): CartRow => ({
   slug: `p-${n}`,
   productStatus: "active",
   productAvailable: true,
+  categoryShown: true,
   variantCode: null,
   sizeLabel: null,
   colourName: null,
@@ -58,11 +59,23 @@ describe("buildCartView", () => {
     ["an unavailable product", { productAvailable: false }],
     ["an unavailable variant", { variantAvailable: false }],
     ["an archived variant", { archivedAt: new Date() }],
+    ["a product whose category is not shown", { categoryShown: false }],
   ])("marks %s as not sellable", (_name, over) => {
     const view = buildCartView([{ variantId: id(1), quantity: 1 }], [row(1, over)]);
     expect(view.lines[0].sellable).toBe(false);
     expect(view.subtotal).toBe(0);
     expect(view.hasUnsellable).toBe(true);
+  });
+});
+
+describe("the cart line link", () => {
+  it("drops the product link when its page is gone", () => {
+    const line = (over: Partial<CartRow>) =>
+      buildCartView([{ variantId: id(1), quantity: 1 }], [row(1, over)]).lines[0];
+    expect(line({}).slug).toBe("p-1");
+    expect(line({ productAvailable: false }).slug).toBe("p-1");
+    expect(line({ categoryShown: false }).slug).toBeNull();
+    expect(line({ productStatus: "hidden" }).slug).toBeNull();
   });
 });
 

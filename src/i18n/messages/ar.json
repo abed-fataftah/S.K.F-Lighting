@@ -58,7 +58,8 @@
       "privacy": "سياسة الخصوصية",
       "terms": "الشروط والأحكام",
       "returns": "سياسة الإرجاع"
-    }
+    },
+    "menuCategories": "الأقسام"
   },
   "AdminShell": {
     "caption": "لوحة التحكم",
@@ -87,11 +88,12 @@
     "priceInvalid": "اكتب سعرًا أكبر من صفر، بحد أقصى منزلتين عشريتين ومليون شيكل",
     "codeInvalid": "الرمز حروف إنجليزية كبيرة وأرقام وشرطات فقط، حتى 30 خانة",
     "codeTaken": "هذا الرمز مستخدم لمنتج آخر",
-    "categoryRequired": "اختر فئة أو اكتب اسم فئة جديدة",
+    "categoryRequired": "اختر القسم الرئيسي",
     "duplicate": "هذه القيمة مكررة في صف سابق",
     "zoneRequired": "اختر منطقة التوصيل",
     "emailInvalid": "اكتب بريدًا إلكترونيًا صحيحًا، مثل name@example.com",
-    "totpFormat": "اكتب الرمز المكوّن من ستة أرقام"
+    "totpFormat": "اكتب الرمز المكوّن من ستة أرقام",
+    "nameTaken": "هذا الاسم مستخدم في نفس المستوى"
   },
   "DesignSystem": {
     "metaTitle": "نظام التصميم · S.K.F للإنارة",
@@ -213,7 +215,9 @@
       "signIn": "تسجيل الدخول",
       "register": "إنشاء حساب",
       "signInPanel": "أدخل بريدك الإلكتروني وكلمة المرور.",
-      "registerPanel": "أنشئ حساباً لتتابع طلباتك."
+      "registerPanel": "أنشئ حساباً لتتابع طلباتك.",
+      "switchGroup": "مفتاح تشغيل",
+      "switchLabel": "ظاهر في المتجر"
     },
     "display": {
       "title": "العرض والحالة",
@@ -254,7 +258,12 @@
       "dialogText": "يبقى التركيز داخل النافذة حتى تختار، ويعود إلى الزر عند الإغلاق.",
       "dialogConfirm": "حذف",
       "dialogCancel": "تراجع",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "formDialogGroup": "نافذة نموذج",
+      "openFormDialog": "افتح نافذة النموذج",
+      "formDialogTitle": "قسم جديد",
+      "formDialogLabel": "اسم القسم",
+      "formDialogSave": "حفظ"
     },
     "controls": {
       "title": "عناصر المتجر",
@@ -346,7 +355,12 @@
     "notSellable": "هذا المنتج لم يعد متوفرًا.",
     "addFailed": "تعذّرت الإضافة إلى السلة. حاول مرة أخرى.",
     "whatsappProduct": "مرحباً، أريد الاستفسار عن المنتج: {name} (الكود: {code}){options} {link}",
-    "whatsappAvailability": "مرحباً، هل المنتج {name} (الكود: {code}) متوفر؟ {link}"
+    "whatsappAvailability": "مرحباً، هل المنتج {name} (الكود: {code}) متوفر؟ {link}",
+    "from": "من <ltr>{price}</ltr>",
+    "cardAdded": "تمت الإضافة",
+    "cardProduct": "، {name}",
+    "askOnWhatsappLabel": "اسأل عن المنتج عبر واتساب: {name}",
+    "askAvailabilityLabel": "اسأل عن توفره عبر واتساب: {name}"
   },
   "Cart": {
     "title": "السلة",
@@ -666,7 +680,11 @@
       "media_invalid": "أحد الملفات لم يُرفع كما ينبغي. احذفه وارفعه من جديد.",
       "not_archived": "هذا المنتج ليس مؤرشفًا."
     },
-    "import": "استيراد من جدول"
+    "import": "استيراد من جدول",
+    "manageCategories": "إدارة الأقسام",
+    "noCategories": "لا توجد أقسام بعد. أضف قسمًا من صفحة الأقسام، ثم ارجع إلى هذا المنتج.",
+    "hiddenOption": "{name} (مخفي)",
+    "hiddenCategoryWarning": "هذا القسم مخفي، فلن يظهر المنتج في المتجر."
   },
   "AdminImport": {
     "metaTitle": "استيراد المنتجات | S.K.F للإنارة",
@@ -805,6 +823,80 @@
       "photo_run_limit": "استوردها في مرة ثانية",
       "photo_unreadable": "احفظها بصيغة JPEG ثم أعد الرفع",
       "photo_upload_failed": "أعد الاستيراد لرفعها"
+    }
+  },
+  "Categories": {
+    "title": "الأقسام",
+    "metaTitle": "الأقسام | S.K.F للإنارة",
+    "pageTitle": "{name} | S.K.F للإنارة",
+    "all": "الكل",
+    "subsLabel": "الأقسام الفرعية",
+    "count": "{shown} منتج",
+    "shownOf": "تم عرض {shown} من {total} منتج",
+    "loadMore": "عرض المزيد",
+    "loading": "جارٍ تحميل المنتجات",
+    "loadingCategories": "جارٍ تحميل الأقسام",
+    "emptyTitle": "لا توجد منتجات في هذا القسم بعد",
+    "emptyText": "نضيف منتجات جديدة باستمرار. اسألنا عبر واتساب عمّا تبحث عنه.",
+    "emptyAsk": "اسألنا عبر واتساب",
+    "errorTitle": "تعذّر تحميل المنتجات",
+    "categoriesErrorTitle": "تعذّر تحميل الأقسام",
+    "helpTitle": "لم تجد ما تبحث عنه؟",
+    "helpText": "أرسل لنا الكود أو صورة المنتج على واتساب.",
+    "helpButton": "اسألنا عبر واتساب",
+    "noCategoriesTitle": "لا توجد أقسام بعد",
+    "noCategoriesText": "نضيف المنتجات قريبًا. اسألنا عبر واتساب عمّا تبحث عنه."
+  },
+  "AdminCategories": {
+    "metaTitle": "الأقسام | S.K.F للإنارة",
+    "title": "الأقسام",
+    "addMain": "+ قسم رئيسي",
+    "addSub": "+ قسم فرعي",
+    "edit": "تعديل",
+    "count": "· {shown} منتج",
+    "hidden": "مخفي",
+    "listLabel": "الأقسام الرئيسية",
+    "subListLabel": "الأقسام الفرعية في {name}",
+    "moveUpLabel": "نقل لأعلى: {name}",
+    "moveDownLabel": "نقل لأسفل: {name}",
+    "editLabel": "تعديل: {name}",
+    "addSubLabel": "إضافة قسم فرعي إلى {name}",
+    "deleteLabel": "حذف {name}",
+    "deleteBlocked": "فيه منتجات أو أقسام فرعية",
+    "note": "القسم له مستويان فقط: رئيسي وفرعي.",
+    "emptyTitle": "لا توجد أقسام بعد",
+    "emptyText": "أضف أول قسم رئيسي، ثم أضف تحته الأقسام الفرعية.",
+    "errorTitle": "تعذّر تحميل الأقسام",
+    "errorText": "تحقق من الاتصال بالإنترنت ثم حاول مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "loading": "جارٍ تحميل الأقسام",
+    "addMainTitle": "قسم رئيسي جديد",
+    "addSubTitle": "قسم فرعي جديد في {name}",
+    "editTitle": "تعديل القسم {name}",
+    "name": "اسم القسم",
+    "nameHelp": "من {min} إلى {max} حرفًا.",
+    "description": "الوصف (اختياري)",
+    "descriptionHelp": "يظهر لمحركات البحث، حتى {max} حرف.",
+    "visible": "ظاهر في المتجر",
+    "visibleHelp": "إذا أخفيته لن يظهر القسم ولا منتجاته في المتجر.",
+    "hiddenParentNote": "القسم الرئيسي مخفي، فلن يظهر هذا القسم في المتجر حتى يظهر الرئيسي.",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ",
+    "cancel": "إلغاء",
+    "deleteTitle": "حذف القسم {name}؟",
+    "deleteText": "سيُحذف القسم نهائيًا، ولا يمكن التراجع عن ذلك.",
+    "deleteConfirm": "حذف",
+    "deleting": "جارٍ الحذف",
+    "keep": "إبقاء",
+    "errors": {
+      "not_found": "لم يعد هذا القسم موجودًا. حدّث الصفحة.",
+      "too_deep": "لا يمكن إضافة قسم فرعي تحت قسم فرعي.",
+      "not_empty": "لا يمكن حذف قسم فيه منتجات أو أقسام فرعية.",
+      "failed": "تعذّر الحفظ. حاول مرة أخرى.",
+      "forbidden": "انتهت الجلسة. سجّل الدخول من جديد.",
+      "invalid": "راجع الحقول المعلَّمة.",
+      "name_taken": "هذا الاسم مستخدم في نفس المستوى",
+      "move_failed": "تعذّر نقل القسم. حاول مرة أخرى."
     }
   }
 }

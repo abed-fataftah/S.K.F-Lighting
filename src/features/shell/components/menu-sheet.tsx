@@ -7,16 +7,27 @@ import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "@/i18n/navigation";
+import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { policyLinks, storefrontTabs } from "../nav";
 import { tabIcons } from "./nav-icons";
 
 const linkClass = "flex h-12 items-center gap-3 px-4 type-control text-ink";
 
+/** A main category in navigation, as the server shell passes it down. */
+export type MenuCategory = { readonly slug: string; readonly name: string };
+
 // The header menu (spec 0003, AC-13): a sheet from the inline start side with the five
-// tab links, the three policy links, and WhatsApp (W1). Focus starts on the close button,
-// stays inside, and returns to the menu button on close. Feature 9 adds the categories.
-export function MenuSheet({ whatsappNumber }: { readonly whatsappNumber: string }) {
+// tab links, the categories in navigation (spec 0008 AC-14), the three policy links, and WhatsApp
+// (W1). Focus starts on the close button, stays inside, and returns to the menu button on close.
+// The categories come from the server shell, which reads them once per request.
+export function MenuSheet({
+  whatsappNumber,
+  categories = [],
+}: {
+  readonly whatsappNumber: string;
+  readonly categories?: readonly MenuCategory[];
+}) {
   const t = useTranslations("Shell");
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -47,6 +58,26 @@ export function MenuSheet({ whatsappNumber }: { readonly whatsappNumber: string 
               );
             })}
           </ul>
+          {categories.length ? (
+            <section aria-labelledby="menu-categories" className="border-b border-border py-2">
+              <h2 id="menu-categories" className="px-4 pt-2 type-caption font-extrabold text-muted">
+                {t("menuCategories")}
+              </h2>
+              <ul className="flex flex-col" data-testid="menu-categories">
+                {categories.map((category) => (
+                  <li key={category.slug}>
+                    <Link
+                      href={routes.category(category.slug)}
+                      onClick={close}
+                      className={linkClass}
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           <ul className="flex flex-col border-b border-border py-2">
             {policyLinks.map(({ id, href }) => (
               <li key={id}>

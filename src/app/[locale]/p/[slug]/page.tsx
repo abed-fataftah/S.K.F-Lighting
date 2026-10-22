@@ -72,8 +72,11 @@ export default async function ProductPage({ params }: PageProps<"/[locale]/p/[sl
             <BreadcrumbLink render={<Link href={routes.home} />}>{t("home")}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          {/* Category pages arrive with feature 9; until then the category is plain text. */}
-          <BreadcrumbItem>{product.categoryName}</BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbLink render={<Link href={product.category.href} />}>
+              {product.category.name}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage>{product.name}</BreadcrumbPage>

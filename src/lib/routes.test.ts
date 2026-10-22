@@ -32,3 +32,17 @@ describe("routes.admin.productsList", () => {
     });
   });
 });
+
+// covers: AC-8, AC-11 (spec 0008)
+describe("category routes", () => {
+  it("encodes Arabic slugs and keeps page 1 plain", () => {
+    expect(routes.category("ثريات")).toBe(`/c/${encodeURIComponent("ثريات")}`);
+    expect(routes.categoryPage("a", null)).toBe("/c/a");
+    expect(routes.categoryPage("a", "b", 1)).toBe("/c/a/b");
+    expect(routes.categoryPage("a", "b", 3)).toBe("/c/a/b?page=3");
+  });
+
+  it("jumps to the first new card on load more", () => {
+    expect(routes.categoryMore("a", null, 2, 25)).toBe("/c/a?page=2#p-25");
+  });
+});

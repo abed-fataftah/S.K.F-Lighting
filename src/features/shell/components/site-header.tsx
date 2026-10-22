@@ -1,5 +1,6 @@
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { MenuCategory } from "./menu-sheet";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 import { CartButton } from "./cart-button";
@@ -13,16 +14,19 @@ import { MenuSheet } from "./menu-sheet";
 export function SiteHeader({
   whatsappNumber,
   cartCount,
+  categories = [],
 }: {
   readonly whatsappNumber: string;
   readonly cartCount?: number;
+  /** The navigation mains for the menu (spec 0008 AC-14); empty hides the list. */
+  readonly categories?: readonly MenuCategory[];
 }) {
   const t = useTranslations("Shell");
 
   return (
     <header className="on-dark bg-ink px-2">
       <div className="flex items-center justify-between pt-2 pb-1.5">
-        <MenuSheet whatsappNumber={whatsappNumber} />
+        <MenuSheet whatsappNumber={whatsappNumber} categories={categories} />
         <Link href={routes.home} className="inline-flex rounded-btn">
           <Logo place="header" />
         </Link>

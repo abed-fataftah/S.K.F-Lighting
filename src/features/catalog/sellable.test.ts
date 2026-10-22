@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { isSellable, pickVariantToAdd } from "./sellable";
 
-// covers: AC-3, AC-5 (spec 0004)
+// covers: AC-3, AC-5 (spec 0004); AC-7 (spec 0008)
 
-const product = { status: "active", isAvailable: true } as const;
+const product = { status: "active", isAvailable: true, categoryShown: true } as const;
 
 type TestVariant = {
   id: string;
@@ -31,6 +31,7 @@ describe("isSellable", () => {
     ["a hidden product", { ...product, status: "hidden" as const }, variant()],
     ["an archived product", { ...product, status: "archived" as const }, variant()],
     ["an unavailable product", { ...product, isAvailable: false }, variant()],
+    ["a product whose category is not shown", { ...product, categoryShown: false }, variant()],
     ["an unavailable variant", product, variant({ isAvailable: false })],
     ["an archived variant", product, variant({ archivedAt: new Date() })],
   ])("is false for %s", (_name, p, v) => {

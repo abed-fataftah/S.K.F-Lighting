@@ -18,6 +18,7 @@ export function ErrorState({
   onRetry,
   whatsappNumber,
   whatsappText,
+  heading,
   className,
 }: {
   readonly icon?: LucideIcon;
@@ -27,6 +28,8 @@ export function ErrorState({
   readonly whatsappNumber: string;
   /** The prefilled message; defaults to W2 ("I need help"). */
   readonly whatsappText?: string;
+  /** `h1` when the card is the whole page (a category page whose read failed). */
+  readonly heading?: "h1" | "h2";
   readonly className?: string;
 }) {
   const t = useTranslations("Shell");
@@ -35,6 +38,7 @@ export function ErrorState({
     <StateCard
       role="alert"
       data-slot="error-state"
+      heading={heading}
       icon={icon}
       title={title ?? t("error.title")}
       text={text ?? t("error.text")}

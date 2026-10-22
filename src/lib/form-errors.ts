@@ -13,6 +13,7 @@ export const fieldErrorKeys = {
   code_invalid: "codeInvalid",
   code_taken: "codeTaken",
   category_required: "categoryRequired",
+  name_taken: "nameTaken",
   duplicate: "duplicate",
   zone_required: "zoneRequired",
   email_invalid: "emailInvalid",

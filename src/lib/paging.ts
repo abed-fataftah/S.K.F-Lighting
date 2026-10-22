@@ -19,3 +19,8 @@ export function splitPage<T>(
 ): { readonly rows: readonly T[]; readonly hasNext: boolean } {
   return { rows: rows.slice(0, size), hasNext: rows.length > size };
 }
+
+/** A requested page held to `1..last`, where the last page shows everything (spec 0008 AC-11). */
+export function clampPage(page: number, total: number, size: number): number {
+  return Math.min(Math.max(1, page), Math.max(1, Math.ceil(total / size)));
+}

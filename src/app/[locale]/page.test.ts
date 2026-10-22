@@ -3,12 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "@/components/empty-state";
 import { PageErrorState } from "@/components/error-state";
 import { ProductCard } from "@/features/catalog/components/product-card";
-import type { HomeProduct } from "@/features/catalog/server/queries";
+import type { CardProduct } from "@/features/catalog/card-view";
 import ar from "@/i18n/messages/ar.json";
 
 // The home grid's database read is the boundary: each test decides how it answers.
 vi.mock("server-only", () => ({}));
-const listHomeProducts = vi.fn<() => Promise<readonly HomeProduct[]>>();
+const listHomeProducts = vi.fn<() => Promise<readonly CardProduct[]>>();
 vi.mock("@/features/catalog/server/queries", () => ({ listHomeProducts }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
@@ -37,11 +37,16 @@ function findElement(node: ReactNode, match: (el: Element) => boolean): Element 
   return match(el) ? el : findElement(el.props.children, match);
 }
 
-const product = (n: number): HomeProduct => ({
+const product = (n: number): CardProduct => ({
   slug: `lamp-${n}`,
   name: `أباجورة ${n}`,
   code: `DEMO-${n}`,
+  imageKey: null,
+  chips: [],
   listPrice: 18000,
+  pricesDiffer: false,
+  inStock: true,
+  addVariantId: `variant-${n}`,
 });
 
 const errorCard = (page: ReactNode) => findElement(page, (el) => el.type === PageErrorState);

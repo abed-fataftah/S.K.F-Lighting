@@ -14,6 +14,8 @@ export type CartRow = {
   readonly slug: string;
   readonly productStatus: SellableProduct["status"];
   readonly productAvailable: boolean;
+  /** The product's category is shown (spec 0008 AC-6); a hidden one makes the line not sellable. */
+  readonly categoryShown: boolean;
   readonly variantCode: string | null;
   readonly sizeLabel: string | null;
   readonly colourName: string | null;
@@ -27,6 +29,7 @@ export type CartViewLine = {
   /** Null when the variant no longer exists; the page shows a generic name. */
   readonly productName: string | null;
   readonly productCode: string | null;
+  /** Null when the product page is gone (missing, not active, or in a category not shown). */
   readonly slug: string | null;
   readonly sizeLabel: string | null;
   readonly colourName: string | null;
@@ -67,14 +70,18 @@ export function buildCartView(cart: readonly CartLine[], rows: readonly CartRow[
       variantId: line.variantId,
       productName: row.productName,
       productCode: row.productCode,
-      slug: row.slug,
+      slug: row.productStatus === "active" && row.categoryShown ? row.slug : null,
       sizeLabel: row.sizeLabel,
       colourName: row.colourName,
       unitPrice: row.price,
       quantity: line.quantity,
       lineTotal: computeLineTotal(row.price, line.quantity),
       sellable: isSellable(
-        { status: row.productStatus, isAvailable: row.productAvailable },
+        {
+          status: row.productStatus,
+          isAvailable: row.productAvailable,
+          categoryShown: row.categoryShown,
+        },
         { isAvailable: row.variantAvailable, archivedAt: row.archivedAt },
       ),
     };

@@ -1,44 +1,268 @@
 import "server-only";
-import { and, asc, desc, eq, isNull, min } from "drizzle-orm";
+import { and, asc, count, desc, eq, exists, inArray, sql } from "drizzle-orm";
+import { cache } from "react";
+import { clampPage } from "@/lib/paging";
+import { routes } from "@/lib/routes";
 import { getDb } from "@/server/db";
-import { categories, colours, products, productVariants } from "@/server/db/schema";
+import { categories, colours, productMedia, products, productVariants } from "@/server/db/schema";
+import type { Database, Transaction } from "@/server/db/types";
+import { withTimeLimit } from "@/server/db/time-limit";
+import { buildCardProduct, type CardProduct } from "../card-view";
+import {
+  buildNavigation,
+  resolveCategoryPage,
+  type NavMain,
+  type NavSub,
+  type PageCategory,
+} from "../category-rules";
 import { pickVariantToAdd } from "../sellable";
+import { listedInStock, listedProduct, parentCategory, sellableVariant } from "./storefront-sql";
+
+// The storefront's catalog reads (spec 0004 AC-3, spec 0008). Every one applies the shown and
+// sellable rules from `storefront-sql.ts`, so a hidden category and its products never reach a
+// public response. The `read…` functions take a client for the database tests.
+
+type Db = Database | Transaction;
 
 export const HOME_GRID_SIZE = 24;
+export const CATEGORY_PAGE_SIZE = 24;
 
-export type HomeProduct = {
+type CardRow = {
+  readonly id: string;
   readonly slug: string;
   readonly name: string;
   readonly code: string;
-  /** The lowest sellable variant price (spec 0002, list price). */
-  readonly listPrice: number;
+  readonly specs: readonly { readonly label: string; readonly value: string }[];
+  readonly status: "active" | "hidden" | "archived";
+  readonly isAvailable: boolean;
 };
 
-// The sellable rule as SQL, for lists; `isSellable` is the same rule in code.
-const sellableVariant = and(
-  eq(products.status, "active"),
-  eq(products.isAvailable, true),
-  eq(productVariants.isAvailable, true),
-  isNull(productVariants.archivedAt),
+const cardColumns = {
+  id: products.id,
+  slug: products.slug,
+  name: products.name,
+  code: products.code,
+  specs: products.specs,
+  status: products.status,
+  isAvailable: products.isAvailable,
+};
+
+/**
+ * Cards for product rows already in order, all in shown categories: one read of their live
+ * variants and one of their first photos, then the pure card builder (spec 0008, API surface).
+ */
+async function readCards(db: Db, rows: readonly CardRow[]): Promise<readonly CardProduct[]> {
+  if (!rows.length) return [];
+  const ids = rows.map((row) => row.id);
+  const [variants, images] = await Promise.all([
+    db
+      .select({
+        id: productVariants.id,
+        productId: productVariants.productId,
+        price: productVariants.price,
+        isAvailable: productVariants.isAvailable,
+        archivedAt: productVariants.archivedAt,
+        isDefault: productVariants.isDefault,
+        sort: productVariants.sort,
+      })
+      .from(productVariants)
+      .where(inArray(productVariants.productId, ids)),
+    db
+      .selectDistinctOn([productMedia.productId], {
+        productId: productMedia.productId,
+        storageKey: productMedia.storageKey,
+      })
+      .from(productMedia)
+      .where(and(inArray(productMedia.productId, ids), eq(productMedia.kind, "image")))
+      .orderBy(productMedia.productId, asc(productMedia.sort), asc(productMedia.id)),
+  ]);
+  const imageOf = new Map(images.map((image) => [image.productId, image.storageKey]));
+  return rows.map((row) =>
+    buildCardProduct({
+      slug: row.slug,
+      name: row.name,
+      code: row.code,
+      specs: row.specs,
+      product: { status: row.status, isAvailable: row.isAvailable, categoryShown: true },
+      variants: variants.filter((variant) => variant.productId === row.id),
+      imageKey: imageOf.get(row.id) ?? null,
+    }),
+  );
+}
+
+const hasSellableVariant = exists(
+  sql`(select 1 from ${productVariants} where ${and(
+    eq(productVariants.productId, products.id),
+    sellableVariant,
+  )})`,
 );
 
-/** The temporary home grid (spec 0004 AC-3): newest sellable products first, until feature 25. */
-export async function listHomeProducts(): Promise<readonly HomeProduct[]> {
-  const db = await getDb();
+export async function readHomeProducts(db: Db): Promise<readonly CardProduct[]> {
   const rows = await db
-    .select({
-      slug: products.slug,
-      name: products.name,
-      code: products.code,
-      listPrice: min(productVariants.price),
-    })
+    .select(cardColumns)
     .from(products)
-    .innerJoin(productVariants, eq(productVariants.productId, products.id))
-    .where(sellableVariant)
-    .groupBy(products.id)
+    .innerJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(parentCategory, eq(parentCategory.id, categories.parentId))
+    .where(hasSellableVariant)
     .orderBy(desc(products.createdAt), desc(products.id))
     .limit(HOME_GRID_SIZE);
-  return rows.map((row) => ({ ...row, listPrice: row.listPrice ?? 0 }));
+  return readCards(db, rows);
+}
+
+/** The temporary home grid (spec 0004 AC-3): newest sellable products first, until feature 25. */
+export async function listHomeProducts(): Promise<readonly CardProduct[]> {
+  return readHomeProducts(await getDb());
+}
+
+type CatalogTree = {
+  readonly categories: readonly PageCategory[];
+  /** Listed (`active`) products placed directly on each category; shown is decided in code. */
+  readonly listed: ReadonlyMap<string, number>;
+};
+
+export async function readCatalogTree(db: Db): Promise<CatalogTree> {
+  const [rows, counts] = await Promise.all([
+    db
+      .select({
+        id: categories.id,
+        parentId: categories.parentId,
+        slug: categories.slug,
+        name: categories.name,
+        description: categories.description,
+        sort: categories.sort,
+        isVisible: categories.isVisible,
+      })
+      .from(categories),
+    db
+      .select({ categoryId: products.categoryId, listed: count() })
+      .from(products)
+      .where(eq(products.status, "active"))
+      .groupBy(products.categoryId),
+  ]);
+  return {
+    categories: rows,
+    listed: new Map(counts.map((row) => [row.categoryId, row.listed])),
+  };
+}
+
+// One read per request, shared by the menu, `/c`, and a category page.
+const loadCatalogTree = cache(async () => readCatalogTree(await getDb()));
+
+export const NAVIGATION_TIMEOUT_MS = 1500;
+
+/**
+ * The menu sheet's categories (AC-14). It runs on every storefront page, so a failed or slow read
+ * gives null and the sheet shows without them. Logs say what failed, never values.
+ */
+export const listNavigation = cache(async (): Promise<readonly NavMain[] | null> => {
+  const result = await withTimeLimit(loadCatalogTree, NAVIGATION_TIMEOUT_MS);
+  if (result.ok) return buildNavigation(result.data.categories, result.data.listed);
+  console.error("listNavigation: read failed", {
+    error: result.error === "timeout" ? "timeout" : errorName(result),
+  });
+  return null;
+});
+
+const errorName = (result: { readonly cause?: unknown }) =>
+  result.cause instanceof Error ? result.cause.name : "unknown";
+
+/** `/c` (AC-15): navigation with no time limit of its own; the page sets one. */
+export async function getNavigation(): Promise<readonly NavMain[]> {
+  const tree = await loadCatalogTree();
+  return buildNavigation(tree.categories, tree.listed);
+}
+
+type PageHead = {
+  readonly slug: string;
+  readonly name: string;
+  readonly description: string | null;
+};
+
+/**
+ * What a category page knows before its products load (AC-8, AC-9, AC-11): the category, its
+ * chips, M, and the clamped page. Read first, so a not found page still gets a real 404 before the
+ * page starts streaming; the products then load under the page's own Suspense boundary.
+ */
+export type CategoryHead = {
+  readonly main: PageHead;
+  readonly sub: PageHead | null;
+  readonly navSubs: readonly NavSub[];
+  readonly chipSubs: readonly NavSub[];
+  /** M: every listed product of the page. */
+  readonly total: number;
+  /** The page after clamping to `1..last`; the first `page × 24` products are shown. */
+  readonly page: number;
+  readonly categoryIds: readonly string[];
+};
+
+export type CategoryPageData = CategoryHead & { readonly products: readonly CardProduct[] };
+
+const head = (category: PageCategory): PageHead => ({
+  slug: category.slug,
+  name: category.name,
+  description: category.description,
+});
+
+export function readCategoryHead(
+  tree: CatalogTree,
+  mainSlug: string,
+  subSlug: string | null,
+  requestedPage: number,
+): CategoryHead | null {
+  const scope = resolveCategoryPage(tree.categories, tree.listed, mainSlug, subSlug);
+  if (!scope) return null;
+  return {
+    main: head(scope.main),
+    sub: scope.sub ? head(scope.sub) : null,
+    navSubs: scope.navSubs,
+    chipSubs: scope.chipSubs,
+    total: scope.total,
+    // Clamp before the limit is built (AC-11): a page beyond the last shows everything.
+    page: clampPage(requestedPage, scope.total, CATEGORY_PAGE_SIZE),
+    categoryIds: scope.categoryIds,
+  };
+}
+
+/** The first `page × 24` listed products of the page, in list order (AC-10, AC-11). */
+export async function readCategoryProducts(
+  db: Db,
+  pageHead: CategoryHead,
+): Promise<readonly CardProduct[]> {
+  if (pageHead.total === 0) return [];
+  const rows = await db
+    .select(cardColumns)
+    .from(products)
+    .where(
+      and(inArray(products.categoryId, [...pageHead.categoryIds]), eq(products.status, "active")),
+    )
+    .orderBy(desc(sql`${listedInStock}`), desc(products.createdAt), desc(products.id))
+    .limit(pageHead.page * CATEGORY_PAGE_SIZE);
+  return readCards(db, rows);
+}
+
+export async function readCategoryPage(
+  db: Db,
+  tree: CatalogTree,
+  mainSlug: string,
+  subSlug: string | null,
+  requestedPage: number,
+): Promise<CategoryPageData | null> {
+  const pageHead = readCategoryHead(tree, mainSlug, subSlug, requestedPage);
+  if (!pageHead) return null;
+  return { ...pageHead, products: await readCategoryProducts(db, pageHead) };
+}
+
+/** A category page's head (AC-8), or null for the not found page. */
+export async function getCategoryHead(
+  mainSlug: string,
+  subSlug: string | null,
+  page: number,
+): Promise<CategoryHead | null> {
+  return readCategoryHead(await loadCatalogTree(), mainSlug, subSlug, page);
+}
+
+export async function getCategoryProducts(pageHead: CategoryHead): Promise<readonly CardProduct[]> {
+  return readCategoryProducts(await getDb(), pageHead);
 }
 
 export type ProductPageData = {
@@ -48,7 +272,8 @@ export type ProductPageData = {
   readonly slug: string;
   readonly description: string | null;
   readonly specs: readonly { readonly label: string; readonly value: string }[];
-  readonly categoryName: string;
+  /** The product's category and its page, for the breadcrumb. */
+  readonly category: { readonly name: string; readonly href: string };
   /** The variant the add button puts in the cart; null shows the product as out of stock. */
   readonly variant: {
     readonly id: string;
@@ -60,9 +285,11 @@ export type ProductPageData = {
   readonly price: number | null;
 };
 
-/** An `active` product by slug, or null for the not found page (spec 0004 AC-3). */
-export async function getProductBySlug(slug: string): Promise<ProductPageData | null> {
-  const db = await getDb();
+/**
+ * An `active` product in a shown category by slug, or null for the not found page (spec 0004
+ * AC-3, spec 0008 AC-7).
+ */
+export async function readProductBySlug(db: Db, slug: string): Promise<ProductPageData | null> {
   const [product] = await db
     .select({
       id: products.id,
@@ -74,10 +301,13 @@ export async function getProductBySlug(slug: string): Promise<ProductPageData | 
       status: products.status,
       isAvailable: products.isAvailable,
       categoryName: categories.name,
+      categorySlug: categories.slug,
+      parentSlug: parentCategory.slug,
     })
     .from(products)
     .innerJoin(categories, eq(categories.id, products.categoryId))
-    .where(and(eq(products.slug, slug), eq(products.status, "active")))
+    .leftJoin(parentCategory, eq(parentCategory.id, categories.parentId))
+    .where(and(eq(products.slug, slug), listedProduct))
     .limit(1);
   if (!product) return null;
 
@@ -97,7 +327,7 @@ export async function getProductBySlug(slug: string): Promise<ProductPageData | 
     .where(eq(productVariants.productId, product.id))
     .orderBy(asc(productVariants.sort), asc(productVariants.sizeSort));
 
-  const picked = pickVariantToAdd(product, variants);
+  const picked = pickVariantToAdd({ ...product, categoryShown: true }, variants);
   const fallback = variants.find((variant) => variant.isDefault) ?? variants[0];
   return {
     id: product.id,
@@ -106,7 +336,12 @@ export async function getProductBySlug(slug: string): Promise<ProductPageData | 
     slug: product.slug,
     description: product.description,
     specs: product.specs,
-    categoryName: product.categoryName,
+    category: {
+      name: product.categoryName,
+      href: product.parentSlug
+        ? routes.subcategory(product.parentSlug, product.categorySlug)
+        : routes.category(product.categorySlug),
+    },
     variant: picked
       ? {
           id: picked.id,
@@ -117,4 +352,8 @@ export async function getProductBySlug(slug: string): Promise<ProductPageData | 
       : null,
     price: picked?.price ?? fallback?.price ?? null,
   };
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductPageData | null> {
+  return readProductBySlug(await getDb(), slug);
 }

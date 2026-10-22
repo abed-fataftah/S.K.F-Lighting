@@ -9,10 +9,13 @@ import { cn } from "@/lib/utils";
 export function FilterChipLink({
   href,
   current,
+  check = true,
   children,
 }: {
   readonly href: string;
   readonly current: boolean;
+  /** The storefront's category chips draw the current chip without the check (pages/category.md). */
+  readonly check?: boolean;
   readonly children: ReactNode;
 }) {
   return (
@@ -26,7 +29,7 @@ export function FilterChipLink({
           : "border-control-border bg-white hover:brightness-95",
       )}
     >
-      {current ? <Check aria-hidden strokeWidth={3} className="size-4" /> : null}
+      {current && check ? <Check aria-hidden strokeWidth={3} className="size-4" /> : null}
       {children}
     </Link>
   );
