@@ -1,5 +1,6 @@
 import { expect as baseExpect, test, type Browser, type Page } from "@playwright/test";
 import { adminAccounts, signInAdmin } from "./admin-auth";
+import { chooseCategory, ensureCategory } from "./categories";
 import {
   expectNoAxeViolations,
   expectNoSidewaysScroll,
@@ -7,7 +8,8 @@ import {
   usePhoneWidth,
 } from "./a11y";
 
-// covers: AC-1, AC-2, AC-4, AC-5, AC-6, AC-8, AC-10, AC-11, AC-12, AC-14, AC-17 (spec 0006).
+// covers: AC-1, AC-2, AC-4, AC-5, AC-6, AC-8, AC-10, AC-11, AC-12, AC-14, AC-17 (spec 0006);
+// AC-17 (spec 0008: the category is made on the categories page first).
 // The product editor on a phone sized right to left screen, against the local Supabase.
 
 const expect = baseExpect.configure({ timeout: 15_000 });
@@ -25,6 +27,15 @@ async function checkA11y(page: Page) {
   await expectNoSidewaysScroll(page);
 }
 
+const CATEGORY = "فئة تجربة المنتجات";
+
+/** Signs in, makes sure the test category exists, and opens a new product. */
+async function openNewProduct(page: Page) {
+  await signInAdmin(page, accounts!, "/admin/categories");
+  await ensureCategory(page, CATEGORY);
+  await page.goto("/admin/products/new");
+}
+
 const uniqueCode = () => `E2E-${Date.now().toString(36).toUpperCase()}`;
 
 // A 2 by 2 PNG: enough for the browser to decode, shrink, and encode.
@@ -36,7 +47,7 @@ const PNG = Buffer.from(
 async function fillBasics(page: Page, name: string, code: string) {
   await page.getByLabel("اسم المنتج").fill(name);
   await page.getByLabel("كود المنتج").fill(code);
-  await page.getByLabel("أو قسم جديد (اختياري)").fill("فئة تجربة المنتجات");
+  await chooseCategory(page, CATEGORY);
 }
 
 async function addColour(page: Page, name: string) {
@@ -84,7 +95,7 @@ test("the owner adds a product with sizes, colours, and a photo, then hides, edi
   context,
 }) => {
   test.setTimeout(300_000);
-  await signInAdmin(page, accounts!, "/admin/products/new");
+  await openNewProduct(page);
   await checkA11y(page);
 
   const code = uniqueCode();
@@ -160,7 +171,7 @@ test("unsaved changes ask before leaving, and a product nothing ordered is delet
   page,
 }) => {
   test.setTimeout(180_000);
-  await signInAdmin(page, accounts!, "/admin/products/new");
+  await openNewProduct(page);
   const code = uniqueCode();
   await fillBasics(page, "لمبة للحذف", code);
 
@@ -185,7 +196,7 @@ test("an ordered product is archived instead, opens read only, and restores to h
   browser,
 }) => {
   test.setTimeout(300_000);
-  await signInAdmin(page, accounts!, "/admin/products/new");
+  await openNewProduct(page);
   const code = uniqueCode();
   await fillBasics(page, `ثريا للأرشفة ${code.slice(4).toLowerCase()}`, code);
   await page.getByLabel("السعر (₪)").fill("75");

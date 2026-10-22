@@ -1,5 +1,6 @@
 import { expect as baseExpect, test, type Page } from "@playwright/test";
 import { adminAccounts, signInAdmin } from "./admin-auth";
+import { chooseCategory, ensureCategory } from "./categories";
 import {
   expectNoAxeViolations,
   expectNoSidewaysScroll,
@@ -7,7 +8,8 @@ import {
   usePhoneWidth,
 } from "./a11y";
 
-// covers: AC-2, AC-7, AC-11, AC-13, AC-16 (spec 0004); AC-11 (spec 0005); AC-2, AC-17 (spec 0006).
+// covers: AC-2, AC-7, AC-11, AC-13, AC-16 (spec 0004); AC-11 (spec 0005); AC-2, AC-17 (spec 0006);
+// AC-17 (spec 0008: the category is made on the categories page first).
 // The tracer bullet end to end on a phone sized right to left screen: the owner signs in with a code
 // and adds a product in the product editor, a guest orders it for delivery, and the owner sees the
 // order flagged "جديد" until they open it.
@@ -27,12 +29,14 @@ async function checkA11y(page: Page) {
   await expectNoSidewaysScroll(page);
 }
 
+const CATEGORY = "فئة تجربة";
+
 const uniqueCode = () => `E2E-${Date.now().toString(36).toUpperCase()}`;
 
 async function addProduct(page: Page, fields: { name: string; code: string; price: string }) {
   await page.getByLabel("اسم المنتج").fill(fields.name);
   await page.getByLabel("كود المنتج").fill(fields.code);
-  await page.getByLabel("أو قسم جديد (اختياري)").fill("فئة تجربة");
+  await chooseCategory(page, CATEGORY);
   await page.getByLabel("السعر (₪)").fill(fields.price);
   await page.getByTestId("product-save").click();
 }
@@ -42,7 +46,9 @@ test("the owner adds a product, a guest orders it, and the owner sees the order 
   browser,
 }) => {
   test.setTimeout(300_000);
-  await signInAdmin(page, accounts!, "/admin/products/new");
+  await signInAdmin(page, accounts!, "/admin/categories");
+  await ensureCategory(page, CATEGORY);
+  await page.goto("/admin/products/new");
   await expect(page).toHaveURL(/\/admin\/products\/new$/);
   await checkA11y(page);
 

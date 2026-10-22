@@ -102,8 +102,13 @@ test.describe("storefront shell", () => {
     const sheet = page.getByRole("dialog", { name: "القائمة" });
     await expect(sheet.getByRole("button", { name: "إغلاق" })).toBeFocused();
 
+    // The shop's categories in navigation sit between the tabs and the policies (spec 0008
+    // AC-14); which ones depends on the data, so the fixed links are checked around them.
     const links = sheet.getByRole("link");
-    await expect(links).toHaveText([
+    const categories = sheet.getByTestId("menu-categories").getByRole("link");
+    const texts = await links.allTextContents();
+    const categoryTexts = await categories.allTextContents();
+    expect(texts.filter((text) => !categoryTexts.includes(text))).toEqual([
       "الرئيسية",
       "الأقسام",
       "السلة",
@@ -114,6 +119,7 @@ test.describe("storefront shell", () => {
       "سياسة الإرجاع",
       "تواصل معنا عبر واتساب",
     ]);
+    expect(texts.slice(5, 5 + categoryTexts.length)).toEqual(categoryTexts);
     const whatsapp = new URL((await links.last().getAttribute("href"))!);
     expect(whatsapp.searchParams.get("text")).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
 
