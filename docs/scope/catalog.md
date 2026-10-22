@@ -32,10 +32,19 @@ spec [0007](../specs/0007-spreadsheet-import-bulk-photos/index.md) · code in `s
 - [ ] Verify it: `/check verify spreadsheet import & bulk photos`
 - [ ] Test it: `/test spreadsheet import & bulk photos`
 
-### 9. Categories & browsing
+### 9. Categories & browsing · in-progress
 Manage categories in the dashboard, and let customers browse a category's products as a list with photo, name, code, price, and availability.
 **Done when:** you can add, rename, reorder, and hide categories; customers can open any category and see its products, with clear empty and out of stock states.
-- [ ] Build it: `/develop categories & browsing`
+spec [0008](../specs/0008-categories-browsing/index.md) · code in `src/features/catalog/` (category rules, card, category pages), `src/app/[locale]/c/`, `src/app/admin/(dashboard)/categories/`
+- [x] Design it (spec): `/architect categories & browsing`
+- [x] Build it: `/develop categories & browsing`
+  - [x] Pure rules: shown, navigation, category order, reorder plan, card view, sellable gains "category shown" (AC-4, AC-6, AC-7, AC-10, AC-12, AC-14)
+  - [x] Thin thread: add a category, its page at `/c/<main>` and `/c/<main>/<sub>`, hidden means hidden across home, product page, cart, and orders (AC-1, AC-2, AC-4a, AC-6 to AC-10, AC-18)
+  - [x] The card: photo, spec chips, prices, out of stock look, add and WhatsApp buttons, on home too (AC-12)
+  - [x] Dashboard: edit, reorder, delete when empty, states, and the product editor change (AC-1, AC-3, AC-4, AC-4a, AC-5, AC-17)
+  - [x] Storefront: menu list, `/c`, paging, states, search engine tags, and the full phone flow (AC-9, AC-11, AC-13 to AC-16, AC-19)
+- [ ] Verify it: `/check verify categories & browsing`
+- [ ] Test it: `/test categories & browsing`
 
 ### 10. Product page · needs a decision
 The full product page: photo gallery, optional video, description, dimensions, specifications, size and colour pickers, the price for the chosen size, and add to cart.
