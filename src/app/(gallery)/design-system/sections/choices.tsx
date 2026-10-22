@@ -2,11 +2,12 @@ import { getTranslations } from "next-intl/server";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckRow } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { GallerySection, SampleGroup } from "../gallery-section";
 
-// Checkbox, radio, toggle group, and tabs (AC-7). Each is live: try it with the keyboard.
+// Checkbox, switch, radio, toggle group, and tabs (AC-7). Each is live: try it with the keyboard.
 export async function ChoicesSection() {
   const c = await getTranslations("DesignSystem.choices");
 
@@ -26,6 +27,13 @@ export async function ChoicesSection() {
             <Checkbox disabled />
             {c("unavailable")}
           </CheckRow>
+        </div>
+      </SampleGroup>
+
+      <SampleGroup title={c("switchGroup")}>
+        <div className="flex min-h-11 max-w-(--page-max) items-center justify-between gap-3">
+          <span id="gallery-switch-label">{c("switchLabel")}</span>
+          <Switch defaultChecked aria-labelledby="gallery-switch-label" />
         </div>
       </SampleGroup>
 

@@ -111,6 +111,7 @@
   --admin-content-basis: 560px; /* below this the sidebar wraps above the content */
   --admin-pad: 24px 28px 48px; /* dashboard content padding (top, sides, bottom) */
   --admin-form-max: 960px; /* widest form column in the dashboard */
+  --admin-column-max: 900px; /* single column card lists, like the categories page (added in spec 0008) */
   --admin-detail-main: 520px; /* two column detail pages: main column basis (design.md section 4; added in spec 0004) */
   --admin-detail-side: 300px; /* two column detail pages: side column basis */
 }

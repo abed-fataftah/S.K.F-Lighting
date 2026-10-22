@@ -21,6 +21,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogActions,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -171,6 +181,23 @@ export async function DisplaySection() {
             </AlertDialogActions>
           </AlertDialogContent>
         </AlertDialog>
+      </SampleGroup>
+
+      <SampleGroup title={d("formDialogGroup")}>
+        <Dialog>
+          <DialogTrigger render={<Button variant="outline" />}>{d("openFormDialog")}</DialogTrigger>
+          <DialogContent>
+            <DialogTitle>{d("formDialogTitle")}</DialogTitle>
+            <Field>
+              <FieldLabel htmlFor="gallery-dialog-name">{d("formDialogLabel")}</FieldLabel>
+              <Input id="gallery-dialog-name" />
+            </Field>
+            <DialogActions>
+              <DialogClose render={<Button />}>{d("formDialogSave")}</DialogClose>
+              <DialogClose render={<Button variant="outline" />}>{d("dialogCancel")}</DialogClose>
+            </DialogActions>
+          </DialogContent>
+        </Dialog>
       </SampleGroup>
     </GallerySection>
   );

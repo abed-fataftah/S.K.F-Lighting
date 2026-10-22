@@ -167,12 +167,10 @@ describe("afterSave", () => {
     const state: EditorState = {
       ...emptyEditor(ids()),
       sizes: [{ rowId: "s1", originalLabel: null, label: "  كبير   جدًا ", price: "1" }],
-      newCategoryName: "إنارة",
     };
     const saved = afterSave(state, { mainCategoryId: CATEGORY, subCategoryId: null });
     expect(saved.sizes[0].originalLabel).toBe("كبير جدًا");
     expect(saved).toMatchObject({
-      newCategoryName: "",
       mainCategoryId: CATEGORY,
       subCategoryId: "",
     });

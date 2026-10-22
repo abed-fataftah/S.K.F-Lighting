@@ -221,7 +221,14 @@ describe("toEditorData, an existing product", () => {
 });
 
 const lookups: ImportContext["lookups"] = {
-  categories: [{ id: MAIN, name: "ثريات", children: [{ id: SUB, name: "كريستال" }] }],
+  categories: [
+    {
+      id: MAIN,
+      name: "ثريات",
+      isVisible: true,
+      children: [{ id: SUB, name: "كريستال", isVisible: true }],
+    },
+  ],
   colours: resolved.colours,
 };
 

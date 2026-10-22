@@ -157,7 +157,6 @@ export const productEditorSchema = z
     code: productCodeField,
     categoryId: optionalId,
     subCategoryId: optionalId,
-    newCategoryName: arabicText({ optional: true, min: 2, max: 60 }),
     description: arabicText({ optional: true, max: 4000, multiline: true }),
     specs: z
       .array(specRow)
@@ -174,11 +173,12 @@ export const productEditorSchema = z
   })
   .superRefine(
     (form, ctx) => {
-      if (!form.categoryId && !form.newCategoryName) {
+      // Categories are made on the categories page (spec 0008 AC-17); the editor only picks one.
+      if (!form.categoryId) {
         ctx.addIssue({ code: "custom", message: "category_required", path: ["categoryId"] });
       }
     },
-    { when: fieldsParsed("categoryId", "subCategoryId", "newCategoryName") },
+    { when: fieldsParsed("categoryId", "subCategoryId") },
   )
   .superRefine(
     (form, ctx) => {
@@ -261,7 +261,6 @@ export const editorFieldOrder = [
   "code",
   "categoryId",
   "subCategoryId",
-  "newCategoryName",
   "description",
   "media",
   "specs",
@@ -270,3 +269,46 @@ export const editorFieldOrder = [
   "colours",
   "pairs",
 ] as const;
+
+// The category dialog (spec 0008 AC-2, AC-3): the same schema in the browser and in the actions.
+// Names may be Latin ("LED"), so they are tidied text, not Arabic only.
+export const CATEGORY_LIMITS = { nameMin: 2, nameMax: 60, descriptionMax: 500 } as const;
+
+const optionalGuid = z
+  .string()
+  .optional()
+  .transform((value) => value?.trim().toLowerCase() || undefined)
+  .pipe(z.guid({ error: "invalid" }).optional());
+
+/** A form switch or checkbox: present as `on` (or `true`) when checked, missing when not. */
+const formSwitch = z
+  .union([z.string(), z.boolean()])
+  .optional()
+  .transform((value) => value === true || value === "on" || value === "true");
+
+export const categoryFormSchema = z.object({
+  name: tidiedText({ min: CATEGORY_LIMITS.nameMin, max: CATEGORY_LIMITS.nameMax }),
+  description: tidiedText({
+    optional: true,
+    max: CATEGORY_LIMITS.descriptionMax,
+    multiline: true,
+  }),
+  isVisible: formSwitch,
+});
+
+/** Add: a main (no `parentId`) or a sub under the main `parentId`. */
+export const createCategorySchema = categoryFormSchema.extend({ parentId: optionalGuid });
+
+export const updateCategorySchema = categoryFormSchema.extend({
+  id: z.guid().transform((id) => id.toLowerCase()),
+});
+
+export const moveCategorySchema = z.object({
+  id: z.guid().transform((id) => id.toLowerCase()),
+  direction: z.enum(["up", "down"]),
+});
+
+export const categoryIdSchema = z.object({ id: z.guid().transform((id) => id.toLowerCase()) });
+
+export type CreateCategoryData = z.output<typeof createCategorySchema>;
+export type UpdateCategoryData = z.output<typeof updateCategorySchema>;

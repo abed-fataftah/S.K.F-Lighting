@@ -38,7 +38,6 @@ const payload = (media: readonly unknown[] = []) => ({
   code: "CH-1",
   categoryId: "8a1d2b3c-4d5e-4f60-8a71-b2c3d4e5f607",
   subCategoryId: "",
-  newCategoryName: "",
   description: "",
   specs: [],
   visible: true,

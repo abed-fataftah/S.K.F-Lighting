@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { fieldErrorsOf } from "@/lib/form-errors";
 import { mediaKey } from "./media-rules";
-import { productEditorSchema, type ProductEditorInput } from "./schemas";
+import {
+  createCategorySchema,
+  moveCategorySchema,
+  productEditorSchema,
+  updateCategorySchema,
+  type ProductEditorInput,
+} from "./schemas";
 
 // covers: AC-2 (spec 0004); AC-9, AC-11 (spec 0005); AC-2 to AC-5, AC-8, AC-9, AC-16, AC-18 (spec 0006)
 
@@ -18,7 +24,6 @@ const valid: ProductEditorInput = {
   code: " ch-1020 ",
   categoryId: CATEGORY,
   subCategoryId: "",
-  newCategoryName: "",
   description: "",
   specs: [],
   visible: true,
@@ -58,7 +63,6 @@ describe("productEditorSchema: basics", () => {
       code: "CH-1020",
       categoryId: CATEGORY,
       subCategoryId: undefined,
-      newCategoryName: undefined,
       description: undefined,
       price: 125_000,
     });
@@ -90,18 +94,16 @@ describe("productEditorSchema: basics", () => {
     expect(parse({ code: "ch-١٠٢٠" }).code).toBe("CH-1020");
   });
 
-  it("asks for Arabic in the name, a new category name, and a filled description", () => {
+  it("asks for Arabic in the name and a filled description", () => {
     expect(errorsOf({ name: "Philips 60W" }).name).toEqual({ code: "arabic_required" });
     expect(parse({ name: "ثريا كريستال Philips 60W" }).name).toBe("ثريا كريستال Philips 60W");
-    expect(errorsOf({ newCategoryName: "Lamps" }).newCategoryName?.code).toBe("arabic_required");
     expect(errorsOf({ description: "LED 60W" }).description?.code).toBe("arabic_required");
     expect(parse({ description: "  " }).description).toBeUndefined();
   });
 
-  it("checks name, category name, and description lengths", () => {
+  it("checks name and description lengths", () => {
     expect(errorsOf({ name: "ث" }).name?.code).toBe("too_short");
     expect(errorsOf({ name: "ث".repeat(121) }).name?.code).toBe("too_long");
-    expect(errorsOf({ newCategoryName: "ث".repeat(61) }).newCategoryName?.code).toBe("too_long");
     expect(errorsOf({ description: "ث".repeat(4001) }).description).toEqual({
       code: "too_long",
       params: { max: 4000 },
@@ -119,16 +121,17 @@ describe("productEditorSchema: basics", () => {
   });
 });
 
-describe("productEditorSchema: category (AC-18)", () => {
-  it("needs a main category or a new name, shown beside other errors", () => {
+describe("productEditorSchema: category (AC-18; spec 0008 AC-17)", () => {
+  it("needs a main category, shown beside other errors", () => {
     expect(errorsOf({ categoryId: "", price: "0" })).toEqual({
       price: { code: "price_invalid" },
       categoryId: { code: "category_required" },
     });
-    expect(parse({ categoryId: "", newCategoryName: " إنارة " })).toMatchObject({
-      categoryId: undefined,
-      newCategoryName: "إنارة",
-    });
+  });
+
+  it("no longer takes a typed new category name", () => {
+    const data = parse({ newCategoryName: "إنارة" } as Partial<ProductEditorInput>);
+    expect(data).not.toHaveProperty("newCategoryName");
   });
 
   it("keeps the sub category id", () => {
@@ -301,5 +304,53 @@ describe("productEditorSchema: media (AC-8, AC-16)", () => {
   it("refuses a 9th photo", () => {
     const media = Array.from({ length: 9 }, (_, i) => photo(`${FILE.slice(0, -1)}${i}`));
     expect(errorsOf({ media }).media).toEqual({ code: "invalid" });
+  });
+});
+
+// covers: AC-2, AC-3 (spec 0008)
+describe("category schemas", () => {
+  const MAIN = "8A1D2B3C-4D5E-4F60-8A71-B2C3D4E5F607";
+
+  it("tidies the name and description and reads the switch", () => {
+    expect(
+      createCategorySchema.parse({
+        name: "  ثريات   ونجف ",
+        description: "  ",
+        isVisible: "on",
+        parentId: MAIN,
+      }),
+    ).toEqual({
+      name: "ثريات ونجف",
+      description: undefined,
+      isVisible: true,
+      parentId: MAIN.toLowerCase(),
+    });
+    expect(createCategorySchema.parse({ name: "LED", parentId: "" })).toEqual({
+      name: "LED",
+      description: undefined,
+      isVisible: false,
+      parentId: undefined,
+    });
+  });
+
+  it("checks the name and description lengths after tidying", () => {
+    const errors = (input: Record<string, unknown>) => {
+      const result = createCategorySchema.safeParse(input);
+      return result.success ? {} : fieldErrorsOf(result.error);
+    };
+    expect(errors({ name: " ث " })).toMatchObject({ name: { code: "too_short" } });
+    expect(errors({ name: "ث".repeat(61) })).toMatchObject({ name: { code: "too_long" } });
+    expect(errors({ name: "ثريات", description: "و".repeat(501) })).toMatchObject({
+      description: { code: "too_long" },
+    });
+    expect(errors({ name: "ثريات", parentId: "not an id" })).toMatchObject({
+      parentId: { code: "invalid" },
+    });
+  });
+
+  it("needs an id to edit and a direction to move", () => {
+    expect(updateCategorySchema.safeParse({ name: "ثريات" }).success).toBe(false);
+    expect(moveCategorySchema.safeParse({ id: MAIN, direction: "left" }).success).toBe(false);
+    expect(moveCategorySchema.parse({ id: MAIN, direction: "up" }).id).toBe(MAIN.toLowerCase());
   });
 });

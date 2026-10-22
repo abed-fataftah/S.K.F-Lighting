@@ -1,5 +1,5 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { afterAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   categories,
   colours,
@@ -23,8 +23,26 @@ const { readAdminProducts, readProductEditor } = await import("./admin-queries")
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
 
+// Products pick a category made on the categories page (spec 0008 AC-17): one committed test
+// category, found or made once, removed at the end.
+const SAVE_CATEGORY = { name: "فئة اختبار الحفظ", slug: "test-save-category" };
+let saveCategoryId = "";
+
+beforeAll(async () => {
+  if (!hasLocalDb) return;
+  const [existing] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(eq(categories.slug, SAVE_CATEGORY.slug));
+  saveCategoryId =
+    existing?.id ??
+    (await db.insert(categories).values(SAVE_CATEGORY).returning({ id: categories.id }))[0].id;
+});
+
 afterAll(async () => {
-  if (hasLocalDb) await db.$client.end();
+  if (!hasLocalDb) return;
+  await db.delete(categories).where(eq(categories.slug, SAVE_CATEGORY.slug));
+  await db.$client.end();
 });
 
 // covers: AC-2, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-10, AC-11, AC-12, AC-13, AC-18 (spec 0006)
@@ -37,7 +55,7 @@ const input = (fields: Partial<ProductEditorInput>) =>
     version: null,
     name: "ثريا اختبار",
     code: `TSP-${crypto.randomUUID().slice(0, 8)}`,
-    newCategoryName: "فئة اختبار الحفظ",
+    categoryId: saveCategoryId,
     specs: [],
     visible: true,
     available: true,
@@ -175,7 +193,7 @@ describe.skipIf(!hasLocalDb)("saveProductInDb on the local database", () => {
       expect(await saveProductInDb(tx, data)).toEqual({ kind: "stale" });
 
       const before = await tx.select().from(categories);
-      const taken = input({ code: data.code, newCategoryName: "فئة لن تحفظ" });
+      const taken = input({ code: data.code });
       expect(await saveProductInDb(tx, taken)).toEqual({ kind: "code_taken" });
       expect(await tx.select().from(categories)).toHaveLength(before.length);
     });
@@ -233,15 +251,15 @@ describe.skipIf(!hasLocalDb)("saveProductInDb on the local database", () => {
         .values({ name: "فرعي اختبار", slug: "test-sub-save", parentId: main.id })
         .returning();
 
-      const data = input({ newCategoryName: "", categoryId: main.id, subCategoryId: sub.id });
+      const data = input({ categoryId: main.id, subCategoryId: sub.id });
       await saved(tx, data);
       const [product] = await tx.select().from(products).where(eq(products.id, data.id));
       expect(product.categoryId).toBe(sub.id);
       expect((await readProductEditor(tx, data.id))?.mainCategoryId).toBe(main.id);
 
-      const wrong = input({ newCategoryName: "", categoryId: other.id, subCategoryId: sub.id });
+      const wrong = input({ categoryId: other.id, subCategoryId: sub.id });
       expect(await saveProductInDb(tx, wrong)).toEqual({ kind: "category_required" });
-      const subAsMain = input({ newCategoryName: "", categoryId: sub.id });
+      const subAsMain = input({ categoryId: sub.id });
       expect(await saveProductInDb(tx, subAsMain)).toEqual({ kind: "category_required" });
     });
   });
@@ -553,7 +571,6 @@ describe.skipIf(!hasLocalDb)("a delete that loses a race with a new order line",
     } finally {
       if (orderId) await db.delete(orders).where(eq(orders.id, orderId));
       await db.delete(products).where(eq(products.id, data.id));
-      await db.delete(categories).where(eq(categories.name, "فئة اختبار الحفظ"));
       await other.$client.end();
     }
   });

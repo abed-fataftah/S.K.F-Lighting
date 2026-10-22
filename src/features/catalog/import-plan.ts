@@ -114,7 +114,6 @@ export function toEditorData(
       code: sheet.code,
       categoryId: resolved.mainId,
       subCategoryId: resolved.subId ?? undefined,
-      newCategoryName: undefined,
       description: sheet.description ?? (stored?.description || undefined),
       specs: [...specs],
       visible: sheet.visible ?? stored?.visible ?? false,
@@ -186,7 +185,8 @@ export type Review = {
   readonly canConfirm: boolean;
 };
 
-const sameName = (a: string, b: string) => tidyText(a) === tidyText(b);
+// Category names match like the database does (spec 0008 AC-2): tidied, case blind ("LED" is "led").
+const sameName = (a: string, b: string) => tidyText(a).toLowerCase() === tidyText(b).toLowerCase();
 
 /** Sheet problems by row, then photo problems by file name (AC-14). */
 export function orderProblems(problems: readonly ImportProblem[]): readonly ImportProblem[] {

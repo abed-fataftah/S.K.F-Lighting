@@ -41,7 +41,6 @@ export type EditorState = {
   readonly code: string;
   readonly mainCategoryId: string;
   readonly subCategoryId: string;
-  readonly newCategoryName: string;
   readonly description: string;
   readonly visible: boolean;
   readonly available: boolean;
@@ -68,7 +67,6 @@ export function emptyEditor(newId: IdMaker): EditorState {
     code: "",
     mainCategoryId: "",
     subCategoryId: "",
-    newCategoryName: "",
     description: "",
     visible: true,
     available: true,
@@ -103,7 +101,6 @@ export function editorFromProduct(product: ProductEditorState, newId: IdMaker): 
     code: product.code,
     mainCategoryId: product.mainCategoryId,
     subCategoryId: product.subCategoryId ?? "",
-    newCategoryName: "",
     description: product.description,
     visible: product.visible,
     available: product.available,
@@ -160,7 +157,6 @@ export function toPayload(
     code: state.code,
     categoryId: state.mainCategoryId,
     subCategoryId: state.subCategoryId,
-    newCategoryName: state.newCategoryName,
     description: state.description,
     specs: state.specs.map(({ label, value }) => ({ label, value })),
     visible: state.visible,
@@ -190,7 +186,7 @@ export function changeKey(state: EditorState): string {
 
 /**
  * After a save the stored labels are the tidied ones, so the next save matches the same rows, and
- * the selects show the stored category (a typed new one is now a real category).
+ * the selects show the stored category.
  */
 export function afterSave(
   state: EditorState,
@@ -201,7 +197,6 @@ export function afterSave(
     sizes: state.sizes.map((row) => ({ ...row, originalLabel: tidyText(row.label) })),
     mainCategoryId: category.mainCategoryId,
     subCategoryId: category.subCategoryId ?? "",
-    newCategoryName: "",
   };
 }
 

@@ -14,7 +14,6 @@ import { orderMedia } from "../media-rules";
 import { optionKey, type ProductEditorData } from "../schemas";
 import { buildProductSlug } from "../slug";
 import { planVariants, tempLabel, type VariantPlan } from "../variant-plan";
-import { findOrCreateTopCategory } from "./categories";
 
 // The database half of `saveProduct` (spec 0006 AC-2 to AC-13, saveProduct order of work, step 3):
 // one transaction that checks the version, resolves the category and colours, reconciles the
@@ -72,9 +71,6 @@ type ResolvedCategory = { readonly mainId: string; readonly subId: string | null
 const storedCategory = (category: ResolvedCategory) => category.subId ?? category.mainId;
 
 async function resolveCategory(tx: Tx, data: ProductEditorData): Promise<ResolvedCategory> {
-  if (data.newCategoryName) {
-    return { mainId: await findOrCreateTopCategory(tx, data.newCategoryName), subId: null };
-  }
   if (!data.categoryId) throw new Refused({ kind: "category_required" });
 
   const [main] = await tx

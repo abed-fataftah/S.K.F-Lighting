@@ -22,7 +22,9 @@ import {
   type ProductFilter,
   type ProductStatusLabel,
 } from "../admin-list";
+import type { AdminMain } from "../category-rules";
 import type { MediaKind } from "../media-rules";
+import { readAdminCategories } from "./categories";
 
 // The dashboard's product reads (spec 0006, API surface). Each public query runs
 // `requireAdminPage()` itself, so a page that forgets the layout guard still shows nothing.
@@ -151,7 +153,12 @@ export async function listAdminProducts(filters: AdminProductFilters) {
 export type CategoryChoice = {
   readonly id: string;
   readonly name: string;
-  readonly children: readonly { readonly id: string; readonly name: string }[];
+  readonly isVisible: boolean;
+  readonly children: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly isVisible: boolean;
+  }[];
 };
 
 export type EditorLookups = {
@@ -162,9 +169,14 @@ export type EditorLookups = {
 export async function readEditorLookups(db: Db): Promise<EditorLookups> {
   const [allCategories, allColours] = await Promise.all([
     db
-      .select({ id: categories.id, name: categories.name, parentId: categories.parentId })
+      .select({
+        id: categories.id,
+        name: categories.name,
+        parentId: categories.parentId,
+        isVisible: categories.isVisible,
+      })
       .from(categories)
-      .orderBy(asc(categories.sort), asc(categories.name)),
+      .orderBy(asc(categories.sort), asc(categories.name), asc(categories.id)),
     db
       .select({ id: colours.id, name: colours.name })
       .from(colours)
@@ -176,9 +188,10 @@ export async function readEditorLookups(db: Db): Promise<EditorLookups> {
       .map((main) => ({
         id: main.id,
         name: main.name,
+        isVisible: main.isVisible,
         children: allCategories
           .filter((category) => category.parentId === main.id)
-          .map(({ id, name }) => ({ id, name })),
+          .map(({ id, name, isVisible }) => ({ id, name, isVisible })),
       })),
     colours: allColours,
   };
@@ -372,4 +385,10 @@ export async function readProductEditor(db: Db, id: string): Promise<ProductEdit
 export async function getProductEditor(id: string): Promise<ProductEditorState | null> {
   await requireAdminPage(routes.admin.product(id));
   return readProductEditor(await getDb(), id);
+}
+
+/** The tree behind `/admin/categories` (spec 0008 AC-1). */
+export async function listAdminCategories(): Promise<readonly AdminMain[]> {
+  await requireAdminPage(routes.admin.categories);
+  return readAdminCategories(await getDb());
 }

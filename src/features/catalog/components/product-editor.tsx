@@ -18,7 +18,6 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckRow, FieldDescription } from "@/components/ui/field";
-import { tidyText } from "@/lib/arabic";
 import { fieldErrorsOf, type FieldErrors } from "@/lib/form-errors";
 import { routes } from "@/lib/routes";
 import {
@@ -74,12 +73,11 @@ export function ProductEditor({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [banner, setBanner] = useState<Banner | null>(null);
   const [saved, setSaved] = useState<(SavedProduct & { readonly name: string }) | null>(null);
-  // A main category typed in this visit, once a save has created it.
-  const [createdCategories, setCreatedCategories] = useState<EditorLookups["categories"]>([]);
   const [focusRequest, setFocusRequest] = useState(0);
   const [pending, startTransition] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [confirmLeave, setConfirmLeave] = useState(false);
+  // Where a guarded link wants to go while there are unsaved changes (AC-14; spec 0008 AC-17).
+  const [leaveTo, setLeaveTo] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const noticeRef = useRef<HTMLHeadingElement>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
@@ -137,14 +135,6 @@ export function ProductEditor({
         return refuse(result.error, result.fieldErrors);
       }
       const next = afterSave(state, result.data);
-      const typedCategory = tidyText(state.newCategoryName);
-      const known = [...lookups.categories, ...createdCategories];
-      if (typedCategory && !known.some((main) => main.id === result.data.mainCategoryId)) {
-        setCreatedCategories((current) => [
-          ...current,
-          { id: result.data.mainCategoryId, name: typedCategory, children: [] },
-        ]);
-      }
       setState(next);
       setBaseline(changeKey(next));
       setVersion(result.data.version);
@@ -183,7 +173,8 @@ export function ProductEditor({
       router.refresh();
     });
 
-  const leave = () => (dirty ? setConfirmLeave(true) : router.push(routes.admin.products));
+  const leave = (href: string = routes.admin.products) =>
+    dirty ? setLeaveTo(href) : router.push(href);
 
   const sectionProps = { state, setState, errors: fieldErrors, disabled: archived };
   const saveDisabled = pending || uploadsBusy;
@@ -214,7 +205,7 @@ export function ProductEditor({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="type-display-s">{isNew ? t("newTitle") : t("editTitle")}</h1>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={leave}>
+          <Button variant="outline" onClick={() => leave()}>
             {archived ? t("backToList") : t("cancel")}
           </Button>
           {archived ? null : saveButton("product-save-top")}
@@ -293,7 +284,8 @@ export function ProductEditor({
 
       <BasicsSection
         {...sectionProps}
-        categories={[...lookups.categories, ...createdCategories]}
+        categories={lookups.categories}
+        onLeave={leave}
         codeFixed={!isNew}
       />
       <MediaSection {...sectionProps} productId={id} newRowId={newRowId} />
@@ -378,16 +370,20 @@ export function ProductEditor({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}>
+      <AlertDialog
+        open={leaveTo !== null}
+        onOpenChange={(open) => (open ? null : setLeaveTo(null))}
+      >
         <AlertDialogContent data-testid="leave-dialog">
           <AlertDialogTitle>{t("leaveTitle")}</AlertDialogTitle>
           <AlertDialogDescription>{t("leaveText")}</AlertDialogDescription>
           <AlertDialogActions>
             <Button
               onClick={() => {
-                setConfirmLeave(false);
+                const href = leaveTo ?? routes.admin.products;
+                setLeaveTo(null);
                 setBaseline(changeKey(state));
-                router.push(routes.admin.products);
+                router.push(href);
               }}
             >
               {t("leaveConfirm")}
