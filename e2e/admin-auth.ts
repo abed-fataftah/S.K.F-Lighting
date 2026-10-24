@@ -28,13 +28,21 @@ export type AdminAccounts = {
   readonly customerEmail: string;
 };
 
-/** The accounts the setup made, or null when local Supabase was not reachable (CI today). */
+/**
+ * The accounts the setup made, or null when local Supabase was not reachable (CI today). Each
+ * worker gets its own admin: when one session passes its code, Supabase Auth ends that user's other
+ * sessions still waiting for a code, so a shared admin sends a parallel sign in back to login.
+ */
 export function adminAccounts(): AdminAccounts | null {
   const env = process.env;
   if (env.E2E_ADMIN_READY !== "1") return null;
+  const slot = Number(env.TEST_PARALLEL_INDEX ?? 0) % Number(env.E2E_ADMIN_COUNT);
   return {
     password: env[E2E_PASSWORD_ENV]!,
-    admin: { email: env.E2E_ADMIN_EMAIL!, secret: env.E2E_ADMIN_TOTP_SECRET! },
+    admin: {
+      email: env[`E2E_ADMIN_EMAIL_${slot}`]!,
+      secret: env[`E2E_ADMIN_TOTP_SECRET_${slot}`]!,
+    },
     enrollEmail: env.E2E_ENROLL_EMAIL!,
     customerEmail: env.E2E_CUSTOMER_EMAIL!,
   };

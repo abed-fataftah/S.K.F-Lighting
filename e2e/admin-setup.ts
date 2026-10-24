@@ -1,16 +1,19 @@
 import { execSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
+import type { FullConfig } from "@playwright/test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 import { E2E_PASSWORD_ENV, loadLocalEnv, serviceClient, totpCode } from "./admin-auth";
 
 // Playwright global setup (spec 0004, Configuration required): makes the test accounts on the
 // local Supabase with the service role, promotes the admins with `pnpm admin:promote`, and enrolls
-// an authenticator for the main admin through the API. The secret and password stay in this run's
+// an authenticator for each main admin through the API. The secrets and password stay in this run's
 // environment, never on disk. Without a local Supabase (CI today) the dashboard tests skip.
+// One main admin per worker (see `adminAccounts`), so parallel sign ins never share a user.
+
+const adminEmail = (slot: number) => `e2e-admin-${slot}@skf.test`;
 
 const ACCOUNTS = {
-  admin: "e2e-admin@skf.test",
   enroll: "e2e-enroll@skf.test",
   customer: "e2e-customer@skf.test",
 } as const;
@@ -62,7 +65,7 @@ async function enrollAuthenticator(email: string, password: string): Promise<str
   return secret;
 }
 
-export default async function globalSetup() {
+export default async function globalSetup(config: FullConfig) {
   loadLocalEnv();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const ready =
@@ -78,16 +81,21 @@ export default async function globalSetup() {
 
   const password = `e2e-${randomBytes(12).toString("hex")}`;
   const admin = serviceClient();
-  for (const email of Object.values(ACCOUNTS)) await recreateUser(admin, email, password);
-  promote(ACCOUNTS.admin);
-  promote(ACCOUNTS.enroll);
-  const secret = await enrollAuthenticator(ACCOUNTS.admin, password);
+  const admins = Array.from({ length: config.workers }, (_, slot) => adminEmail(slot));
+  for (const email of [...admins, ...Object.values(ACCOUNTS)])
+    await recreateUser(admin, email, password);
+  for (const email of [...admins, ACCOUNTS.enroll]) promote(email);
+  const perWorker: Record<string, string> = {};
+  for (const [slot, email] of admins.entries()) {
+    perWorker[`E2E_ADMIN_EMAIL_${slot}`] = email;
+    perWorker[`E2E_ADMIN_TOTP_SECRET_${slot}`] = await enrollAuthenticator(email, password);
+  }
 
   Object.assign(process.env, {
     E2E_ADMIN_READY: "1",
     [E2E_PASSWORD_ENV]: password,
-    E2E_ADMIN_EMAIL: ACCOUNTS.admin,
-    E2E_ADMIN_TOTP_SECRET: secret,
+    E2E_ADMIN_COUNT: String(admins.length),
+    ...perWorker,
     E2E_ENROLL_EMAIL: ACCOUNTS.enroll,
     E2E_CUSTOMER_EMAIL: ACCOUNTS.customer,
   });

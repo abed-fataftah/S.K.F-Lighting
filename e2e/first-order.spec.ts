@@ -1,4 +1,4 @@
-import { expect as baseExpect, test, type Page } from "@playwright/test";
+import { expect as baseExpect, test, type Locator, type Page } from "@playwright/test";
 import { adminAccounts, signInAdmin } from "./admin-auth";
 import { chooseCategory, ensureCategory } from "./categories";
 import {
@@ -8,7 +8,8 @@ import {
   usePhoneWidth,
 } from "./a11y";
 
-// covers: AC-2, AC-7, AC-11, AC-13, AC-16 (spec 0004); AC-11 (spec 0005); AC-2, AC-17 (spec 0006);
+// covers: AC-2, AC-7, AC-11, AC-13, AC-16 (spec 0004); AC-8, AC-9, AC-11, AC-14 (spec 0005);
+// AC-2, AC-17 (spec 0006);
 // AC-17 (spec 0008: the category is made on the categories page first).
 // The tracer bullet end to end on a phone sized right to left screen: the owner signs in with a code
 // and adds a product in the product editor, a guest orders it for delivery, and the owner sees the
@@ -33,6 +34,21 @@ const CATEGORY = "فئة تجربة";
 
 const uniqueCode = () => `E2E-${Date.now().toString(36).toUpperCase()}`;
 
+/**
+ * Spec 0005 AC-14 on an admin order screen: prices read left to right through formatPrice, and the
+ * order time is one `<time>` through formatDateTime, never wrapped in a `bdi`.
+ */
+async function expectMoneyAndTime(scope: Locator) {
+  await expect(
+    scope.locator("bdi[dir=ltr]", { hasText: /^₪[\d,]+(\.\d{2})?$/ }).first(),
+  ).toBeVisible();
+  const time = scope.locator("time");
+  await expect(time).toHaveCount(1);
+  await expect(time).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  await expect(time).toHaveText(/^\d{2}\/\d{2}\/\d{4} · \d{1,2}:\d{2} [صم]$/);
+  await expect(scope.locator("bdi time, time bdi")).toHaveCount(0);
+}
+
 async function addProduct(page: Page, fields: { name: string; code: string; price: string }) {
   await page.getByLabel("اسم المنتج").fill(fields.name);
   await page.getByLabel("كود المنتج").fill(fields.code);
@@ -50,6 +66,7 @@ test("the owner adds a product, a guest orders it, and the owner sees the order 
   await ensureCategory(page, CATEGORY);
   await page.goto("/admin/products/new");
   await expect(page).toHaveURL(/\/admin\/products\/new$/);
+  await expect(page.getByLabel("اسم المنتج")).toBeEnabled();
   await checkA11y(page);
 
   const code = uniqueCode();
@@ -98,18 +115,35 @@ test("the owner adds a product, a guest orders it, and the owner sees the order 
   await page.goto("/admin/orders");
   const row = page.getByTestId(`order-row-${number}`);
   await expect(row.getByText("جديد")).toBeVisible();
+  // The phone reads through formatPhone, left to right (spec 0005 AC-8, AC-14).
+  await expect(row.locator("bdi[dir=ltr]", { hasText: "059 912 3456" })).toHaveCount(1);
+  await expectMoneyAndTime(row);
+  await expect(row).not.toContainText(/[٠-٩]/);
   await checkA11y(page);
 
   await row.getByRole("link", { name: number }).click();
   await expect(page).toHaveURL(new RegExp(`/admin/orders/${number}$`));
   await expect(page.getByTestId("admin-order-lines")).toContainText(name);
   await expect(page.getByText("رام الله")).toBeVisible();
+  await expect(page.locator("main bdi[dir=ltr]", { hasText: "059 912 3456" })).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 }).locator("bdi[dir=ltr]")).toHaveText(number!);
+  // ١٢٥٫٥ was saved as 12550 agorot: the unit price and line total read ₪125.50 (spec 0005 AC-9).
+  await expect(
+    page.getByTestId("admin-order-lines").locator("bdi[dir=ltr]", { hasText: "₪125.50" }),
+  ).toHaveCount(2);
+  await expectMoneyAndTime(page.locator("main"));
   await checkA11y(page);
 
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/admin\/orders$/);
   await expect(page.getByTestId(`order-row-${number}`)).toBeVisible();
   await expect(page.getByTestId(`order-row-${number}`).getByText("جديد")).toHaveCount(0);
+
+  // One price, no "من": the products list shows it alone, left to right (spec 0005 AC-14).
+  await page.goto(`/admin/products?q=${code}`);
+  const price = page.getByTestId(`product-row-${code}`).getByTestId("product-price");
+  await expect(price).toHaveText("₪125.50");
+  await expect(price.locator("bdi[dir=ltr]")).toHaveText("₪125.50");
 });
 
 test("a taken code is refused on its field and nothing is saved", async ({ page }) => {
@@ -119,8 +153,26 @@ test("a taken code is refused on its field and nothing is saved", async ({ page 
   await addProduct(page, { name: "لمبة تجربة", code, price: "20" });
   await expect(page.getByTestId("product-saved")).toBeVisible();
 
+  // A slow network: while the fresh editor loads, the saved one is busy and takes no typing.
+  await page.route(/\/admin\/products\/new$/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    await route.continue();
+  });
+  const historyLength = () => page.evaluate(() => window.history.length);
+  const entriesBefore = await historyLength();
   await page.getByRole("link", { name: "+ إضافة منتج آخر" }).click();
   await expect(page).toHaveURL(/\/admin\/products\/new$/);
+  await expect(page.getByTestId("product-editor")).toHaveAttribute("aria-busy", "true");
+  await page.getByLabel("اسم المنتج").focus();
+  await expect(page.getByLabel("اسم المنتج")).not.toBeFocused();
+  // Ready when the editor stands empty and editable again, with no saved notice.
+  await expect(page.getByTestId("product-saved")).toHaveCount(0);
+  await expect(page.getByTestId("product-editor")).not.toHaveAttribute("aria-busy", "true");
+  await expect(page.getByLabel("اسم المنتج")).toHaveValue("");
+  await expect(page.getByLabel("اسم المنتج")).toBeEditable();
+  // The address is replaced, not pushed, so Back never brings the saved product's editor back.
+  expect(await historyLength()).toBe(entriesBefore);
+  await page.unroute(/\/admin\/products\/new$/);
   await addProduct(page, {
     name: "لمبة تجربة ثانية",
     code: ` ${code.toLowerCase()} `,

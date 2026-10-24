@@ -29,11 +29,12 @@ async function checkA11y(page: Page) {
 
 const CATEGORY = "فئة تجربة المنتجات";
 
-/** Signs in, makes sure the test category exists, and opens a new product. */
+/** Signs in, makes sure the test category exists, and opens a new product, ready for input. */
 async function openNewProduct(page: Page) {
   await signInAdmin(page, accounts!, "/admin/categories");
   await ensureCategory(page, CATEGORY);
   await page.goto("/admin/products/new");
+  await expect(page.getByLabel("اسم المنتج")).toBeEnabled();
 }
 
 const uniqueCode = () => `E2E-${Date.now().toString(36).toUpperCase()}`;
@@ -134,12 +135,15 @@ test("the owner adds a product with sizes, colours, and a photo, then hides, edi
   await page.goto(`/admin/products?q=${code}`);
   const row = page.getByTestId(`product-row-${code}`);
   await expect(row.getByTestId("product-price")).toHaveText("من ₪100");
+  // The price stays left to right inside the sentence (spec 0005 AC-14).
+  await expect(row.getByTestId("product-price").locator("bdi[dir=ltr]")).toHaveText("₪100");
   await expect(row.getByTestId("product-options")).toHaveText("2 أحجام · 2 ألوان");
   await expect(row.getByTestId("product-status")).toHaveText("متوفر");
   await checkA11y(page);
 
   // Hide it: its shop page is gone at once; show it again.
   await page.goto(editUrl);
+  await expect(page.getByLabel("اسم المنتج")).toBeEnabled();
   await checkA11y(page);
   await page.getByTestId("product-visible").click();
   await save(page);
@@ -165,6 +169,48 @@ test("the owner adds a product with sizes, colours, and a photo, then hides, edi
   await other.getByRole("button", { name: "إعادة التحميل" }).click();
   await expect(other.getByLabel("سعر الحجم 1")).toHaveValue("110");
   await expect(other.getByLabel("سعر الحجم 2")).toHaveValue("150");
+});
+
+/** Holds the page scripts back until the returned function lets them through: a slow connection. */
+async function holdScripts(page: Page) {
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route("**/_next/static/**/*.js", async (route) => {
+    await held;
+    await route.continue();
+  });
+  return release;
+}
+
+/** The editor shows disabled while its scripts are held, and turns usable once they arrive. */
+async function expectDisabledUntilReady(page: Page, load: () => Promise<unknown>) {
+  const release = await holdScripts(page);
+  await load();
+  const name = page.getByLabel("اسم المنتج");
+  await expect(name).toBeVisible();
+  await expect(page.getByTestId("product-editor")).toHaveAttribute("aria-busy", "true");
+  await expect(name).toBeDisabled();
+  await expect(page.getByTestId("product-save")).toBeDisabled();
+  release();
+  await expect(page.getByTestId("product-editor")).not.toHaveAttribute("aria-busy", "true");
+  await expect(name).toBeEnabled();
+  await page.unrouteAll();
+}
+
+test("the editor stays disabled until it is ready, on a direct load and on refresh", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await signInAdmin(page, accounts!, "/admin/categories");
+  await ensureCategory(page, CATEGORY);
+  await expectDisabledUntilReady(page, () =>
+    page.goto("/admin/products/new", { waitUntil: "commit" }),
+  );
+  await expectDisabledUntilReady(page, () => page.reload({ waitUntil: "commit" }));
+
+  // What is typed once it is ready stays through the next render.
+  await fillBasics(page, "لمبة بعد التحميل", uniqueCode());
+  await expect(page.getByLabel("اسم المنتج")).toHaveValue("لمبة بعد التحميل");
 });
 
 test("unsaved changes ask before leaving, and a product nothing ordered is deleted", async ({

@@ -4,6 +4,10 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    // Vite's resolver fails to take the real path of OneDrive placeholder files, so every
+    // package import resolved to nothing and fell back to Node. node_modules is hoisted
+    // (.npmrc), with no symlinks to follow, so skipping that step changes nothing else.
+    preserveSymlinks: true,
   },
   test: {
     environment: "node",
