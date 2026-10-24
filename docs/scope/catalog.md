@@ -15,8 +15,8 @@ spec [0006](../specs/0006-product-management/index.md) · code in `src/features/
   - [x] Sizes, colours, and the pair grid, with archive and restore of ordered pairs (AC-4 to AC-7)
   - [x] Photos and video: signed uploads, browser resize, tiles, cleanup after save (AC-8, AC-15, AC-16)
   - [x] Finish: specs rows, delete, archive and restore, list filters and paging, unsaved guard, weekly sweep, full phone flow (AC-1, AC-9, AC-12, AC-14, AC-15, AC-17)
-- [ ] Verify it: `/check verify product management`
-- [ ] Test it: `/test product management`
+- [x] Verify it: `/check verify product management`
+- [x] Test it: `/test product management`
 
 ### 8. Spreadsheet import & bulk photos · in-progress
 A ready made spreadsheet template you (or a helper) fill in, uploaded once to create many products, then photos uploaded in bulk and matched by product code in the file name.
@@ -29,8 +29,8 @@ spec [0007](../specs/0007-spreadsheet-import-bulk-photos/index.md) · code in `s
   - [x] Review and the batched run with progress (AC-14, AC-15)
   - [x] Photos: name matching, resize and upload queue, `setProductPhotos` (AC-12, AC-13, AC-16)
   - [x] Finish: template download, problems download, full phone flow and axe (AC-2, AC-15, AC-17)
-- [ ] Verify it: `/check verify spreadsheet import & bulk photos`
-- [ ] Test it: `/test spreadsheet import & bulk photos`
+- [x] Verify it: `/check verify spreadsheet import & bulk photos`
+- [x] Test it: `/test spreadsheet import & bulk photos`
 
 ### 9. Categories & browsing · in-progress
 Manage categories in the dashboard, and let customers browse a category's products as a list with photo, name, code, price, and availability.
@@ -46,10 +46,18 @@ spec [0008](../specs/0008-categories-browsing/index.md) · code in `src/features
 - [ ] Verify it: `/check verify categories & browsing`
 - [ ] Test it: `/test categories & browsing`
 
-### 10. Product page · needs a decision
+### 10. Product page · in-progress
 The full product page: photo gallery, optional video, description, dimensions, specifications, size and colour pickers, the price for the chosen size, and add to cart.
 **Done when:** choosing a size updates the price, out of stock options cannot be added, and the page works well on a phone in both languages.
-- [ ] Design it (spec): `/architect product page`
+spec [0009](../specs/0009-product-page/index.md) · code in `src/features/catalog/` (product view, gallery, selection), `src/app/[locale]/p/[slug]/`
+- [x] Design it (spec): `/architect product page`
+- [ ] Build it: `/develop product page`
+  - [ ] Thin thread: read all live variants and media, size and colour chips with the follow the size rule, live price, `?v` in the address, add the chosen pair, W3 with size and colour (AC-1 to AC-6, AC-8, AC-9)
+  - [ ] States: out of stock, stale add refresh, three level breadcrumb, real 404 with the shared cached read (AC-7, AC-8, AC-14, AC-16, AC-17)
+  - [ ] Gallery, video, full screen, and share (AC-10 to AC-13)
+  - [ ] Search engines and finish: description, canonical, Product and BreadcrumbList JSON-LD, full phone flow and axe (AC-15, AC-18, AC-19)
+- [ ] Verify it: `/check verify product page`
+- [ ] Test it: `/test product page`
 
 ### 11. Search & filters · needs a decision
 Search by product name or product code, and filter by price, size, and colour.

@@ -57,8 +57,8 @@ spec [0005](../specs/0005-arabic-language/index.md) · code in `src/lib/` (`form
   - [x] Arabic text rules: digit conversion, tidying, the Arabic letter check, search folding (AC-9 to AC-12)
   - [x] Wired into the spec 0004 forms and pages (AC-8 to AC-11, AC-14); the admin product form (`Philips 60W` e2e) and admin orders page land with feature 6's last milestone
   - [x] The guard: the language rule test and the message file checks (AC-13, AC-15)
-- [ ] Verify it: `/check verify arabic language`
-- [ ] Test it: `/test arabic language`
+- [x] Verify it: `/check verify arabic language`
+- [x] Test it: `/test arabic language`
 
 ## Slice 1: First order end to end
 
@@ -72,5 +72,5 @@ spec [0004](../specs/0004-first-order-end-to-end/index.md) · code in `src/featu
   - [x] Thin thread: one guest order on the dev seed, from `/` to the WhatsApp link (AC-3 to AC-9, AC-11, AC-12, AC-15)
   - [x] Admin sign in with TOTP, `requireAdmin()`, and the promote and reset scripts (AC-1)
   - [x] Owner adds the product and sees the order, with the rate limit and the full phone flow (AC-2, AC-10, AC-13, AC-16)
-- [ ] Verify it: `/check verify first order end to end`
-- [ ] Test it: `/test first order end to end`
+- [x] Verify it: `/check verify first order end to end`
+- [x] Test it: `/test first order end to end`

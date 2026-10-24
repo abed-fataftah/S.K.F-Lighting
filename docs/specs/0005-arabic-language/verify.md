@@ -11,11 +11,11 @@ Steps marked **(with 0004)** need spec 0004's product form, checkout, and order 
 - [x] In the first quantity stepper, type `١٢` and press Enter → the box shows `12` → AC-9
 - [x] **(with 0004)** Checkout with phone `٠٥٩٩١٢٣٤٥٦` → accepted; `customer_phone` holds `0599123456`, `customer_phone_e164` holds `+970599123456`, and the WhatsApp message (W5) shows Western digits → AC-8, AC-9
 - [x] **(with 0004)** Checkout with phone `‏0599 123 456` (a pasted RLM in front) → accepted; `customer_phone` holds `0599 123 456` → AC-9, AC-10
-- [ ] **(with 0004 admin)** Product form: name `Philips 60W` → the field shows "اكتب هذا الحقل بالعربية" with focus on it; `ثريا كريستال Philips 60W` saves → AC-11
-- [ ] **(with 0004 admin)** Product form: price typed `١٬٢٥٠` → saved as 125000 agorot and shown as `₪1,250` → AC-9
+- [x] **(with 0004 admin)** Product form: name `Philips 60W` → the field shows "اكتب هذا الحقل بالعربية" with focus on it; `ثريا كريستال Philips 60W` saves → AC-11
+- [x] **(with 0004 admin)** Product form: price typed `١٬٢٥٠` → saved as 125000 agorot and shown as `₪1,250` → AC-9
 - [x] **(with 0004)** In an `ar-PS` browser on `America/New_York` time, open a product, then the cart, then checkout → every `₪` price in `main` sits in `bdi[dir=ltr]`, the product code too, and no Arabic Indic digit shows → AC-1, AC-14
 - [x] **(with 0004)** Place an order, then open its confirmation page → the order number sits in `bdi[dir=ltr]` → AC-14
-- [ ] **(with 0004 admin)** Admin orders list and order page → every price, order number, and phone in `bdi[dir=ltr]`; every order time is `formatDateTime` inside `<time>` → AC-14
+- [x] **(with 0004 admin)** Admin orders list and order page → every price, order number, and phone in `bdi[dir=ltr]`; every order time is `formatDateTime` inside `<time>` → AC-14
 
 ## Value sourcing
 - [x] Price shown or sent → comes from integer agorot through `formatPrice`; vary the amount across `0`, `1905`, `-5000`, `123456789` and check `₪0`, `₪19.05`, `-₪50`, `₪1,234,567.89` → AC-2
@@ -34,7 +34,7 @@ Steps marked **(with 0004)** need spec 0004's product form, checkout, and order 
 - [x] Plant `x.toLocaleString()` in any component and rerun the rule test → it fails naming the file; remove it → AC-15
 - [x] `grep -rn "Asia/" src --include=*.ts --include=*.tsx | grep -v test` → only `src/lib/format.ts` → AC-16
 - [x] `pnpm exec playwright test e2e/arabic-language.spec.ts` → passes on phone and desktop → AC-1, AC-9, AC-14, AC-16
-- [ ] `E2E_TARGET=preview pnpm exec playwright test e2e/arabic-language.spec.ts` → same on workerd (UTC runtime) → AC-1, AC-3
+- [x] `E2E_TARGET=preview pnpm exec playwright test e2e/arabic-language.spec.ts` → same on workerd (UTC runtime) → AC-1, AC-3
 - [x] `pnpm exec vitest run src/features/catalog src/features/checkout` → `Philips 60W` gives `arabic_required`, `١٬٢٥٠` gives 125000 agorot, `ch-١٠٢٠` gives `CH-1020`, and phones `٠٥٩٩١٢٣٤٥٦` and `‏0599 123 456` are cleaned → AC-9, AC-10, AC-11
 - [x] `DESIGN_SYSTEM_PAGE=1 pnpm exec playwright test e2e/arabic-language.spec.ts e2e/guest-order.spec.ts` (after `pnpm db:seed`) → the storefront and guest order flows pass on the phone project → AC-1, AC-9, AC-14
 

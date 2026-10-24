@@ -30,7 +30,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 7 | Product management | Slice 2 | in-progress |
 | 8 | Spreadsheet import & bulk photos | Slice 2 | in-progress |
 | 9 | Categories & browsing | Slice 2 | in-progress |
-| 10 | Product page | Slice 2 | planned |
+| 10 | Product page | Slice 2 | in-progress |
 | 11 | Search & filters | Slice 2 | planned |
 | 12 | Cart | Slice 3 | planned |
 | 13 | Checkout & delivery | Slice 3 | planned |
@@ -75,6 +75,8 @@ Out of scope for now, kept so the plan stays honest.
 - **PDF of a draft or order**: a clean quote electricians can share · needs a decision
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
 - **JSON export of an order** · needs a decision
+- **Colour tagged product photos**: choosing a colour on the product page jumps to its photos (a `colour_id` on `product_media`, the editor, and the import) · needs a decision · from spec 0009
+- **Product page desktop layout and loading skeleton**: a designed wide screen layout (O-1) and a skeleton that keeps the real 404 · needs a decision · from spec 0009
 
 ## Open questions to settle in the specs
 
