@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ImagePlaceholder } from "@/components/image-placeholder";
 import { Ltr } from "@/components/ltr";
 import {
   Breadcrumb,
@@ -12,16 +11,25 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Card } from "@/components/ui/card";
+import { ProductGallery } from "@/features/catalog/components/product-gallery";
 import { ProductAddToCart, ProductOptions } from "@/features/catalog/components/product-options";
 import { ProductPrice } from "@/features/catalog/components/product-price";
 import { ProductSelectionProvider } from "@/features/catalog/components/product-selection";
 import { ProductWhatsApp } from "@/features/catalog/components/product-whatsapp";
-import { applyRequestedVariant, parseRequestedVariant } from "@/features/catalog/product-view";
+import { ShareButton } from "@/features/catalog/components/share-button";
+import {
+  applyRequestedVariant,
+  galleryItems,
+  parseRequestedVariant,
+} from "@/features/catalog/product-view";
 import { getProductPage } from "@/features/catalog/server/queries";
 import { Link } from "@/i18n/navigation";
+import { formatNumber } from "@/lib/format";
+import { mediaObjectUrl } from "@/lib/media-url";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { supabaseEnv } from "@/server/auth/env";
 
 // Arabic slugs arrive percent encoded (spec 0004, Value sourcing: slug lookup).
 function decodeSlug(raw: string): string {
@@ -92,19 +100,22 @@ export default async function ProductPage({
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="relative mt-2">
-          <ImagePlaceholder
-            className={cn("h-(--h-gallery) rounded-card", !data.inStock && "opacity-45")}
+        <div className="mt-2">
+          <ProductGallery
+            items={galleryItems(data.photos, data.video, (n) =>
+              t("photoAlt", { name: data.name, n: formatNumber(n) }),
+            )}
+            name={data.name}
+            inStock={data.inStock}
+            videoSrc={data.video ? mediaObjectUrl(supabaseEnv().url, data.video.key) : null}
           />
-          {!data.inStock ? (
-            <span className="absolute start-3 top-3 rounded-chip bg-ink px-2 py-1 type-caption font-extrabold text-white">
-              {t("outOfStock")}
-            </span>
-          ) : null}
         </div>
 
         <section className="flex flex-col gap-1.5 pt-5">
-          <h1 className="type-title-m">{data.name}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="type-title-m">{data.name}</h1>
+            <ShareButton siteUrl={siteUrl} />
+          </div>
           <p className="flex flex-wrap items-center gap-x-2 type-small text-muted">
             <span>
               {t("codeLabel")} <Ltr>{data.code}</Ltr>

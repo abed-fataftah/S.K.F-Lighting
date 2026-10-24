@@ -54,7 +54,7 @@ spec [0009](../specs/0009-product-page/index.md) · code in `src/features/catalo
 - [ ] Build it: `/develop product page`
   - [x] Thin thread: read all live variants and media, size and colour chips with the follow the size rule, live price, `?v` in the address, add the chosen pair, W3 with size and colour (AC-1 to AC-6, AC-8, AC-9)
   - [x] States: out of stock, stale add refresh, three level breadcrumb, real 404 with the shared cached read (AC-7, AC-8, AC-14, AC-16, AC-17)
-  - [ ] Gallery, video, full screen, and share (AC-10 to AC-13)
+  - [x] Gallery, video, full screen, and share (AC-10 to AC-13)
   - [ ] Search engines and finish: description, canonical, Product and BreadcrumbList JSON-LD, full phone flow and axe (AC-15, AC-18, AC-19)
 - [ ] Verify it: `/check verify product page`
 - [ ] Test it: `/test product page`
