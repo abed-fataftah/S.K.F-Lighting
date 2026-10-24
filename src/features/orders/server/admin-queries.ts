@@ -17,7 +17,8 @@ export const ADMIN_ORDERS_PAGE_SIZE = 50;
 export type AdminOrderRow = {
   readonly number: string;
   readonly name: string;
-  readonly phone: string;
+  /** Stored E.164, shown through `formatPhone` (spec 0005 AC-8). */
+  readonly phoneE164: string;
   readonly fulfilment: "pickup" | "delivery";
   readonly total: number;
   readonly placedAt: Date;
@@ -43,7 +44,7 @@ export async function readAdminOrders(
     .select({
       number: orders.orderNumber,
       name: orders.customerName,
-      phone: orders.customerPhone,
+      phoneE164: orders.customerPhoneE164,
       fulfilment: orders.fulfilment,
       total: orders.total,
       placedAt: orders.placedAt,
@@ -65,7 +66,8 @@ export type AdminOrder = {
   readonly id: string;
   readonly number: string;
   readonly name: string;
-  readonly phone: string;
+  /** Stored E.164, shown through `formatPhone` (spec 0005 AC-8). */
+  readonly phoneE164: string;
   readonly fulfilment: "pickup" | "delivery";
   readonly zoneName: string | null;
   readonly city: string | null;
@@ -94,7 +96,7 @@ export async function readAdminOrder(db: Db, orderNumber: string): Promise<Admin
       id: orders.id,
       number: orders.orderNumber,
       name: orders.customerName,
-      phone: orders.customerPhone,
+      phoneE164: orders.customerPhoneE164,
       fulfilment: orders.fulfilment,
       zoneName: orders.deliveryZoneName,
       city: orders.city,

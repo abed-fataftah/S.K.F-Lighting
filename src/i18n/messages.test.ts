@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import ar from "./messages/ar.json";
 
@@ -31,5 +33,60 @@ describe("Arabic message catalog", () => {
     const notArabic = [...catalog].filter(([, value]) => !/[؀-ۿ]/.test(value)).map(([key]) => key);
 
     expect(notArabic).toEqual([]);
+  });
+
+  // covers: AC-14 (spec 0005). A price set inside an Arabic sentence must stay left to right, so a
+  // screen message places it in the `<ltr>` tag the page renders as `bdi[dir=ltr]`.
+  it("wraps every price in a screen message in <ltr>", () => {
+    const screen = [...catalog].filter(([key]) => !key.startsWith("OrderMessage."));
+    const bare = screen
+      .filter(([, value]) => value.replaceAll("<ltr>{price}</ltr>", "").includes("{price}"))
+      .map(([key]) => key);
+
+    expect(screen.some(([, value]) => value.includes("<ltr>{price}</ltr>"))).toBe(true);
+    expect(bare).toEqual([]);
+  });
+
+  // The WhatsApp order message is plain text: a rich tag there would reach the owner as literal text.
+  it("keeps the WhatsApp order message free of rich text tags", () => {
+    const tagged = [...catalog]
+      .filter(([key, value]) => key.startsWith("OrderMessage.") && /<\/?[a-z]+>/i.test(value))
+      .map(([key]) => key);
+
+    expect(tagged).toEqual([]);
+  });
+});
+
+/** Plain translator calls (`t("…")`, not `t.rich("…")`) to any of these message keys, by leaf. */
+function plainCalls(source: string, leafKeys: readonly string[]): readonly string[] {
+  return leafKeys.filter((leaf) =>
+    new RegExp(String.raw`(?<![\w$.])[a-z]\w*\(\s*["'](?:[\w.]+\.)?${leaf}["']`).test(source),
+  );
+}
+
+// covers: AC-14 (spec 0005). next-intl cannot format a message holding a rich tag through plain
+// `t(...)`: the `<ltr>` price would fail to render. Every tagged message goes through `t.rich`.
+describe("rich text messages", () => {
+  const tagged = [...leaves(ar)].filter(([, value]) => /<[a-z]+>/i.test(value));
+  const leafKeys = [...new Set(tagged.map(([key]) => key.split(".").at(-1)!))];
+
+  it("catches a plain call to a tagged message and allows t.rich", () => {
+    expect(plainCalls(`t("from", { price })`, ["from"])).toEqual(["from"]);
+    expect(plainCalls(`shop('Card.from', { price })`, ["from"])).toEqual(["from"]);
+    expect(plainCalls(`t.rich("from", { price, ltr })`, ["from"])).toEqual([]);
+    expect(plainCalls(`params.get("from")`, ["from"])).toEqual([]);
+  });
+
+  it("renders every tagged message through t.rich in the source", () => {
+    const src = join(import.meta.dirname, "..");
+    const files = readdirSync(src, { recursive: true, encoding: "utf8" }).filter(
+      (file) => /\.tsx?$/.test(file) && !/\.(test|spec)\.tsx?$/.test(file),
+    );
+    const offenders = files.flatMap((file) =>
+      plainCalls(readFileSync(join(src, file), "utf8"), leafKeys).map((leaf) => `${file}: ${leaf}`),
+    );
+
+    expect(leafKeys).toContain("from");
+    expect(offenders).toEqual([]);
   });
 });

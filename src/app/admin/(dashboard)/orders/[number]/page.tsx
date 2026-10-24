@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getAdminOrder } from "@/features/orders/server/admin-queries";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatDateTime, formatNumber, formatPhone } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
 import { routes } from "@/lib/routes";
 
@@ -40,7 +40,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
 
   const details: readonly (readonly [string, React.ReactNode])[] = [
     [t("name"), order.name],
-    [t("phone"), <Ltr key="phone">{order.phone}</Ltr>],
+    [t("phone"), <Ltr key="phone">{formatPhone(order.phoneE164)}</Ltr>],
     [t("method"), delivery ? t("delivery") : t("pickup")],
     ...(delivery
       ? ([

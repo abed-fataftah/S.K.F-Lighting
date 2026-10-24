@@ -53,7 +53,7 @@ async function insertOrder(
   return order;
 }
 
-// covers: AC-13 (spec 0004)
+// covers: AC-13 (spec 0004); AC-8 (spec 0005: the phone is read as stored E.164, for formatPhone)
 describe.skipIf(!hasLocalDb)("dashboard order reads on the local database", () => {
   it("lists newest first with the new flag, and opening an order clears only its flag", async () => {
     await withRollback(db, async (tx) => {
@@ -63,13 +63,20 @@ describe.skipIf(!hasLocalDb)("dashboard order reads on the local database", () =
 
       const { rows } = await readAdminOrders(tx, 1);
       expect(rows.slice(0, 2)).toMatchObject([
-        { number: newer.orderNumber, name: "زبون اختبار", fulfilment: "pickup", isNew: true },
+        {
+          number: newer.orderNumber,
+          name: "زبون اختبار",
+          phoneE164: "+970599123456",
+          fulfilment: "pickup",
+          isNew: true,
+        },
         { number: older.orderNumber, total: 25_000, isNew: true },
       ]);
 
       const opened = await readAdminOrder(tx, newer.orderNumber);
       expect(opened).toMatchObject({
         number: newer.orderNumber,
+        phoneE164: "+970599123456",
         wasNew: true,
         lines: [{ name: "ثريا اختبار", code: "TEST-ADM", quantity: 2, lineTotal: 25_000 }],
       });

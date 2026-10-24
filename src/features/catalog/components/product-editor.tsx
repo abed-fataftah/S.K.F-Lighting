@@ -4,7 +4,7 @@ import { Archive, CircleCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import {
   AlertDialog,
   AlertDialogActions,
@@ -44,6 +44,21 @@ import { SpecsSection } from "./specs-section";
 
 type Banner = SaveProductError | "not_archived" | "uploads_pending";
 
+const subscribeNothing = () => () => {};
+
+/**
+ * False in the server HTML and while React takes it over, true once the editor answers input. A
+ * field typed into before then keeps the text on screen but not in state, and loses it on the next
+ * render. Opened from another page in the app, the editor is ready from its first render.
+ */
+function useReady() {
+  return useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+}
+
 /** Row ids only need to be unique within this visit. */
 function useRowIds() {
   const next = useRef(0);
@@ -75,6 +90,8 @@ export function ProductEditor({
   const [saved, setSaved] = useState<(SavedProduct & { readonly name: string }) | null>(null);
   const [focusRequest, setFocusRequest] = useState(0);
   const [pending, startTransition] = useTransition();
+  const [startingAnother, startAnother] = useTransition();
+  const ready = useReady();
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Where a guarded link wants to go while there are unsaved changes (AC-14; spec 0008 AC-17).
   const [leaveTo, setLeaveTo] = useState<string | null>(null);
@@ -173,11 +190,23 @@ export function ProductEditor({
       router.refresh();
     });
 
+  // After the first save the address moved to the product without leaving this page, so the router
+  // still holds the new product page and a plain link to it would render nothing. Put the address
+  // back, then refresh: the server renders the page again with a new id, and the editor starts again.
+  // Replace, not push: an entry for the saved product would bring this page back on Back.
+  const addAnother = product
+    ? undefined
+    : (event: { preventDefault: () => void }) => {
+        event.preventDefault();
+        window.history.replaceState(null, "", routes.admin.productNew);
+        startAnother(() => router.refresh());
+      };
+
   const leave = (href: string = routes.admin.products) =>
     dirty ? setLeaveTo(href) : router.push(href);
 
   const sectionProps = { state, setState, errors: fieldErrors, disabled: archived };
-  const saveDisabled = pending || uploadsBusy;
+  const saveDisabled = pending || uploadsBusy || !ready;
   const saveButton = (testId: string) => (
     <Button
       onClick={submit}
@@ -195,6 +224,9 @@ export function ProductEditor({
     <form
       ref={formRef}
       noValidate
+      // Nothing typed here survives the fresh editor, so the old one takes no input meanwhile.
+      inert={startingAnother}
+      aria-busy={startingAnother || !ready || undefined}
       onSubmit={(event) => {
         event.preventDefault();
         submit();
@@ -202,150 +234,156 @@ export function ProductEditor({
       className="flex max-w-(--admin-form-max) flex-col gap-4"
       data-testid="product-editor"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="type-display-s">{isNew ? t("newTitle") : t("editTitle")}</h1>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => leave()}>
-            {archived ? t("backToList") : t("cancel")}
-          </Button>
-          {archived ? null : saveButton("product-save-top")}
+      {/* Every field and button shows disabled until the editor is ready (see useReady). */}
+      <fieldset disabled={!ready} className="contents">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="type-display-s">{isNew ? t("newTitle") : t("editTitle")}</h1>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => leave()} disabled={!ready}>
+              {archived ? t("backToList") : t("cancel")}
+            </Button>
+            {archived ? null : saveButton("product-save-top")}
+          </div>
         </div>
-      </div>
 
-      {archived ? (
-        <Card className="border-ink bg-yellow-tint" data-testid="product-archived">
-          <h2 className="flex items-center gap-2 type-title-s">
-            <Archive aria-hidden className="size-6" />
-            {t("archivedTitle")}
-          </h2>
-          <p>{t("archivedText")}</p>
-          <Button
-            className="self-start"
-            onClick={restore}
-            disabled={pending}
-            focusableWhenDisabled
-            data-testid="product-restore"
-          >
-            {pending ? t("restoring") : t("restore")}
-          </Button>
-        </Card>
-      ) : null}
+        {archived ? (
+          <Card className="border-ink bg-yellow-tint" data-testid="product-archived">
+            <h2 className="flex items-center gap-2 type-title-s">
+              <Archive aria-hidden className="size-6" />
+              {t("archivedTitle")}
+            </h2>
+            <p>{t("archivedText")}</p>
+            <Button
+              className="self-start"
+              onClick={restore}
+              disabled={pending}
+              focusableWhenDisabled
+              data-testid="product-restore"
+            >
+              {pending ? t("restoring") : t("restore")}
+            </Button>
+          </Card>
+        ) : null}
 
-      {saved && !dirty ? (
-        <Card role="status" data-testid="product-saved">
-          <h2 ref={noticeRef} tabIndex={-1} className="flex items-center gap-2 type-title-s">
-            <CircleCheck aria-hidden className="size-6" />
-            {t("saved")}
-          </h2>
-          <p>
-            {saved.visible
-              ? t("savedText", { name: saved.name })
-              : t("savedHidden", { name: saved.name })}
-          </p>
-          <div className="flex flex-wrap gap-3">
-            {saved.visible ? (
+        {saved && !dirty ? (
+          <Card role="status" data-testid="product-saved">
+            <h2 ref={noticeRef} tabIndex={-1} className="flex items-center gap-2 type-title-s">
+              <CircleCheck aria-hidden className="size-6" />
+              {t("saved")}
+            </h2>
+            <p>
+              {saved.visible
+                ? t("savedText", { name: saved.name })
+                : t("savedHidden", { name: saved.name })}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {saved.visible ? (
+                <ButtonLink
+                  variant="outline"
+                  render={<Link href={routes.product(saved.slug)} />}
+                  data-testid="product-view"
+                >
+                  {t("view")}
+                </ButtonLink>
+              ) : null}
+              <ButtonLink
+                render={<Link href={routes.admin.productNew} onNavigate={addAnother} />}
+                data-testid="product-add-another"
+              >
+                {t("addAnother")}
+              </ButtonLink>
+            </div>
+          </Card>
+        ) : null}
+
+        {banner ? (
+          <Alert id="product-banner" ref={bannerRef} tabIndex={-1} data-testid="product-banner">
+            <AlertDescription>
+              {banner === "uploads_pending" ? t("uploadsPending") : t(`errors.${banner}`)}
+            </AlertDescription>
+            {banner === "stale" ? (
+              <Button variant="outline" className="mt-2 self-start" onClick={reload}>
+                {t("reload")}
+              </Button>
+            ) : null}
+            {banner === "not_found" ? (
               <ButtonLink
                 variant="outline"
-                render={<Link href={routes.product(saved.slug)} />}
-                data-testid="product-view"
+                className="mt-2 self-start"
+                render={<Link href={routes.admin.products} />}
               >
-                {t("view")}
+                {t("backToList")}
               </ButtonLink>
             ) : null}
-            {/* A full load: the editor must start again with a new id from the server. */}
-            <ButtonLink href={routes.admin.productNew} data-testid="product-add-another">
-              {t("addAnother")}
-            </ButtonLink>
+          </Alert>
+        ) : null}
+
+        <BasicsSection
+          {...sectionProps}
+          categories={lookups.categories}
+          onLeave={leave}
+          codeFixed={!isNew}
+        />
+        <MediaSection {...sectionProps} productId={id} newRowId={newRowId} />
+        <SpecsSection {...sectionProps} newRowId={newRowId} />
+        <OptionsSection {...sectionProps} newRowId={newRowId} colours={lookups.colours} />
+
+        <Card>
+          <h2 className="type-title-s">{t("shopStatus")}</h2>
+          <div className="flex flex-col gap-1">
+            <CheckRow>
+              <Checkbox
+                checked={state.visible}
+                disabled={archived}
+                onCheckedChange={(visible) => setState((current) => ({ ...current, visible }))}
+                data-testid="product-visible"
+              />
+              {t("visible")}
+            </CheckRow>
+            <FieldDescription>{t("visibleHelp")}</FieldDescription>
+          </div>
+          <div className="flex flex-col gap-1">
+            <CheckRow>
+              <Checkbox
+                checked={state.available}
+                disabled={archived}
+                onCheckedChange={(available) => setState((current) => ({ ...current, available }))}
+                data-testid="product-available"
+              />
+              {t("availableProduct")}
+            </CheckRow>
+            <FieldDescription>{t("availableHelp")}</FieldDescription>
           </div>
         </Card>
-      ) : null}
 
-      {banner ? (
-        <Alert id="product-banner" ref={bannerRef} tabIndex={-1} data-testid="product-banner">
-          <AlertDescription>
-            {banner === "uploads_pending" ? t("uploadsPending") : t(`errors.${banner}`)}
-          </AlertDescription>
-          {banner === "stale" ? (
-            <Button variant="outline" className="mt-2 self-start" onClick={reload}>
-              {t("reload")}
-            </Button>
-          ) : null}
-          {banner === "not_found" ? (
-            <ButtonLink
-              variant="outline"
-              className="mt-2 self-start"
-              render={<Link href={routes.admin.products} />}
-            >
-              {t("backToList")}
-            </ButtonLink>
-          ) : null}
-        </Alert>
-      ) : null}
-
-      <BasicsSection
-        {...sectionProps}
-        categories={lookups.categories}
-        onLeave={leave}
-        codeFixed={!isNew}
-      />
-      <MediaSection {...sectionProps} productId={id} newRowId={newRowId} />
-      <SpecsSection {...sectionProps} newRowId={newRowId} />
-      <OptionsSection {...sectionProps} newRowId={newRowId} colours={lookups.colours} />
-
-      <Card>
-        <h2 className="type-title-s">{t("shopStatus")}</h2>
-        <div className="flex flex-col gap-1">
-          <CheckRow>
-            <Checkbox
-              checked={state.visible}
-              disabled={archived}
-              onCheckedChange={(visible) => setState((current) => ({ ...current, visible }))}
-              data-testid="product-visible"
-            />
-            {t("visible")}
-          </CheckRow>
-          <FieldDescription>{t("visibleHelp")}</FieldDescription>
-        </div>
-        <div className="flex flex-col gap-1">
-          <CheckRow>
-            <Checkbox
-              checked={state.available}
-              disabled={archived}
-              onCheckedChange={(available) => setState((current) => ({ ...current, available }))}
-              data-testid="product-available"
-            />
-            {t("availableProduct")}
-          </CheckRow>
-          <FieldDescription>{t("availableHelp")}</FieldDescription>
-        </div>
-      </Card>
-
-      {archived ? null : (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2">
-            {saveButton("product-save")}
-            {!isNew && slug && visibleInShop && !dirty ? (
-              <ButtonLink variant="outline" render={<Link href={routes.product(slug)} />}>
-                {t("view")}
-              </ButtonLink>
-            ) : null}
+        {archived ? null : (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {saveButton("product-save")}
+              {!isNew && slug && visibleInShop && !dirty ? (
+                <ButtonLink variant="outline" render={<Link href={routes.product(slug)} />}>
+                  {t("view")}
+                </ButtonLink>
+              ) : null}
+            </div>
+            {isNew ? null : (
+              <Button
+                variant="outline"
+                onClick={() => setConfirmDelete(true)}
+                disabled={!ready}
+                data-testid="product-delete"
+              >
+                {t("delete")}
+              </Button>
+            )}
           </div>
-          {isNew ? null : (
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDelete(true)}
-              data-testid="product-delete"
-            >
-              {t("delete")}
-            </Button>
-          )}
-        </div>
-      )}
-      {uploadsBusy ? (
-        <p id="product-uploads-note" className="type-small text-muted">
-          {t("uploadsPending")}
-        </p>
-      ) : null}
+        )}
+        {uploadsBusy ? (
+          <p id="product-uploads-note" className="type-small text-muted">
+            {t("uploadsPending")}
+          </p>
+        ) : null}
+      </fieldset>
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent data-testid="delete-dialog">

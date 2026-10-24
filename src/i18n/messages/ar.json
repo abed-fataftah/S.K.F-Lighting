@@ -543,7 +543,7 @@
     "action": "إجراء",
     "edit": "تعديل",
     "editLabel": "تعديل {name}",
-    "from": "من {price}",
+    "from": "من <ltr>{price}</ltr>",
     "sizesCount": "{count, plural, =0 {} one {{shown} حجم} two {{shown} أحجام} few {{shown} أحجام} many {{shown} حجمًا} other {{shown} حجم}}",
     "coloursCount": "{count, plural, =0 {} one {{shown} لون} two {{shown} ألوان} few {{shown} ألوان} many {{shown} لونًا} other {{shown} لون}}",
     "emptyTitle": "لا توجد منتجات بعد",

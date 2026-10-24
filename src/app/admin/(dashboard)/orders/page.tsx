@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listAdminOrders } from "@/features/orders/server/admin-queries";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatDateTime, formatNumber, formatPhone } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
 import { parsePage } from "@/lib/paging";
 import { routes } from "@/lib/routes";
@@ -69,7 +69,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps<"/admi
                 </TableCell>
                 <TableCell>{order.name}</TableCell>
                 <TableCell className="whitespace-nowrap">
-                  <Ltr>{order.phone}</Ltr>
+                  <Ltr>{formatPhone(order.phoneE164)}</Ltr>
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
                   {order.fulfilment === "delivery" ? t("delivery") : t("pickup")}

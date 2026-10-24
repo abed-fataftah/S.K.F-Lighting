@@ -222,11 +222,16 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
                     {product.categoryPath.join(" › ")}
                   </TableCell>
                   <TableCell className="whitespace-nowrap" data-testid="product-price">
-                    {price
-                      ? price.from
-                        ? t("from", { price: formatPrice(price.amount) })
-                        : formatPrice(price.amount)
-                      : null}
+                    {price ? (
+                      price.from ? (
+                        t.rich("from", {
+                          price: formatPrice(price.amount),
+                          ltr: (chunks) => <Ltr>{chunks}</Ltr>,
+                        })
+                      ) : (
+                        <Ltr>{formatPrice(price.amount)}</Ltr>
+                      )
+                    ) : null}
                   </TableCell>
                   <TableCell className="whitespace-nowrap" data-testid="product-options">
                     {optionCounts(product.sizeCount, product.colourCount)
