@@ -46,3 +46,14 @@ describe("category routes", () => {
     expect(routes.categoryMore("a", null, 2, 25)).toBe("/c/a?page=2#p-25");
   });
 });
+
+// covers: AC-6, AC-19 (spec 0009)
+describe("routes.product", () => {
+  it("is the bare page without a variant and adds ?v with one", () => {
+    expect(routes.product("ثريا")).toBe(`/p/${encodeURIComponent("ثريا")}`);
+    expect(routes.product("lamp", { variant: null })).toBe("/p/lamp");
+    expect(routes.product("lamp", { variant: "0f8b6a52-3c7e-4c1a-9d1e-5b6f7a8c9d0e" })).toBe(
+      "/p/lamp?v=0f8b6a52-3c7e-4c1a-9d1e-5b6f7a8c9d0e",
+    );
+  });
+});

@@ -360,7 +360,21 @@
     "cardAdded": "تمت الإضافة",
     "cardProduct": "، {name}",
     "askOnWhatsappLabel": "اسأل عن المنتج عبر واتساب: {name}",
-    "askAvailabilityLabel": "اسأل عن توفره عبر واتساب: {name}"
+    "askAvailabilityLabel": "اسأل عن توفره عبر واتساب: {name}",
+    "size": "الحجم",
+    "colour": "اللون",
+    "optionUnavailable": "· غير متوفر",
+    "previousPhoto": "الصورة السابقة",
+    "nextPhoto": "الصورة التالية",
+    "photoLabel": "صورة {n}",
+    "video": "فيديو المنتج",
+    "photoAlt": "{name}، صورة {n}",
+    "zoomPhoto": "تكبير الصورة {n}",
+    "galleryTitle": "صور {name}",
+    "close": "إغلاق",
+    "share": "مشاركة المنتج",
+    "linkCopied": "تم نسخ الرابط",
+    "copyFailed": "تعذر نسخ الرابط"
   },
   "Cart": {
     "title": "السلة",

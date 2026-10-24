@@ -1,6 +1,6 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { categories, products, productVariants } from "@/server/db/schema";
+import { categories, colours, productMedia, products, productVariants } from "@/server/db/schema";
 import { hasLocalDb, withRollback } from "@/server/db/testing";
 import type { Transaction } from "@/server/db/types";
 import { compareListedProducts } from "../card-view";
@@ -12,7 +12,7 @@ vi.mock("server-only", () => ({}));
 const { getDirectDb } = await import("@/server/db/direct");
 const { parentCategory, sellableVariant } = await import("./storefront-sql");
 const { readCartRows } = await import("@/features/cart/server/cart-rows");
-const { readCatalogTree, readCategoryPage, readHomeProducts, readProductBySlug } =
+const { readCatalogTree, readCategoryPage, readHomeProducts, readProductPage } =
   await import("./queries");
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
@@ -184,15 +184,15 @@ describe.skipIf(!hasLocalDb)("hidden means hidden", () => {
       expect(home).not.toContain(underHiddenMain.slug);
       expect(home).not.toContain(inHiddenSub.slug);
 
-      expect(await readProductBySlug(tx, visible.slug)).toMatchObject({
-        category: { href: `/c/${encodeURIComponent(shown.slug)}` },
+      expect(await readProductPage(tx, visible.slug)).toMatchObject({
+        breadcrumb: { main: { slug: shown.slug }, sub: null },
       });
-      expect(await readProductBySlug(tx, underHiddenMain.slug)).toBeNull();
-      expect(await readProductBySlug(tx, inHiddenSub.slug)).toBeNull();
+      expect(await readProductPage(tx, underHiddenMain.slug)).toBeNull();
+      expect(await readProductPage(tx, inHiddenSub.slug)).toBeNull();
 
       // Showing the main again brings its sub back, with no write to the sub.
       await tx.update(categories).set({ isVisible: true }).where(eq(categories.id, hiddenMain.id));
-      expect(await readProductBySlug(tx, underHiddenMain.slug)).not.toBeNull();
+      expect(await readProductPage(tx, underHiddenMain.slug)).not.toBeNull();
     });
   });
 });
@@ -307,6 +307,86 @@ describe.skipIf(!hasLocalDb)("category pages", () => {
         addVariantId: null,
       });
       expect(page?.products.map((card) => card.slug)).toEqual([sized.slug, out.slug]);
+    });
+  });
+});
+
+// covers: AC-1, AC-19 (spec 0009)
+describe.skipIf(!hasLocalDb)("product page read", () => {
+  it("returns live variants with colours, marks an unavailable one, and orders media with the video last", async () => {
+    await withRollback(db, async (tx) => {
+      const main = await category(tx);
+      const sub = await category(tx, { parentId: main.id });
+      const made = await product(tx, sub.id, {
+        variants: [
+          { price: 30_000 },
+          { price: 45_000, isAvailable: false },
+          { price: 50_000, archivedAt: new Date() },
+        ],
+      });
+      const [gold] = await tx
+        .insert(colours)
+        .values({ name: `ذهبي ${uid()}`, hex: null })
+        .returning();
+      await tx
+        .update(productVariants)
+        .set({ colourId: gold.id })
+        .where(eq(productVariants.productId, made.id));
+      await tx.insert(productMedia).values([
+        { productId: made.id, kind: "video", storageKey: `products/${made.id}/v.mp4`, sort: 9 },
+        { productId: made.id, kind: "image", storageKey: `products/${made.id}/b.webp`, sort: 1 },
+        {
+          productId: made.id,
+          kind: "image",
+          storageKey: `products/${made.id}/a.webp`,
+          sort: 0,
+          alt: "أمامي",
+        },
+      ]);
+
+      const page = await readProductPage(tx, made.slug);
+      expect(page?.breadcrumb).toEqual({
+        main: { name: main.name, slug: main.slug },
+        sub: { name: sub.name, slug: sub.slug },
+      });
+      expect(page?.options.variants).toEqual([
+        {
+          id: made.variants[0].id,
+          sizeLabel: "1",
+          colourId: gold.id,
+          price: 30_000,
+          sellable: true,
+        },
+        {
+          id: made.variants[1].id,
+          sizeLabel: "2",
+          colourId: gold.id,
+          price: 45_000,
+          sellable: false,
+        },
+      ]);
+      expect(page?.options.colours).toEqual([{ id: gold.id, name: gold.name, hex: null }]);
+      expect(page?.selectedId).toBe(made.variants[0].id);
+      expect(page?.photos.map((photo) => [photo.key.split("/").at(-1), photo.alt])).toEqual([
+        ["a.webp", "أمامي"],
+        ["b.webp", null],
+      ]);
+      expect(page?.video?.key).toBe(`products/${made.id}/v.mp4`);
+    });
+  });
+
+  it("gives null for a product in a hidden category and is out of stock when unavailable", async () => {
+    await withRollback(db, async (tx) => {
+      const hidden = await category(tx, { isVisible: false });
+      const shown = await category(tx);
+      const inHidden = await product(tx, hidden.id);
+      const unavailable = await product(tx, shown.id, { isAvailable: false });
+      expect(await readProductPage(tx, inHidden.slug)).toBeNull();
+      expect(await readProductPage(tx, unavailable.slug)).toMatchObject({
+        inStock: false,
+        selectedId: null,
+        mutedPrice: 10_000,
+      });
     });
   });
 });

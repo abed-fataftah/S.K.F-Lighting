@@ -1,8 +1,7 @@
 import "server-only";
-import { and, asc, count, desc, eq, exists, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, exists, inArray, isNull, sql } from "drizzle-orm";
 import { cache } from "react";
 import { clampPage } from "@/lib/paging";
-import { routes } from "@/lib/routes";
 import { getDb } from "@/server/db";
 import { categories, colours, productMedia, products, productVariants } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
@@ -15,7 +14,7 @@ import {
   type NavSub,
   type PageCategory,
 } from "../category-rules";
-import { pickVariantToAdd } from "../sellable";
+import { buildProductPage, type ProductPageData } from "../product-view";
 import { listedInStock, listedProduct, parentCategory, sellableVariant } from "./storefront-sql";
 
 // The storefront's catalog reads (spec 0004 AC-3, spec 0008). Every one applies the shown and
@@ -265,43 +264,24 @@ export async function getCategoryProducts(pageHead: CategoryHead): Promise<reado
   return readCategoryProducts(await getDb(), pageHead);
 }
 
-export type ProductPageData = {
-  readonly id: string;
-  readonly name: string;
-  readonly code: string;
-  readonly slug: string;
-  readonly description: string | null;
-  readonly specs: readonly { readonly label: string; readonly value: string }[];
-  /** The product's category and its page, for the breadcrumb. */
-  readonly category: { readonly name: string; readonly href: string };
-  /** The variant the add button puts in the cart; null shows the product as out of stock. */
-  readonly variant: {
-    readonly id: string;
-    readonly price: number;
-    readonly sizeLabel: string | null;
-    readonly colourName: string | null;
-  } | null;
-  /** Shown muted when out of stock: the default variant's price, else the first one's. */
-  readonly price: number | null;
-};
-
 /**
- * An `active` product in a shown category by slug, or null for the not found page (spec 0004
- * AC-3, spec 0008 AC-7).
+ * An `active` product in a shown category by slug with all its live variants and media, or null
+ * for the not found page (spec 0009 AC-1, spec 0008 AC-7). `?v` is applied after, in a pure step.
  */
-export async function readProductBySlug(db: Db, slug: string): Promise<ProductPageData | null> {
+export async function readProductPage(db: Db, slug: string): Promise<ProductPageData | null> {
   const [product] = await db
     .select({
       id: products.id,
+      slug: products.slug,
       name: products.name,
       code: products.code,
-      slug: products.slug,
       description: products.description,
       specs: products.specs,
       status: products.status,
       isAvailable: products.isAvailable,
       categoryName: categories.name,
       categorySlug: categories.slug,
+      parentName: parentCategory.name,
       parentSlug: parentCategory.slug,
     })
     .from(products)
@@ -311,49 +291,50 @@ export async function readProductBySlug(db: Db, slug: string): Promise<ProductPa
     .limit(1);
   if (!product) return null;
 
-  const variants = await db
-    .select({
-      id: productVariants.id,
-      price: productVariants.price,
-      sizeLabel: productVariants.sizeLabel,
-      colourName: colours.name,
-      isAvailable: productVariants.isAvailable,
-      archivedAt: productVariants.archivedAt,
-      isDefault: productVariants.isDefault,
-      sort: productVariants.sort,
-    })
-    .from(productVariants)
-    .leftJoin(colours, eq(colours.id, productVariants.colourId))
-    .where(eq(productVariants.productId, product.id))
-    .orderBy(asc(productVariants.sort), asc(productVariants.sizeSort));
+  const [variants, media] = await Promise.all([
+    db
+      .select({
+        id: productVariants.id,
+        sizeLabel: productVariants.sizeLabel,
+        sizeSort: productVariants.sizeSort,
+        colourId: productVariants.colourId,
+        colourName: colours.name,
+        colourHex: colours.hex,
+        price: productVariants.price,
+        isAvailable: productVariants.isAvailable,
+        archivedAt: productVariants.archivedAt,
+        isDefault: productVariants.isDefault,
+        sort: productVariants.sort,
+      })
+      .from(productVariants)
+      .leftJoin(colours, eq(colours.id, productVariants.colourId))
+      .where(and(eq(productVariants.productId, product.id), isNull(productVariants.archivedAt))),
+    db
+      .select({
+        kind: productMedia.kind,
+        key: productMedia.storageKey,
+        alt: productMedia.alt,
+        width: productMedia.width,
+        height: productMedia.height,
+      })
+      .from(productMedia)
+      .where(eq(productMedia.productId, product.id))
+      .orderBy(asc(productMedia.sort), asc(productMedia.id)),
+  ]);
 
-  const picked = pickVariantToAdd({ ...product, categoryShown: true }, variants);
-  const fallback = variants.find((variant) => variant.isDefault) ?? variants[0];
-  return {
-    id: product.id,
-    name: product.name,
-    code: product.code,
-    slug: product.slug,
-    description: product.description,
-    specs: product.specs,
-    category: {
-      name: product.categoryName,
-      href: product.parentSlug
-        ? routes.subcategory(product.parentSlug, product.categorySlug)
-        : routes.category(product.categorySlug),
-    },
-    variant: picked
-      ? {
-          id: picked.id,
-          price: picked.price,
-          sizeLabel: picked.sizeLabel,
-          colourName: picked.colourName,
-        }
-      : null,
-    price: picked?.price ?? fallback?.price ?? null,
-  };
+  return buildProductPage({
+    product,
+    category: { name: product.categoryName, slug: product.categorySlug },
+    parent:
+      product.parentName !== null && product.parentSlug !== null
+        ? { name: product.parentName, slug: product.parentSlug }
+        : null,
+    variants,
+    media,
+  });
 }
 
-export async function getProductBySlug(slug: string): Promise<ProductPageData | null> {
-  return readProductBySlug(await getDb(), slug);
-}
+/** One read per request, shared by the page and its metadata, keyed on the decoded slug (AC-16). */
+export const getProductPage = cache(async (slug: string): Promise<ProductPageData | null> =>
+  readProductPage(await getDb(), slug),
+);

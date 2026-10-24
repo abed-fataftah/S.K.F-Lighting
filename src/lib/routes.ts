@@ -18,7 +18,11 @@ export const routes = {
   /** "Load more": the next page, jumping to its first new card `p-<position>`. */
   categoryMore: (category: string, sub: string | null, page: number, position: number) =>
     `${categoryPage(category, sub, page)}#p-${position}`,
-  product: (slug: string) => `/p/${segment(slug)}`,
+  /** A product page; `variant` opens it on that size and colour (`?v=<id>`, spec 0009 AC-6). */
+  product: (slug: string, opts?: { readonly variant?: string | null }) =>
+    opts?.variant
+      ? `/p/${segment(slug)}?v=${encodeURIComponent(opts.variant)}`
+      : `/p/${segment(slug)}`,
   search: (query?: string) => (query ? `/search?q=${encodeURIComponent(query)}` : "/search"),
   cart: "/cart",
   checkout: "/checkout",

@@ -1,7 +1,7 @@
 # 0009. Product page
 
 **Date**: 2026-10-22
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
