@@ -17,11 +17,14 @@ import { ProductPrice } from "@/features/catalog/components/product-price";
 import { ProductSelectionProvider } from "@/features/catalog/components/product-selection";
 import { ProductWhatsApp } from "@/features/catalog/components/product-whatsapp";
 import { ShareButton } from "@/features/catalog/components/share-button";
+import { metaDescription, productJsonLd } from "@/features/catalog/product-seo";
 import {
   applyRequestedVariant,
   galleryItems,
   parseRequestedVariant,
+  type ProductPageData,
 } from "@/features/catalog/product-view";
+import { breadcrumbJsonLd, serializeJsonLd } from "@/features/catalog/seo";
 import { getProductPage } from "@/features/catalog/server/queries";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
@@ -48,8 +51,40 @@ export async function generateMetadata({
 }: PageProps<"/[locale]/p/[slug]">): Promise<Metadata> {
   const product = await loadProduct((await params).slug);
   if (!product) return {};
-  const t = await getTranslations("PageTitles");
-  return { title: t("product", { name: product.name }) };
+  const [t, meta] = await Promise.all([getTranslations("PageTitles"), getTranslations("Metadata")]);
+  const { siteUrl } = parsePublicEnv();
+  return {
+    title: t("product", { name: product.name }),
+    description: metaDescription(product.description, meta("description")),
+    // Always the bare page, also when the address carries `?v` (AC-15).
+    alternates: { canonical: `${siteUrl}${routes.product(product.slug)}` },
+  };
+}
+
+/** The `Product` and `BreadcrumbList` JSON-LD (AC-15). */
+function structuredData(data: ProductPageData, homeName: string, siteUrl: string) {
+  const { main, sub } = data.breadcrumb;
+  const url = `${siteUrl}${routes.product(data.slug)}`;
+  const supabaseUrl = supabaseEnv().url;
+  return [
+    productJsonLd({
+      name: data.name,
+      code: data.code,
+      description: data.description,
+      images: data.photos.map((photo) => mediaObjectUrl(supabaseUrl, photo.key)),
+      url,
+      options: data.options,
+      inStock: data.inStock,
+    }),
+    breadcrumbJsonLd([
+      { name: homeName, url: `${siteUrl}${routes.home}` },
+      { name: main.name, url: `${siteUrl}${routes.category(main.slug)}` },
+      ...(sub
+        ? [{ name: sub.name, url: `${siteUrl}${routes.subcategory(main.slug, sub.slug)}` }]
+        : []),
+      { name: data.name, url },
+    ]),
+  ];
 }
 
 // The product page (spec 0009, docs/design/pages/product.md). It renders per request and awaits
@@ -71,6 +106,12 @@ export default async function ProductPage({
 
   return (
     <ProductSelectionProvider data={data}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(structuredData(data, t("home"), siteUrl)),
+        }}
+      />
       <div className="flex flex-col px-(--page-pad) pt-2 pb-8">
         <Breadcrumb aria-label={t("breadcrumb")}>
           <BreadcrumbList>

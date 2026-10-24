@@ -55,6 +55,7 @@ export function FullScreenGallery({
           </DialogPrimitive.Title>
           {openAt !== null ? (
             <FullScreenStrip
+              label={t("galleryTitle", { name })}
               photos={photos}
               start={openAt}
               onSeen={(index) => {
@@ -72,10 +73,12 @@ export function FullScreenGallery({
 }
 
 function FullScreenStrip({
+  label,
   photos,
   start,
   onSeen,
 }: {
+  readonly label: string;
   readonly photos: readonly Photo[];
   readonly start: number;
   readonly onSeen: (index: number) => void;
@@ -98,8 +101,12 @@ function FullScreenStrip({
 
   return (
     <div className="relative flex-1">
+      {/* Focusable, so the photos scroll with the arrow keys too (it holds no buttons). */}
       <div
         ref={strip}
+        role="region"
+        aria-label={label}
+        tabIndex={0}
         className="flex h-full touch-pan-x touch-pinch-zoom snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto overflow-y-hidden overscroll-x-contain"
       >
         {photos.map((photo, index) => (

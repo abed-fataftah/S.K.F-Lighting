@@ -30,6 +30,7 @@ import {
   getCategoryProducts,
   type CategoryHead,
 } from "../server/queries";
+import { breadcrumbJsonLd, serializeJsonLd } from "../seo";
 import { FilterChipLink } from "./filter-chip-link";
 import { FocusNewCard } from "./focus-new-card";
 import { HelpCard } from "./help-card";
@@ -88,8 +89,8 @@ export async function categoryMetadata(address: Address): Promise<Metadata> {
   };
 }
 
-function breadcrumbJsonLd(data: CategoryHead, homeName: string, siteUrl: string) {
-  const items = [
+function breadcrumbItems(data: CategoryHead, homeName: string, siteUrl: string) {
+  return [
     { name: homeName, url: `${siteUrl}${routes.home}` },
     { name: data.main.name, url: `${siteUrl}${routes.category(data.main.slug)}` },
     ...(data.sub
@@ -101,16 +102,6 @@ function breadcrumbJsonLd(data: CategoryHead, homeName: string, siteUrl: string)
         ]
       : []),
   ];
-  return {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.name,
-      item: item.url,
-    })),
-  };
 }
 
 export async function CategoryPage({ address }: { readonly address: Address }) {
@@ -136,10 +127,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
 
   const mainSlug = data.main.slug;
   const subSlug = data.sub?.slug ?? null;
-  const jsonLd = JSON.stringify(breadcrumbJsonLd(data, catalog("home"), siteUrl)).replace(
-    /</g,
-    "\\u003c",
-  );
+  const jsonLd = serializeJsonLd(breadcrumbJsonLd(breadcrumbItems(data, catalog("home"), siteUrl)));
 
   return (
     <div className="flex flex-col pb-8">
