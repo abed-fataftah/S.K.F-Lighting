@@ -192,5 +192,5 @@ Tracer Bullet: the first task carries one real choice from the read through the 
 - [ ] Desktop and tablet layout for the product page (design open item O-1).
 - [ ] The board 3 loading skeleton, if a way is found to show it without losing the real 404 (for example a Suspense boundary inside the page, below the awaited read, for slower parts).
 - [ ] Share image (`og:image` from the first photo) with feature 28, together with the site map.
-- [ ] Breadcrumb "back to the category with its filters" once feature 11 adds filters.
+- [x] Breadcrumb "back to the category with its filters" once feature 11 adds filters. Closed by [0010](../0010-search-filters/index.md): not needed, the browser's back button returns to the filtered address.
 - [ ] "Add to draft" for electricians on this page (accounts, scope feature on drafts).

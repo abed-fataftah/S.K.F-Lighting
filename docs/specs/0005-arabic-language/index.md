@@ -200,5 +200,5 @@ Tracer Bullet: one formatter proven on a real screen first, then the text rules,
 - [ ] Close open item O-2 in `docs/design/handoff.md` and the numerals and dates line in `docs/design/design.md` section 3 with this spec's rules (`DD/MM/YYYY`, `4:45 م`, `20/10/2026 · 4:45 م`).
 - [ ] `docs/scope/catalog.md` features still say "in both languages" in three "Done when" lines; the shop is Arabic only, so `/scope` should reword them.
 - [ ] The info strip copy (`Shell.infoStrip`) holds the fees `₪20` and `₪70` as text; feature 26 (shop settings) should build it from `delivery_zones` with `formatPrice`.
-- [ ] Decide in feature 11 whether to also fold the Persian `ی` and `ک` (from Persian keyboards) into `ي` and `ك`; not included here.
+- [x] Decide in feature 11 whether to also fold the Persian `ی` and `ک` (from Persian keyboards) into `ي` and `ك`; not included here. Decided in [0010](../0010-search-filters/index.md) AC-2: fold them.
 - [ ] Order number lookup (feature 16) decides whether it accepts the number without its `26-` prefix or with a typed dash other than `-`; this spec only cleans its digits.

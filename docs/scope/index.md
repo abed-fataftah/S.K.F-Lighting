@@ -31,7 +31,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 8 | Spreadsheet import & bulk photos | Slice 2 | in-progress |
 | 9 | Categories & browsing | Slice 2 | in-progress |
 | 10 | Product page | Slice 2 | in-progress |
-| 11 | Search & filters | Slice 2 | planned |
+| 11 | Search & filters | Slice 2 | in-progress |
 | 12 | Cart | Slice 3 | planned |
 | 13 | Checkout & delivery | Slice 3 | planned |
 | 14 | Order confirmation & WhatsApp | Slice 3 | planned |
