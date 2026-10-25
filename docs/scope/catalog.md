@@ -65,8 +65,8 @@ Search by product name or product code, and filter by price, size, and colour.
 spec [0010](../specs/0010-search-filters/index.md) · code in `src/features/catalog/` (search text, list filters, list query, toolbar and filters screen), `src/app/[locale]/search/`, `src/app/api/catalog/count/`
 - [x] Design it (spec): `/architect search & filters`
 - [ ] Build it: `/develop search & filters`
-  - [ ] Thin thread: migration with `search_text` and `size_key`, Persian folds, `refreshSearchKeys` in the save, backfill script and CI step, `/search` with the prompt and every word matching (AC-1, AC-2, AC-3, AC-7)
-  - [ ] Search done properly: code first tiers, paging, query chip, no results, error and loading, header field, metadata (AC-4, AC-5, AC-6, AC-14)
+  - [x] Thin thread: migration with `search_text` and `size_key`, Persian folds, `refreshSearchKeys` in the save, backfill script and CI step, `/search` with the prompt and every word matching (AC-1, AC-2, AC-3, AC-7)
+  - [x] Search done properly: code first tiers, paging, query chip, no results, error and loading, header field, metadata (AC-4, AC-5, AC-6, AC-14)
   - [ ] Filters in the address: parse, resolve, serialize, shared list query, toolbar, applied chips, filtered empty state (AC-8, AC-9, AC-13, AC-14)
   - [ ] Filters screen and live count: choices, full screen dialog, count route with its rate limit and proxy changes (AC-10, AC-11, AC-12, AC-15)
   - [ ] Finish: remaining database tests, full phone flow, axe, limiter on preview (AC-16)

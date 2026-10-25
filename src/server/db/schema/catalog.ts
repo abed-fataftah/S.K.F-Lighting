@@ -71,6 +71,9 @@ export const products = pgTable(
     // Grows by 1 on every save, archive, and restore; a write with an older version changes nothing
     // (spec 0006 AC-11). Feature 8's import bumps it too.
     version: integer("version").notNull().default(1),
+    // The folded name, code, and live option codes search matches (spec 0010 AC-7). Written only by
+    // `refreshSearchKeys` and the backfill, in the same transaction as any change to those inputs.
+    searchText: text("search_text").notNull().default(""),
     ...timestamps(),
   },
   (t) => [
@@ -92,6 +95,8 @@ export const productVariants = pgTable(
       .references(() => products.id, { onDelete: "cascade" }),
     sizeLabel: text("size_label"),
     sizeSort: integer("size_sort").notNull().default(0),
+    // `sizeKey(size_label)` for the size filter (spec 0010 AC-7), kept by `refreshSearchKeys`.
+    sizeKey: text("size_key"),
     colourId: uuid("colour_id").references(() => colours.id, { onDelete: "restrict" }),
     code: text("code").unique(),
     price: integer("price").notNull(),

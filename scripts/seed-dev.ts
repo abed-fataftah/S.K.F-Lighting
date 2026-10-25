@@ -3,6 +3,7 @@
 // the settings row, from the migration.
 import { existsSync } from "node:fs";
 import { sql } from "drizzle-orm";
+import { refreshSearchKeys } from "@/features/catalog/server/search-keys";
 import { buildProductSlug, slugify } from "@/features/catalog/slug";
 import { getDirectDb } from "@/server/db/direct";
 import { isLocalDatabaseUrl } from "@/server/db/local";
@@ -145,6 +146,7 @@ async function seed(tx: Transaction) {
         target: productVariants.code,
         set: { price: excluded("price"), sort: excluded("sort") },
       });
+    await refreshSearchKeys(tx, product.id);
   }
 
   return { categories: CATEGORIES.length, colours: COLOURS.length, products: PRODUCTS.length };

@@ -86,8 +86,9 @@ const HAMZA_ALEF = /[أإآٱ]/g;
 const WHITESPACE_RUNS = /\s+/g;
 
 /**
- * The search key (AC-12): forgiving of tashkeel, hamza seats, ta marbuta, alef maqsura, Arabic
- * digits, and case. Run it on the query and on the product text, then compare. Idempotent.
+ * The search key (AC-12): forgiving of tashkeel, hamza seats, ta marbuta, alef maqsura, the
+ * Persian yeh and keheh (spec 0010 AC-2), Arabic digits, and case. Run it on the query and on the
+ * product text, then compare. Idempotent.
  */
 export function normalizeForSearch(text: string): string {
   return toWesternDigits(
@@ -96,7 +97,9 @@ export function normalizeForSearch(text: string): string {
       .replace(/ى/g, "ي")
       .replace(/ة/g, "ه")
       .replace(/ؤ/g, "و")
-      .replace(/ئ/g, "ي"),
+      .replace(/ئ/g, "ي")
+      .replace(/ی/g, "ي")
+      .replace(/ک/g, "ك"),
   )
     .toLowerCase()
     .replace(WHITESPACE_RUNS, " ")

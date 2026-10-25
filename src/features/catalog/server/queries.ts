@@ -15,6 +15,9 @@ import {
   type PageCategory,
 } from "../category-rules";
 import { buildProductPage, type ProductPageData } from "../product-view";
+import type { SearchTerms } from "../search-text";
+import { NO_FILTERS, type ResolvedFilters } from "../list-filters";
+import { listJoins, listOrder, listWhere, type ListScope } from "./list-query";
 import { listedInStock, listedProduct, parentCategory, sellableVariant } from "./storefront-sql";
 
 // The storefront's catalog reads (spec 0004 AC-3, spec 0008). Every one applies the shown and
@@ -262,6 +265,68 @@ export async function getCategoryHead(
 
 export async function getCategoryProducts(pageHead: CategoryHead): Promise<readonly CardProduct[]> {
   return readCategoryProducts(await getDb(), pageHead);
+}
+
+/** M: the listed products of the scope that meet the filters (spec 0010 AC-5, AC-12, AC-13). */
+export async function readListTotal(
+  db: Db,
+  scope: ListScope,
+  filters: ResolvedFilters = NO_FILTERS,
+): Promise<number> {
+  const [row] = await db
+    .select({ total: count() })
+    .from(products)
+    .innerJoin(categories, listJoins.category)
+    .leftJoin(parentCategory, listJoins.parent)
+    .where(listWhere(scope, filters));
+  return row?.total ?? 0;
+}
+
+/** The first `page × 24` products of the scope, in list order (spec 0010 AC-4, AC-5, AC-9). */
+async function readListProducts(
+  db: Db,
+  scope: ListScope,
+  filters: ResolvedFilters,
+  page: number,
+): Promise<readonly CardProduct[]> {
+  const rows = await db
+    .select(cardColumns)
+    .from(products)
+    .innerJoin(categories, listJoins.category)
+    .leftJoin(parentCategory, listJoins.parent)
+    .where(listWhere(scope, filters))
+    .orderBy(...listOrder(scope))
+    .limit(page * CATEGORY_PAGE_SIZE);
+  return readCards(db, rows);
+}
+
+export type ListPage = {
+  /** M: every matching product. */
+  readonly total: number;
+  /** The page after clamping to `1..last`, before the limit is built. */
+  readonly page: number;
+  readonly products: readonly CardProduct[];
+};
+
+/** A search's results (spec 0010 AC-3 to AC-5): the total, the clamped page, then the cards. */
+export async function readSearchPage(
+  db: Db,
+  terms: SearchTerms,
+  filters: ResolvedFilters,
+  requestedPage: number,
+): Promise<ListPage> {
+  const scope: ListScope = { kind: "search", ...terms };
+  const total = await readListTotal(db, scope, filters);
+  const page = clampPage(requestedPage, total, CATEGORY_PAGE_SIZE);
+  return { total, page, products: total ? await readListProducts(db, scope, filters, page) : [] };
+}
+
+export async function getSearchPage(
+  terms: SearchTerms,
+  filters: ResolvedFilters,
+  page: number,
+): Promise<ListPage> {
+  return readSearchPage(await getDb(), terms, filters, page);
 }
 
 /**

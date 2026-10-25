@@ -47,6 +47,48 @@ describe("category routes", () => {
   });
 });
 
+// covers: AC-5, AC-8 (spec 0010)
+describe("filtered and search routes", () => {
+  const filters = {
+    sizes: ["60سم"],
+    colours: ["ذهبي", "أسود"],
+    min: 100,
+    max: 200,
+    available: true,
+  };
+
+  it("writes the filters in one fixed order, before the page", () => {
+    const href = routes.categoryPage("a", null, 2, filters);
+    const url = new URL(href, "http://x");
+    expect(url.pathname).toBe("/c/a");
+    expect([...url.searchParams]).toEqual([
+      ["size", "60سم"],
+      ["colour", "ذهبي"],
+      ["colour", "أسود"],
+      ["min", "100"],
+      ["max", "200"],
+      ["available", "1"],
+      ["page", "2"],
+    ]);
+  });
+
+  it("keeps the filters on load more", () => {
+    expect(routes.categoryMore("a", "b", 2, 25, { ...filters, colours: [] })).toBe(
+      "/c/a/b?size=60%D8%B3%D9%85&min=100&max=200&available=1&page=2#p-25",
+    );
+  });
+
+  it("puts q first on search, and an empty q is the prompt", () => {
+    expect(routes.search()).toBe("/search");
+    expect(routes.searchPage("")).toBe("/search");
+    const url = new URL(routes.searchMore("ثريا 60", filters, 3, 49), "http://x");
+    expect([...url.searchParams.keys()][0]).toBe("q");
+    expect(url.searchParams.get("q")).toBe("ثريا 60");
+    expect(url.searchParams.get("page")).toBe("3");
+    expect(url.hash).toBe("#p-49");
+  });
+});
+
 // covers: AC-6, AC-19 (spec 0009)
 describe("routes.product", () => {
   it("is the bare page without a variant and adds ?v with one", () => {

@@ -20,6 +20,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:check-rls": "tsx --conditions=react-server scripts/check-rls.ts",
     "db:seed": "tsx --conditions=react-server scripts/seed-dev.ts",
+    "db:backfill-search": "tsx --conditions=react-server scripts/backfill-search.ts",
     "admin:promote": "tsx --conditions=react-server scripts/admin-promote.ts",
     "admin:mfa-reset": "tsx scripts/admin-mfa-reset.ts",
     "media:sweep": "tsx --conditions=react-server scripts/media-sweep.ts",

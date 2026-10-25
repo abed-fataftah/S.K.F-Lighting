@@ -134,6 +134,9 @@ describe("normalizeForSearch", () => {
     ["ة", "ه"],
     ["ؤ", "و"],
     ["ئ", "ي"],
+    ["ی", "ي"],
+    ["ک", "ك"],
+    ["ﯾ", "ي"],
     ["ثُرَيّا", "ثريا"],
     ["ثريـــا", "ثريا"],
     ["ﻻ", "لا"],
@@ -149,7 +152,7 @@ describe("normalizeForSearch", () => {
     expect(normalizeForSearch("ثرﱞيا")).toBe("ثريا");
   });
 
-  it.each(["إنارةُ  الزينة", "ثرياﱞ ذهبية", "مصباح ٦٠ واط LED", "  ﻻمبة  "])(
+  it.each(["إنارةُ  الزينة", "ثرياﱞ ذهبية", "مصباح ٦٠ واط LED", "  ﻻمبة  ", "لامپ کوچک یک"])(
     "is idempotent on %j",
     (text) => {
       const once = normalizeForSearch(text);

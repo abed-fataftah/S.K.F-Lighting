@@ -14,10 +14,11 @@ import { orderMedia } from "../media-rules";
 import { optionKey, type ProductEditorData } from "../schemas";
 import { buildProductSlug } from "../slug";
 import { planVariants, tempLabel, type VariantPlan } from "../variant-plan";
+import { refreshSearchKeys } from "./search-keys";
 
 // The database half of `saveProduct` (spec 0006 AC-2 to AC-13, saveProduct order of work, step 3):
 // one transaction that checks the version, resolves the category and colours, reconciles the
-// variants with `planVariants`, and replaces the media rows. Storage is checked before and cleaned
+// variants with `planVariants`, replaces the media rows, and refreshes the search keys. Storage is checked before and cleaned
 // after, in the action.
 
 export type SaveRefusal =
@@ -321,6 +322,8 @@ async function writeProduct(tx: Tx, data: ProductEditorData): Promise<SaveOutcom
   );
   await applyPlan(tx, data.id, plan);
   await replaceMedia(tx, data.id, data.media);
+  // Last, so the keys see the saved name and options (spec 0010 AC-7).
+  await refreshSearchKeys(tx, data.id);
 
   return { kind: "saved", id: data.id, slug, version, status, category };
 }

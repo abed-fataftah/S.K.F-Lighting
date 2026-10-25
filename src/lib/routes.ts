@@ -1,29 +1,57 @@
 // The URL map (spec 0003, adopted from the design handoff; products by slug).
 // Every link in the app is built here, so a route changes in one place.
+import {
+  EMPTY_FILTERS,
+  serializeListFilters,
+  type ListFilters,
+} from "@/features/catalog/list-filters";
+
 const segment = (value: string) => encodeURIComponent(value);
 
 const categoryPath = (category: string, sub: string | null) =>
   sub ? `/c/${segment(category)}/${segment(sub)}` : `/c/${segment(category)}`;
 
-const categoryPage = (category: string, sub: string | null, page = 1) =>
-  page > 1 ? `${categoryPath(category, sub)}?page=${page}` : categoryPath(category, sub);
+const withQuery = (path: string, query: string) => (query ? `${path}?${query}` : path);
+
+// Filtered and searched lists carry their state in the address through one serializer, in one
+// fixed order (spec 0010 AC-8).
+const categoryPage = (
+  category: string,
+  sub: string | null,
+  page = 1,
+  filters: ListFilters = EMPTY_FILTERS,
+) => withQuery(categoryPath(category, sub), serializeListFilters(filters, { page }));
+
+const searchPage = (q: string, filters: ListFilters = EMPTY_FILTERS, page = 1) =>
+  withQuery("/search", serializeListFilters(filters, { q, page }));
 
 export const routes = {
   home: "/",
   categories: "/c",
   category: (category: string) => categoryPath(category, null),
   subcategory: (category: string, sub: string) => categoryPath(category, sub),
-  /** A main (no `sub`) or sub page; page 1 is the plain address (spec 0008 AC-11). */
+  /** A main (no `sub`) or sub page with its filters; page 1 is left out (spec 0008 AC-11). */
   categoryPage,
   /** "Load more": the next page, jumping to its first new card `p-<position>`. */
-  categoryMore: (category: string, sub: string | null, page: number, position: number) =>
-    `${categoryPage(category, sub, page)}#p-${position}`,
+  categoryMore: (
+    category: string,
+    sub: string | null,
+    page: number,
+    position: number,
+    filters: ListFilters = EMPTY_FILTERS,
+  ) => `${categoryPage(category, sub, page, filters)}#p-${position}`,
   /** A product page; `variant` opens it on that size and colour (`?v=<id>`, spec 0009 AC-6). */
   product: (slug: string, opts?: { readonly variant?: string | null }) =>
     opts?.variant
       ? `/p/${segment(slug)}?v=${encodeURIComponent(opts.variant)}`
       : `/p/${segment(slug)}`,
-  search: (query?: string) => (query ? `/search?q=${encodeURIComponent(query)}` : "/search"),
+  /** The search prompt, or a search for `query`. */
+  search: (query?: string) => searchPage(query ?? ""),
+  /** A search with its filters and page (spec 0010 AC-5); an empty `q` is the prompt. */
+  searchPage,
+  /** "Load more" on search: the next page, jumping to its first new card `p-<position>`. */
+  searchMore: (q: string, filters: ListFilters, page: number, position: number) =>
+    `${searchPage(q, filters, page)}#p-${position}`,
   cart: "/cart",
   checkout: "/checkout",
   checkoutDone: (number: string) => `/checkout/done/${segment(number)}`,

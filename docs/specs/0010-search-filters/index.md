@@ -1,7 +1,7 @@
 # 0010. Search and filters
 
 **Date**: 2026-10-25
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

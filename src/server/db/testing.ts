@@ -2,6 +2,7 @@
 // time, and roll back everything except the tests that must commit (spec 0002, testing note).
 import { existsSync } from "node:fs";
 import { expect } from "vitest";
+import { refreshSearchKeys } from "@/features/catalog/server/search-keys";
 import { categories, colours, products, productVariants } from "./schema";
 import { isLocalDatabaseUrl } from "./local";
 import { pgErrorOf } from "./pg-error";
@@ -70,5 +71,6 @@ export async function insertSimpleProduct(tx: Transaction, code = "TEST-1", pric
     .insert(productVariants)
     .values({ productId: product.id, price, isDefault: true })
     .returning();
+  await refreshSearchKeys(tx, product.id);
   return { category, colour, product, variant };
 }

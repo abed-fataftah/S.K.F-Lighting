@@ -99,3 +99,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # After the deploy, not before: no old code can then save a product without its search keys
+      # (spec 0010 AC-7). Writes only stale rows, so it is safe on every run.
+      - name: Backfill search keys
+        run: pnpm db:backfill-search
+        env:
+          DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
