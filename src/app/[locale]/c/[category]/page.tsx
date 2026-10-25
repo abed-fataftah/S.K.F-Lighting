@@ -6,14 +6,14 @@ export async function generateMetadata({
   params,
   searchParams,
 }: PageProps<"/[locale]/c/[category]">): Promise<Metadata> {
-  const [{ category }, { page }] = await Promise.all([params, searchParams]);
-  return categoryMetadata({ main: category, sub: null, page });
+  const [{ category }, query] = await Promise.all([params, searchParams]);
+  return categoryMetadata({ main: category, sub: null, params: query });
 }
 
 export default async function MainCategoryPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/c/[category]">) {
-  const [{ category }, { page }] = await Promise.all([params, searchParams]);
-  return <CategoryPage address={{ main: category, sub: null, page }} />;
+  const [{ category }, query] = await Promise.all([params, searchParams]);
+  return <CategoryPage address={{ main: category, sub: null, params: query }} />;
 }

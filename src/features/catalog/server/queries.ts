@@ -1,5 +1,18 @@
 import "server-only";
-import { and, asc, count, desc, eq, exists, inArray, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  isNull,
+  max,
+  min,
+  sql,
+} from "drizzle-orm";
 import { cache } from "react";
 import { clampPage } from "@/lib/paging";
 import { getDb } from "@/server/db";
@@ -16,9 +29,19 @@ import {
 } from "../category-rules";
 import { buildProductPage, type ProductPageData } from "../product-view";
 import type { SearchTerms } from "../search-text";
-import { NO_FILTERS, type ResolvedFilters } from "../list-filters";
+import {
+  EMPTY_FILTERS,
+  isFiltered,
+  NO_FILTERS,
+  priceBounds,
+  resolveFilters,
+  sizeChoices,
+  type FilterChoices,
+  type ListFilters,
+  type ResolvedFilters,
+} from "../list-filters";
 import { listJoins, listOrder, listWhere, type ListScope } from "./list-query";
-import { listedInStock, listedProduct, parentCategory, sellableVariant } from "./storefront-sql";
+import { listedProduct, parentCategory, sellableVariant } from "./storefront-sql";
 
 // The storefront's catalog reads (spec 0004 AC-3, spec 0008). Every one applies the shown and
 // sellable rules from `storefront-sql.ts`, so a hidden category and its products never reach a
@@ -225,23 +248,6 @@ export function readCategoryHead(
   };
 }
 
-/** The first `page × 24` listed products of the page, in list order (AC-10, AC-11). */
-export async function readCategoryProducts(
-  db: Db,
-  pageHead: CategoryHead,
-): Promise<readonly CardProduct[]> {
-  if (pageHead.total === 0) return [];
-  const rows = await db
-    .select(cardColumns)
-    .from(products)
-    .where(
-      and(inArray(products.categoryId, [...pageHead.categoryIds]), eq(products.status, "active")),
-    )
-    .orderBy(desc(sql`${listedInStock}`), desc(products.createdAt), desc(products.id))
-    .limit(pageHead.page * CATEGORY_PAGE_SIZE);
-  return readCards(db, rows);
-}
-
 export async function readCategoryPage(
   db: Db,
   tree: CatalogTree,
@@ -251,7 +257,14 @@ export async function readCategoryPage(
 ): Promise<CategoryPageData | null> {
   const pageHead = readCategoryHead(tree, mainSlug, subSlug, requestedPage);
   if (!pageHead) return null;
-  return { ...pageHead, products: await readCategoryProducts(db, pageHead) };
+  const list = await readListView(
+    db,
+    { kind: "category", categoryIds: pageHead.categoryIds },
+    EMPTY_FILTERS,
+    pageHead.page,
+    pageHead.total,
+  );
+  return { ...pageHead, products: list.products };
 }
 
 /** A category page's head (AC-8), or null for the not found page. */
@@ -261,10 +274,6 @@ export async function getCategoryHead(
   page: number,
 ): Promise<CategoryHead | null> {
   return readCategoryHead(await loadCatalogTree(), mainSlug, subSlug, page);
-}
-
-export async function getCategoryProducts(pageHead: CategoryHead): Promise<readonly CardProduct[]> {
-  return readCategoryProducts(await getDb(), pageHead);
 }
 
 /** M: the listed products of the scope that meet the filters (spec 0010 AC-5, AC-12, AC-13). */
@@ -300,33 +309,121 @@ async function readListProducts(
   return readCards(db, rows);
 }
 
-export type ListPage = {
+/**
+ * What the unfiltered list offers (spec 0010 AC-10), over its live options: one row per size key
+ * and label with its count, the colours used in `colours.sort` then name order, and the price
+ * range. Read on every view, since the applied chips need the size labels.
+ */
+export async function readFilterChoices(db: Db, scope: ListScope): Promise<FilterChoices> {
+  const live = and(listWhere(scope), isNull(productVariants.archivedAt));
+  const [sizes, used, [price]] = await Promise.all([
+    db
+      .select({
+        sizeKey: productVariants.sizeKey,
+        sizeLabel: productVariants.sizeLabel,
+        count: count(),
+      })
+      .from(productVariants)
+      .innerJoin(products, eq(products.id, productVariants.productId))
+      .innerJoin(categories, listJoins.category)
+      .leftJoin(parentCategory, listJoins.parent)
+      .where(and(live, isNotNull(productVariants.sizeKey)))
+      .groupBy(productVariants.sizeKey, productVariants.sizeLabel),
+    db
+      .selectDistinct({ id: colours.id, name: colours.name, hex: colours.hex, sort: colours.sort })
+      .from(productVariants)
+      .innerJoin(colours, eq(colours.id, productVariants.colourId))
+      .innerJoin(products, eq(products.id, productVariants.productId))
+      .innerJoin(categories, listJoins.category)
+      .leftJoin(parentCategory, listJoins.parent)
+      .where(live)
+      .orderBy(asc(colours.sort), asc(colours.name)),
+    db
+      .select({ min: min(productVariants.price), max: max(productVariants.price) })
+      .from(productVariants)
+      .innerJoin(products, eq(products.id, productVariants.productId))
+      .innerJoin(categories, listJoins.category)
+      .leftJoin(parentCategory, listJoins.parent)
+      .where(live),
+  ]);
+  return {
+    sizes: sizeChoices(sizes),
+    colours: used.map(({ id, name, hex }) => ({ id, name, hex })),
+    price: priceBounds(price ?? null),
+  };
+}
+
+export type ListView = {
+  readonly choices: FilterChoices;
+  /** The address's filters after `resolveFilters`; "a filter is active" reads these. */
+  readonly filters: ResolvedFilters;
   /** M: every matching product. */
   readonly total: number;
-  /** The page after clamping to `1..last`, before the limit is built. */
+  /** The page after clamping to `1..last` against M, before the limit is built. */
   readonly page: number;
   readonly products: readonly CardProduct[];
 };
 
-/** A search's results (spec 0010 AC-3 to AC-5): the total, the clamped page, then the cards. */
-export async function readSearchPage(
+/**
+ * One list view in the spec's read order (spec 0010, API surface): the choices, then the resolved
+ * filters, then M (the known unfiltered total when no filter is active), then the clamped page,
+ * then the first `page × 24` cards. Shared by the category page and search.
+ */
+export async function readListView(
   db: Db,
-  terms: SearchTerms,
-  filters: ResolvedFilters,
+  scope: ListScope,
+  parsed: ListFilters,
   requestedPage: number,
-): Promise<ListPage> {
-  const scope: ListScope = { kind: "search", ...terms };
-  const total = await readListTotal(db, scope, filters);
+  unfilteredTotal?: number,
+): Promise<ListView> {
+  const choices = await readFilterChoices(db, scope);
+  const filters = resolveFilters(parsed, choices);
+  const total =
+    !isFiltered(filters) && unfilteredTotal !== undefined
+      ? unfilteredTotal
+      : await readListTotal(db, scope, filters);
   const page = clampPage(requestedPage, total, CATEGORY_PAGE_SIZE);
-  return { total, page, products: total ? await readListProducts(db, scope, filters, page) : [] };
+  const cards = total ? await readListProducts(db, scope, filters, page) : [];
+  return { choices, filters, total, page, products: cards };
 }
 
-export async function getSearchPage(
+/**
+ * N for the filters screen (spec 0010 AC-12): the same choices, resolve, and total steps as
+ * `readListView`, so it always equals the M the page then shows.
+ */
+export async function readListCount(
+  db: Db,
+  scope: ListScope,
+  parsed: ListFilters,
+  unfilteredTotal?: number,
+): Promise<number> {
+  const filters = resolveFilters(parsed, await readFilterChoices(db, scope));
+  return !isFiltered(filters) && unfilteredTotal !== undefined
+    ? unfilteredTotal
+    : readListTotal(db, scope, filters);
+}
+
+/** A category page's list (spec 0010 AC-13): the head's scope and total, with the filters. */
+export async function getCategoryList(
+  pageHead: CategoryHead,
+  parsed: ListFilters,
+): Promise<ListView> {
+  return readListView(
+    await getDb(),
+    { kind: "category", categoryIds: pageHead.categoryIds },
+    parsed,
+    pageHead.page,
+    pageHead.total,
+  );
+}
+
+/** A search's list (spec 0010 AC-3 to AC-5). */
+export async function getSearchList(
   terms: SearchTerms,
-  filters: ResolvedFilters,
+  parsed: ListFilters,
   page: number,
-): Promise<ListPage> {
-  return readSearchPage(await getDb(), terms, filters, page);
+): Promise<ListView> {
+  return readListView(await getDb(), { kind: "search", ...terms }, parsed, page);
 }
 
 /**

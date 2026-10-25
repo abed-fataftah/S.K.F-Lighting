@@ -183,12 +183,11 @@ describe("size choices", () => {
   it("labels each key with its most common label, ties going to the label that sorts first", () => {
     expect(
       sizeChoices([
-        { sizeKey: "60سم", sizeLabel: "60 سم" },
-        { sizeKey: "60سم", sizeLabel: "60سم" },
-        { sizeKey: "60سم", sizeLabel: "60سم" },
-        { sizeKey: "80سم", sizeLabel: "80 سم" },
-        { sizeKey: "80سم", sizeLabel: "80سم" },
-        { sizeKey: null, sizeLabel: null },
+        { sizeKey: "60سم", sizeLabel: "60 سم", count: 1 },
+        { sizeKey: "60سم", sizeLabel: "60سم", count: 2 },
+        { sizeKey: "80سم", sizeLabel: "80 سم", count: 3 },
+        { sizeKey: "80سم", sizeLabel: "80سم", count: 3 },
+        { sizeKey: null, sizeLabel: null, count: 9 },
       ]),
     ).toEqual([
       { key: "60سم", label: "60سم" },

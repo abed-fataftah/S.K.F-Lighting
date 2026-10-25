@@ -217,14 +217,19 @@ export function compareSizeKeys(a: string, b: string): number {
  * label (a tie goes to the label that sorts first), in size order (AC-10).
  */
 export function sizeChoices(
-  options: readonly { readonly sizeKey: string | null; readonly sizeLabel: string | null }[],
+  labelCounts: readonly {
+    readonly sizeKey: string | null;
+    readonly sizeLabel: string | null;
+    /** How many live options carry this label under this key. */
+    readonly count: number;
+  }[],
 ): readonly SizeChoice[] {
   const labels = new Map<string, Map<string, number>>();
-  for (const option of options) {
-    if (option.sizeKey === null || option.sizeLabel === null) continue;
-    const counts = labels.get(option.sizeKey) ?? new Map<string, number>();
-    counts.set(option.sizeLabel, (counts.get(option.sizeLabel) ?? 0) + 1);
-    labels.set(option.sizeKey, counts);
+  for (const row of labelCounts) {
+    if (row.sizeKey === null || row.sizeLabel === null) continue;
+    const counts = labels.get(row.sizeKey) ?? new Map<string, number>();
+    counts.set(row.sizeLabel, (counts.get(row.sizeLabel) ?? 0) + row.count);
+    labels.set(row.sizeKey, counts);
   }
   return [...labels.entries()]
     .map(([key, counts]) => {

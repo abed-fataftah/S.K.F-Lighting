@@ -1,4 +1,4 @@
-import { Lamp } from "lucide-react";
+import { Lamp, SearchX } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -15,8 +15,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
-import { LoadingStatus } from "@/components/loading-status";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { parsePage } from "@/lib/paging";
@@ -25,22 +23,33 @@ import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { withTimeLimit } from "@/server/db/time-limit";
 import {
+  appliedChips,
+  EMPTY_FILTERS,
+  isFiltered,
+  parseListFilters,
+  serializeListFilters,
+  toListFilters,
+  type ListFilters,
+} from "../list-filters";
+import {
   CATEGORY_PAGE_SIZE,
   getCategoryHead,
-  getCategoryProducts,
+  getCategoryList,
   type CategoryHead,
 } from "../server/queries";
 import { breadcrumbJsonLd, serializeJsonLd } from "../seo";
+import { AppliedChips } from "./applied-chips";
 import { FilterChipLink } from "./filter-chip-link";
-import { FocusNewCard } from "./focus-new-card";
+import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
-import { ProductCard } from "./product-card";
+import { GridSkeleton, ListMore, ProductGrid } from "./list-results";
 
-// The category page (spec 0008 AC-8 to AC-13, AC-16; docs/design/pages/category.md without the
-// filter parts) for `/c/<main>` and `/c/<main>/<sub>`. Both routes render this one server view.
-// The quick head read (category, chips, M) runs before anything streams, so an unknown or hidden
-// category gets a real 404. The products then load under this page's own Suspense boundary with
-// six skeleton cards; a route `loading.tsx` would start the stream first and fix the status at 200.
+// The category page (spec 0008 AC-8 to AC-13, AC-16; spec 0010 AC-13, AC-14; docs/design/pages/
+// category.md) for `/c/<main>` and `/c/<main>/<sub>`. Both routes render this one server view.
+// The quick head read (category, chips, unfiltered M) runs before anything streams, so an unknown
+// or hidden category gets a real 404. The list (filter choices, resolved filters, filtered M, the
+// cards) then loads under this page's own Suspense boundary with six skeleton cards; a route
+// `loading.tsx` would start the stream first and fix the status at 200.
 
 const CATEGORY_READ_TIMEOUT_MS = 3000;
 
@@ -56,7 +65,8 @@ function decodeSlug(raw: string): string {
 type Address = {
   readonly main: string;
   readonly sub: string | null;
-  readonly page: string | string[] | undefined;
+  /** Every search param: `page` and the filters (spec 0010 AC-8). */
+  readonly params: Readonly<Record<string, string | string[] | undefined>>;
 };
 
 // Shared by the metadata and the page in one request.
@@ -67,25 +77,49 @@ const loadCategoryHead = cache((main: string, sub: string | null, page: number) 
   ),
 );
 
+// The list under the head, shared by the metadata and the page in one request. Keyed on the
+// serialized filters, which parse back to the same filters.
+const loadCategoryList = cache(
+  async (main: string, sub: string | null, page: number, filterQuery: string) => {
+    const head = await loadCategoryHead(main, sub, page);
+    if (!head.ok || !head.data) return null;
+    const pageHead = head.data;
+    return withTimeLimit(
+      () => getCategoryList(pageHead, parseListFilters(new URLSearchParams(filterQuery))),
+      CATEGORY_READ_TIMEOUT_MS,
+    );
+  },
+);
+
+const addressOf = (address: Address) => {
+  const parsed = parseListFilters(address.params);
+  return { page: parsePage(address.params.page), parsed, query: serializeListFilters(parsed) };
+};
+
 export async function categoryMetadata(address: Address): Promise<Metadata> {
-  const page = parsePage(address.page);
+  const { page, parsed, query } = addressOf(address);
   const result = await loadCategoryHead(address.main, address.sub, page);
   if (!result.ok || !result.data) return {};
   const data = result.data;
   const current = data.sub ?? data.main;
   const [t, meta] = await Promise.all([getTranslations("Categories"), getTranslations("Metadata")]);
   const { siteUrl } = parsePublicEnv();
+  const unfiltered = `${siteUrl}${routes.categoryPage(data.main.slug, data.sub?.slug ?? null)}`;
+  // A filter counts once resolved (spec 0010 AC-8); when the list read fails, the address decides.
+  const list = isFiltered(parsed)
+    ? await loadCategoryList(address.main, address.sub, page, query)
+    : null;
+  const filtered = list?.ok ? isFiltered(list.data.filters) : isFiltered(parsed);
   return {
     title: t("pageTitle", { name: current.name }),
     description: current.description ?? meta("description"),
-    // Pages 2 and up repeat page 1 with more cards: kept out of the index, links still followed.
-    ...(page > 1
-      ? { robots: { index: false, follow: true } }
-      : {
-          alternates: {
-            canonical: `${siteUrl}${routes.categoryPage(data.main.slug, data.sub?.slug ?? null)}`,
-          },
-        }),
+    // A filtered list points at the unfiltered page 1 (spec 0010 AC-14). Pages 2 and up repeat
+    // page 1 with more cards. Both stay out of the index, their links still followed.
+    ...(filtered
+      ? { robots: { index: false, follow: true }, alternates: { canonical: unfiltered } }
+      : page > 1
+        ? { robots: { index: false, follow: true } }
+        : { alternates: { canonical: unfiltered } }),
   };
 }
 
@@ -105,7 +139,8 @@ function breadcrumbItems(data: CategoryHead, homeName: string, siteUrl: string) 
 }
 
 export async function CategoryPage({ address }: { readonly address: Address }) {
-  const result = await loadCategoryHead(address.main, address.sub, parsePage(address.page));
+  const { page, query, parsed } = addressOf(address);
+  const result = await loadCategoryHead(address.main, address.sub, page);
   const { whatsappNumber, siteUrl } = parsePublicEnv();
   const [t, catalog, shell] = await Promise.all([
     getTranslations("Categories"),
@@ -170,14 +205,18 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
         <nav aria-label={t("subsLabel")} className="overflow-x-auto px-(--page-pad) pb-1">
           <ul className="flex gap-2">
             <li>
-              <FilterChipLink href={routes.category(mainSlug)} current={!data.sub} check={false}>
+              <FilterChipLink
+                href={routes.categoryPage(mainSlug, null, 1, parsed)}
+                current={!data.sub}
+                check={false}
+              >
                 {t("all")}
               </FilterChipLink>
             </li>
             {data.chipSubs.map((sub) => (
               <li key={sub.slug}>
                 <FilterChipLink
-                  href={routes.subcategory(mainSlug, sub.slug)}
+                  href={routes.categoryPage(mainSlug, sub.slug, 1, parsed)}
                   current={sub.slug === subSlug}
                   check={false}
                 >
@@ -192,7 +231,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
       <div className="flex flex-col gap-3 px-(--page-pad) pt-3">
         {data.total > 0 ? (
           <Suspense fallback={<GridSkeleton />}>
-            <CategoryProducts pageHead={data} />
+            <CategoryList address={address} pageHead={data} page={page} query={query} help={help} />
           </Suspense>
         ) : (
           <EmptyState
@@ -213,84 +252,98 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   );
 }
 
-/** Six skeleton cards while the products load (AC-13). */
-async function GridSkeleton() {
-  const t = await getTranslations("Categories");
-  return (
-    <LoadingStatus label={t("loading")} className="grid grid-cols-2 gap-2.5">
-      {Array.from({ length: 6 }, (_, i) => (
-        <div
-          key={i}
-          className="flex flex-col overflow-hidden rounded-card border border-border bg-white"
-        >
-          <Skeleton className="h-(--h-card-image) rounded-none" />
-          <div className="flex flex-col gap-2 p-3">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-11 w-full rounded-btn" />
-          </div>
-        </div>
-      ))}
-    </LoadingStatus>
-  );
-}
-
-/** The count, the grid, and "load more" (AC-9 to AC-12), or the error card when the read fails. */
-async function CategoryProducts({ pageHead }: { readonly pageHead: CategoryHead }) {
-  const [t, result] = await Promise.all([
+/**
+ * The toolbar, the applied chips, the grid, and "load more" (spec 0008 AC-9 to AC-12, spec 0010
+ * AC-13), or the filtered empty state, or the error card (toolbar and chips hidden) on a failure.
+ */
+async function CategoryList({
+  address,
+  pageHead,
+  page,
+  query,
+  help,
+}: {
+  readonly address: Address;
+  readonly pageHead: CategoryHead;
+  readonly page: number;
+  readonly query: string;
+  readonly help: string;
+}) {
+  const [t, filtersText, result] = await Promise.all([
     getTranslations("Categories"),
-    withTimeLimit(() => getCategoryProducts(pageHead), CATEGORY_READ_TIMEOUT_MS),
+    getTranslations("Filters"),
+    loadCategoryList(address.main, address.sub, page, query),
   ]);
   const { whatsappNumber, siteUrl } = parsePublicEnv();
-  if (!result.ok) {
-    console.error("getCategoryProducts: read failed", { error: result.error });
+  if (!result?.ok) {
+    console.error("getCategoryList: read failed", { error: result?.error ?? "failed" });
     return <PageErrorState title={t("errorTitle")} whatsappNumber={whatsappNumber} />;
   }
+  const list = result.data;
   const mainSlug = pageHead.main.slug;
   const subSlug = pageHead.sub?.slug ?? null;
-  const shown = Math.min(pageHead.page * CATEGORY_PAGE_SIZE, pageHead.total);
-  const hasMore = shown < pageHead.total;
+  const applied = toListFilters(list.filters);
+  const hrefFor = (filters: ListFilters) => routes.categoryPage(mainSlug, subSlug, 1, filters);
+  const shown = Math.min(list.page * CATEGORY_PAGE_SIZE, list.total);
+  const hasMore = shown < list.total;
 
   return (
     <>
-      <FocusNewCard page={pageHead.page} />
-      <p role="status" className="type-small text-muted" data-testid="category-count">
-        {t("count", { shown: formatNumber(pageHead.total) })}
-      </p>
-      <ul className="grid grid-cols-2 gap-2.5" data-testid="category-products">
-        {result.data.map((product, index) => (
-          <li key={product.slug} className="flex">
-            <ProductCard
-              product={product}
-              index={index}
-              id={`p-${index + 1}`}
-              whatsappNumber={whatsappNumber}
-              siteUrl={siteUrl}
-            />
-          </li>
-        ))}
-      </ul>
-      <div className="flex flex-col items-stretch gap-3 pt-5.5">
-        <p className="text-center type-small text-muted" data-testid="category-shown">
-          {t("shownOf", { shown: formatNumber(shown), total: formatNumber(pageHead.total) })}
+      <div className="flex items-center justify-between gap-2">
+        <FiltersScreen
+          scope={{ kind: "category", main: mainSlug, sub: subSlug }}
+          choices={list.choices}
+          applied={applied}
+          badge={appliedChips(list.filters).length}
+          total={list.total}
+        />
+        <p role="status" className="type-small text-muted" data-testid="category-count">
+          {t("count", { shown: formatNumber(list.total) })}
         </p>
-        {hasMore ? (
-          <ButtonLink
-            variant="outline"
-            size="lg"
-            className="h-12"
-            render={
-              <Link
-                href={routes.categoryMore(mainSlug, subSlug, pageHead.page + 1, shown + 1)}
-                scroll={false}
-              />
-            }
-            data-testid="category-more"
-          >
-            {t("loadMore")}
-          </ButtonLink>
-        ) : null}
       </div>
+      <AppliedChips filters={list.filters} hrefFor={hrefFor} />
+
+      {list.total > 0 ? (
+        <>
+          <ProductGrid
+            products={list.products}
+            page={list.page}
+            whatsappNumber={whatsappNumber}
+            siteUrl={siteUrl}
+            testId="category-products"
+          />
+          <ListMore
+            shownText={t("shownOf", {
+              shown: formatNumber(shown),
+              total: formatNumber(list.total),
+            })}
+            moreText={t("loadMore")}
+            moreHref={
+              hasMore
+                ? routes.categoryMore(mainSlug, subSlug, list.page + 1, shown + 1, applied)
+                : null
+            }
+            testId="category"
+          />
+        </>
+      ) : (
+        <EmptyState
+          icon={SearchX}
+          title={filtersText("emptyTitle")}
+          text={filtersText("emptyText")}
+          actions={
+            <>
+              <ButtonLink size="lg" render={<Link href={`${hrefFor(EMPTY_FILTERS)}#filters`} />}>
+                {filtersText("clearFilters")}
+              </ButtonLink>
+              <ButtonLink variant="whatsapp" size="lg" href={help} target="_blank" rel="noopener">
+                <WhatsAppIcon />
+                {t("emptyAsk")}
+              </ButtonLink>
+            </>
+          }
+        />
+      )}
     </>
   );
 }

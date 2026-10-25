@@ -150,6 +150,34 @@ describe("proxy", () => {
 
       expect(response.cookies.get("sb-auth")?.value).toBe("fresh");
     });
+
+    // covers: AC-15 (spec 0010)
+    it("skips the refresh on the public catalog count", async () => {
+      supabase.refresh = true;
+
+      const response = await proxy(request("/api/catalog/count?q=ثريا"));
+
+      expect(response.cookies.get("sb-auth")).toBeUndefined();
+    });
+  });
+
+  // covers: AC-15 (spec 0010)
+  describe("route handlers", () => {
+    it("keeps /api outside locale routing", async () => {
+      const response = await proxy(request("/api/catalog/count?q=ثريا"));
+
+      expect(rewrittenTo(response)).toBeNull();
+      expect(redirectedTo(response)).toBeNull();
+    });
+
+    it("still refreshes the session on other /api paths", async () => {
+      supabase.refresh = true;
+
+      const response = await proxy(request("/api/other"));
+
+      expect(rewrittenTo(response)).toBeNull();
+      expect(response.cookies.get("sb-auth")?.value).toBe("fresh");
+    });
   });
 });
 

@@ -52,6 +52,21 @@ export const routes = {
   /** "Load more" on search: the next page, jumping to its first new card `p-<position>`. */
   searchMore: (q: string, filters: ListFilters, page: number, position: number) =>
     `${searchPage(q, filters, page)}#p-${position}`,
+  /** The live count behind the filters screen (spec 0010 AC-12): a category or a search scope. */
+  catalogCount: (
+    scope:
+      | { readonly kind: "category"; readonly main: string; readonly sub: string | null }
+      | { readonly kind: "search"; readonly q: string },
+    filters: ListFilters,
+  ) => {
+    const head = new URLSearchParams(
+      scope.kind === "search"
+        ? { q: scope.q }
+        : { main: scope.main, ...(scope.sub === null ? {} : { sub: scope.sub }) },
+    ).toString();
+    const rest = serializeListFilters(filters);
+    return `/api/catalog/count?${head}${rest ? `&${rest}` : ""}`;
+  },
   cart: "/cart",
   checkout: "/checkout",
   checkoutDone: (number: string) => `/checkout/done/${segment(number)}`,

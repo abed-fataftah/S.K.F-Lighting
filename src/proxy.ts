@@ -6,10 +6,15 @@ import { refreshSession } from "@/server/auth/proxy-session";
 
 const handleI18nRouting = createIntlMiddleware(routing);
 
-// The dashboard, auth callbacks, and the design system gallery are not translated routes.
+// The dashboard, auth callbacks, route handlers, and the design system gallery are not
+// translated routes.
 function isOutsideLocaleRouting(pathname: string) {
-  return /^\/(admin|auth|design-system)(\/|$)/.test(pathname);
+  return /^\/(admin|auth|api|design-system)(\/|$)/.test(pathname);
 }
+
+// Public catalog reads need no session, and a refresh would add a Supabase round trip to every
+// count while the filters screen is open (spec 0010 AC-15).
+const skipsSession = (pathname: string) => pathname.startsWith("/api/catalog/");
 
 const isAdminPath = (pathname: string) => /^\/admin(\/|$)/.test(pathname);
 
@@ -23,6 +28,7 @@ function passThrough(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  if (skipsSession(request.nextUrl.pathname)) return NextResponse.next();
   const applySession = await refreshSession(request);
 
   const response = isOutsideLocaleRouting(request.nextUrl.pathname)

@@ -13,16 +13,25 @@ import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { withTimeLimit } from "@/server/db/time-limit";
-import { EMPTY_FILTERS, isFiltered, NO_FILTERS } from "../list-filters";
+import {
+  appliedChips,
+  isFiltered,
+  parseListFilters,
+  toListFilters,
+  type ListFilters,
+} from "../list-filters";
 import { readSearchRequest, type SearchTerms } from "../search-text";
-import { CATEGORY_PAGE_SIZE, getSearchPage } from "../server/queries";
+import { CATEGORY_PAGE_SIZE, getSearchList } from "../server/queries";
+import { AppliedChips } from "./applied-chips";
+import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
 import { ListMore, ProductGrid } from "./list-results";
 import { RemoveChipLink } from "./remove-chip-link";
 
 // The search page (spec 0010 AC-1 to AC-6, AC-14; docs/design/pages/search.md) for `/search`.
-// Without a searchable `q` it is the prompt and reads nothing. Otherwise one read inside a 3
-// second limit gives M, the clamped page, and the cards. `loading.tsx` shows while it runs.
+// Without a searchable `q` it is the prompt and reads nothing. Otherwise the list view inside a 3
+// second limit gives the filter choices, the resolved filters, M, the clamped page, and the
+// cards. `loading.tsx` shows while it runs.
 
 const SEARCH_READ_TIMEOUT_MS = 3000;
 
@@ -45,7 +54,14 @@ export async function SearchPage({ params }: { readonly params: Params }) {
   if (request.kind !== "search") {
     return <SearchPrompt short={request.kind === "short"} help={help} />;
   }
-  return <SearchResults terms={request} page={parsePage(params.page)} help={help} />;
+  return (
+    <SearchResults
+      terms={request}
+      parsed={parseListFilters(params)}
+      page={parsePage(params.page)}
+      help={help}
+    />
+  );
 }
 
 async function SearchPrompt({ short, help }: { readonly short: boolean; readonly help: string }) {
@@ -66,16 +82,18 @@ async function SearchPrompt({ short, help }: { readonly short: boolean; readonly
 
 async function SearchResults({
   terms,
+  parsed,
   page,
   help,
 }: {
   readonly terms: SearchTerms;
+  readonly parsed: ListFilters;
   readonly page: number;
   readonly help: string;
 }) {
   const [t, result] = await Promise.all([
     getTranslations("Search"),
-    withTimeLimit(() => getSearchPage(terms, NO_FILTERS, page), SEARCH_READ_TIMEOUT_MS),
+    withTimeLimit(() => getSearchList(terms, parsed, page), SEARCH_READ_TIMEOUT_MS),
   ]);
   const { whatsappNumber, siteUrl } = parsePublicEnv();
 
@@ -91,7 +109,8 @@ async function SearchResults({
   }
 
   const data = result.data;
-  const filters = EMPTY_FILTERS;
+  const filters = toListFilters(data.filters);
+  const hrefFor = (next: ListFilters) => routes.searchPage(terms.text, next);
   const shown = Math.min(data.page * CATEGORY_PAGE_SIZE, data.total);
   const hasMore = shown < data.total;
 
@@ -108,12 +127,23 @@ async function SearchResults({
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
+        {/* A list with no products offers no filters (AC-10). */}
+        {data.choices.price ? (
+          <FiltersScreen
+            scope={{ kind: "search", q: terms.text }}
+            choices={data.choices}
+            applied={filters}
+            badge={appliedChips(data.filters).length}
+            total={data.total}
+          />
+        ) : null}
         <RemoveChipLink
           href={routes.search()}
           label={terms.text}
           removeLabel={t("removeQuery", { query: terms.text })}
         />
       </div>
+      <AppliedChips filters={data.filters} hrefFor={hrefFor} />
 
       {data.total > 0 ? (
         <>
@@ -144,7 +174,7 @@ async function SearchResults({
           actions={
             <>
               {isFiltered(filters) ? (
-                <ClearFiltersLink href={routes.searchPage(terms.text)} />
+                <ClearFiltersLink href={`${routes.searchPage(terms.text)}#filters`} />
               ) : null}
               <ButtonLink variant="whatsapp" size="lg" href={help} target="_blank" rel="noopener">
                 <WhatsAppIcon />

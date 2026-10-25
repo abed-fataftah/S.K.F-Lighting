@@ -875,8 +875,7 @@
     "emptyText": "جرّب كلمة أخرى أو الكود، أو اسألنا عبر واتساب.",
     "emptyAsk": "اسألنا عبر واتساب",
     "errorTitle": "تعذّر تحميل المنتجات",
-    "loading": "جارٍ تحميل النتائج",
-    "apply": "عرض {count} نتيجة"
+    "loading": "جارٍ تحميل النتائج"
   },
   "Filters": {
     "button": "تصفية",
@@ -891,6 +890,7 @@
     "available": "المتوفر فقط",
     "clearAll": "مسح الكل",
     "apply": "عرض {count} منتج",
+    "applySearch": "عرض {count} نتيجة",
     "applyFallback": "عرض النتائج",
     "appliedLabel": "التصفية المطبقة",
     "remove": "إزالة التصفية: {chip}",

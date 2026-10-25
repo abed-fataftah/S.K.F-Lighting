@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { categories, products, productVariants } from "@/server/db/schema";
 import { hasLocalDb, withRollback } from "@/server/db/testing";
 import type { Database, Transaction } from "@/server/db/types";
-import { NO_FILTERS } from "../list-filters";
+import { EMPTY_FILTERS } from "../list-filters";
 import { productEditorSchema, type ProductEditorInput } from "../schemas";
 import { buildSearchText, readSearchRequest, searchTier, type SearchTerms } from "../search-text";
 
@@ -13,7 +13,7 @@ const { getDirectDb } = await import("@/server/db/direct");
 const { saveProductInDb } = await import("./save-product");
 const { importProductInDb } = await import("./import-products");
 const { backfillSearchKeys, refreshSearchKeys } = await import("./search-keys");
-const { readSearchPage } = await import("./queries");
+const { readListView } = await import("./queries");
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
 
@@ -137,8 +137,11 @@ function terms(text: string): SearchTerms {
   return request;
 }
 
+const searchList = (tx: Db, text: string, page = 1) =>
+  readListView(tx, { kind: "search", ...terms(text) }, EMPTY_FILTERS, page);
+
 const searchCodes = async (tx: Db, text: string) =>
-  (await readSearchPage(tx, terms(text), NO_FILTERS, 1)).products.map((card) => card.code);
+  (await searchList(tx, text)).products.map((card) => card.code);
 
 describe.skipIf(!hasLocalDb)("the stored search keys", () => {
   it("are written by the editor save and follow a rename and a size relabel", async () => {
@@ -245,7 +248,7 @@ describe.skipIf(!hasLocalDb)("the stored search keys", () => {
   });
 });
 
-describe.skipIf(!hasLocalDb)("readSearchPage", () => {
+describe.skipIf(!hasLocalDb)("a search list", () => {
   it("matches every word in any order, with Arabic spelling folded", async () => {
     await withRollback(db, async (tx) => {
       const t = tag();
@@ -360,7 +363,7 @@ describe.skipIf(!hasLocalDb)("readSearchPage", () => {
       const t = tag();
       const category = await shownCategory(tx);
       await product(tx, { name: `لمبه ${t}`, categoryId: category.id });
-      const page = await readSearchPage(tx, terms(`لمبه ${t}`), NO_FILTERS, 9);
+      const page = await searchList(tx, `لمبه ${t}`, 9);
       expect(page).toMatchObject({ total: 1, page: 1 });
       expect(page.products).toHaveLength(1);
     });

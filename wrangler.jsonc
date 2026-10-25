@@ -31,6 +31,12 @@
       "namespace_id": "1004",
       "simple": { "limit": 5, "period": 60 },
     },
+    {
+      // The live count behind the filters screen (spec 0010 AC-15): 60 calls a minute per IP.
+      "name": "CATALOG_COUNT_RATE_LIMITER",
+      "namespace_id": "1011",
+      "simple": { "limit": 60, "period": 60 },
+    },
   ],
   "hyperdrive": [
     {
