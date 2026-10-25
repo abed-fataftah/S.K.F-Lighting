@@ -37,3 +37,19 @@ test("the sixth order submission in a minute is refused and saves nothing", asyn
   await page.getByTestId("place-order").click();
   await expect(banner).toContainText("حاول مرة أخرى بعد دقيقة");
 });
+
+// covers: AC-15 (spec 0010). 60 count calls a minute per IP; the next gets 429 with no read. The
+// filters screen elsewhere may already have spent a few of this minute's calls, so the first 429
+// may come a little early; every call after it is refused too.
+test("the count route refuses calls over 60 a minute", async ({ request }) => {
+  const statuses: number[] = [];
+  for (let i = 0; i < 61; i += 1) {
+    const response = await request.get("/api/catalog/count?q=zz");
+    statuses.push(response.status());
+    expect(response.headers()["cache-control"]).toBe("no-store");
+  }
+  const firstRefused = statuses.indexOf(429);
+  expect(firstRefused).toBeGreaterThan(0);
+  expect(statuses.slice(0, firstRefused).every((status) => status === 200)).toBe(true);
+  expect(statuses.slice(firstRefused).every((status) => status === 429)).toBe(true);
+});
