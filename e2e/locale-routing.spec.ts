@@ -12,9 +12,10 @@ test.describe("Arabic storefront", () => {
 
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await expect(page.getByRole("heading", { level: 1, name: "أحدث المنتجات" })).toBeVisible();
+    // Home's one h1 is the hero headline, or the shop's name (hidden) above the banners (spec 0011).
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(
-      page.getByText("ثريات، أباجورات، ومواد كهربائية من معرضنا، تصلك أينما كنت."),
+      page.getByRole("heading", { level: 2, name: "لماذا تشتري من S.K.F" }),
     ).toBeVisible();
     await expect(page).toHaveTitle("S.K.F للإنارة");
   });

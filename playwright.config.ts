@@ -13,18 +13,30 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   use: { baseURL, trace: "on-first-retry" },
   projects: [
-    { name: "phone", use: { ...devices["Pixel 7"] }, testIgnore: /rate-limit\.spec\.ts/ },
+    {
+      name: "phone",
+      use: { ...devices["Pixel 7"] },
+      testIgnore: /(rate-limit|homepage)\.spec\.ts/,
+    },
     {
       name: "desktop",
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
-      testIgnore: /rate-limit\.spec\.ts/,
+      testIgnore: /(rate-limit|homepage)\.spec\.ts/,
+    },
+    // After them, alone: it changes Home's banners and featured products, which other flows read
+    // (spec 0011 AC-16), and puts them back when it ends.
+    {
+      name: "homepage",
+      use: { ...devices["Pixel 7"] },
+      testMatch: /homepage\.spec\.ts/,
+      dependencies: ["phone", "desktop"],
     },
     // Last, alone: its submits spend the order allowance of the shared local IP (spec 0004 AC-10).
     {
       name: "rate-limit",
       use: { ...devices["Pixel 7"] },
       testMatch: /rate-limit\.spec\.ts/,
-      dependencies: ["phone", "desktop"],
+      dependencies: ["homepage"],
     },
   ],
   webServer: {
