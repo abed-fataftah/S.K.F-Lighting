@@ -1,6 +1,12 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
-import { MEDIA_BUCKET, productFolder, type StoredObject } from "@/features/catalog/media-rules";
+import {
+  HOME_IMAGE_FOLDERS,
+  MEDIA_BUCKET,
+  productFolder,
+  type HomeImageTarget,
+  type StoredObject,
+} from "@/features/catalog/media-rules";
 import { storageEnv } from "./env";
 
 // Storage admin calls with the service role key (spec 0006, Security model). The client is made per
@@ -62,6 +68,28 @@ export async function listProductFolder(productId: string): Promise<readonly Sto
 export async function listProductFolderIds(): Promise<readonly string[]> {
   const entries = await listAll("products");
   return entries.filter((entry) => entry.id === null).map((entry) => entry.name);
+}
+
+/** The one file behind `key` (a flat `<folder>/<name>` key), or undefined when Storage has none. */
+export async function findStoredObject(key: string): Promise<StoredObject | undefined> {
+  const at = key.lastIndexOf("/");
+  const folder = key.slice(0, at);
+  const name = key.slice(at + 1);
+  const { data, error } = await bucket().list(folder, { limit: PAGE, search: name });
+  if (error) throw error;
+  const entry = (data as Entry[]).find((item) => item.id !== null && item.name === name);
+  return entry ? toStored(entry) : undefined;
+}
+
+/** Every file in `banners/` or `categories/`, with its full key (the weekly sweep). */
+export async function listHomeImages(
+  target: HomeImageTarget,
+): Promise<readonly (StoredObject & { readonly key: string })[]> {
+  const folder = HOME_IMAGE_FOLDERS[target];
+  const entries = await listAll(folder);
+  return entries
+    .filter((entry) => entry.id !== null)
+    .map((entry) => ({ ...toStored(entry), key: `${folder}/${entry.name}` }));
 }
 
 export async function removeKeys(keys: readonly string[]): Promise<void> {

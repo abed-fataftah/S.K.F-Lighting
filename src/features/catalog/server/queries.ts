@@ -49,10 +49,11 @@ import { listedProduct, parentCategory, sellableVariant } from "./storefront-sql
 
 type Db = Database | Transaction;
 
-export const HOME_GRID_SIZE = 24;
+/** The newest products Home falls back to when no featured pick is left (spec 0011 AC-5). */
+export const HOME_GRID_SIZE = 8;
 export const CATEGORY_PAGE_SIZE = 24;
 
-type CardRow = {
+export type CardRow = {
   readonly id: string;
   readonly slug: string;
   readonly name: string;
@@ -62,7 +63,7 @@ type CardRow = {
   readonly isAvailable: boolean;
 };
 
-const cardColumns = {
+export const cardColumns = {
   id: products.id,
   slug: products.slug,
   name: products.name,
@@ -76,7 +77,7 @@ const cardColumns = {
  * Cards for product rows already in order, all in shown categories: one read of their live
  * variants and one of their first photos, then the pure card builder (spec 0008, API surface).
  */
-async function readCards(db: Db, rows: readonly CardRow[]): Promise<readonly CardProduct[]> {
+export async function readCards(db: Db, rows: readonly CardRow[]): Promise<readonly CardProduct[]> {
   if (!rows.length) return [];
   const ids = rows.map((row) => row.id);
   const [variants, images] = await Promise.all([
@@ -122,6 +123,7 @@ const hasSellableVariant = exists(
   )})`,
 );
 
+/** The newest sellable products: Home's featured fallback (spec 0004 AC-3, spec 0011 AC-5). */
 export async function readHomeProducts(db: Db): Promise<readonly CardProduct[]> {
   const rows = await db
     .select(cardColumns)
@@ -134,13 +136,15 @@ export async function readHomeProducts(db: Db): Promise<readonly CardProduct[]> 
   return readCards(db, rows);
 }
 
-/** The temporary home grid (spec 0004 AC-3): newest sellable products first, until feature 25. */
-export async function listHomeProducts(): Promise<readonly CardProduct[]> {
-  return readHomeProducts(await getDb());
-}
+/** A category row with Home's circle fields (spec 0011 AC-4), read with the menu's tree. */
+export type TreeCategory = PageCategory & {
+  readonly showOnHome: boolean;
+  readonly homeSubtitle: string | null;
+  readonly imageKey: string | null;
+};
 
-type CatalogTree = {
-  readonly categories: readonly PageCategory[];
+export type CatalogTree = {
+  readonly categories: readonly TreeCategory[];
   /** Listed (`active`) products placed directly on each category; shown is decided in code. */
   readonly listed: ReadonlyMap<string, number>;
 };
@@ -156,6 +160,9 @@ export async function readCatalogTree(db: Db): Promise<CatalogTree> {
         description: categories.description,
         sort: categories.sort,
         isVisible: categories.isVisible,
+        showOnHome: categories.showOnHome,
+        homeSubtitle: categories.homeSubtitle,
+        imageKey: categories.imageKey,
       })
       .from(categories),
     db
@@ -170,8 +177,8 @@ export async function readCatalogTree(db: Db): Promise<CatalogTree> {
   };
 }
 
-// One read per request, shared by the menu, `/c`, and a category page.
-const loadCatalogTree = cache(async () => readCatalogTree(await getDb()));
+// One read per request, shared by the menu, `/c`, a category page, and Home's circles.
+export const loadCatalogTree = cache(async () => readCatalogTree(await getDb()));
 
 export const NAVIGATION_TIMEOUT_MS = 1500;
 

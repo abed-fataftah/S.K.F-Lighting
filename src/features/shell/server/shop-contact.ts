@@ -3,7 +3,7 @@ import { cache } from "react";
 import { getDb } from "@/server/db";
 import { shopSettings } from "@/server/db/schema";
 import { withTimeLimit } from "@/server/db/time-limit";
-import { noContact, type ShopContact } from "../contact";
+import { contactLine, noContact, type ShopContact } from "../contact";
 
 // The footer's contact details (spec 0003, AC-15). Public shop data, never customer data.
 // A failed or slow read (over 1.5 seconds) gives nulls, so the footer hides the line and
@@ -36,3 +36,11 @@ export const getShopContact = cache(() =>
     return row ?? noContact;
   }),
 );
+
+/**
+ * The address for Home's pickup card (spec 0011 AC-6): the same cached read as the footer, so a
+ * failed or slow read gives null and the card shows its fallback line.
+ */
+export async function getShopAddress(): Promise<string | null> {
+  return contactLine(await getShopContact())?.address ?? null;
+}

@@ -354,3 +354,34 @@ describe("category schemas", () => {
     expect(moveCategorySchema.parse({ id: MAIN, direction: "up" }).id).toBe(MAIN.toLowerCase());
   });
 });
+
+// covers: AC-11 (spec 0011)
+describe("category schemas: the Home circle", () => {
+  const FILE = "9f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f";
+
+  it("tidies the circle line and keeps an empty one as none", () => {
+    expect(
+      createCategorySchema.parse({ name: "ثريات", homeSubtitle: "  مودرن  وكلاسيك " }),
+    ).toMatchObject({ homeSubtitle: "مودرن وكلاسيك" });
+    expect(createCategorySchema.parse({ name: "ثريات", homeSubtitle: "  " }).homeSubtitle).toBe(
+      undefined,
+    );
+  });
+
+  it("allows at most 40 characters on the line", () => {
+    const result = createCategorySchema.safeParse({ name: "ثريات", homeSubtitle: "ب".repeat(41) });
+    expect(result.success ? {} : fieldErrorsOf(result.error)).toMatchObject({
+      homeSubtitle: { code: "too_long", params: { max: 40 } },
+    });
+  });
+
+  it("reads a photo key, an empty one as a removal, and a missing one as unchanged", () => {
+    const key = `categories/${FILE}.webp`;
+    expect(createCategorySchema.parse({ name: "ثريات", imageKey: key }).imageKey).toBe(key);
+    expect(createCategorySchema.parse({ name: "ثريات", imageKey: "" }).imageKey).toBeNull();
+    expect(createCategorySchema.parse({ name: "ثريات" }).imageKey).toBeUndefined();
+    expect(
+      createCategorySchema.safeParse({ name: "ثريات", imageKey: `banners/${FILE}.webp` }).success,
+    ).toBe(false);
+  });
+});

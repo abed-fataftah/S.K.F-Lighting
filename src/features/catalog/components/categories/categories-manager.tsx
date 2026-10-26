@@ -88,10 +88,17 @@ export function CategoriesManager({ mains }: { readonly mains: readonly AdminMai
     </>
   );
 
-  const editButton = (category: AdminSub, parentHidden: boolean) => (
+  const editButton = (category: AdminSub, parentHidden: boolean, main: AdminMain | null) => (
     <Button
       variant="outline"
-      onClick={() => setDialog({ kind: "edit", category, parentHidden })}
+      onClick={() =>
+        setDialog({
+          kind: "edit",
+          category,
+          parentHidden,
+          main: main ? { builtLine: main.builtLine } : null,
+        })
+      }
       aria-label={t("editLabel", { name: category.name })}
     >
       {t("edit")}
@@ -166,7 +173,7 @@ export function CategoriesManager({ mains }: { readonly mains: readonly AdminMai
                   {heading(main, "main")}
                   <div className="flex flex-wrap items-center gap-2">
                     {rowButtons(main, mainIndex, mains.length)}
-                    {editButton(main, false)}
+                    {editButton(main, false, main)}
                     <Button
                       variant="outline"
                       onClick={() =>
@@ -196,7 +203,7 @@ export function CategoriesManager({ mains }: { readonly mains: readonly AdminMai
                         {heading(sub, "sub")}
                         <div className="flex flex-wrap items-center gap-2">
                           {rowButtons(sub, subIndex, main.subs.length)}
-                          {editButton(sub, !main.isVisible)}
+                          {editButton(sub, !main.isVisible, null)}
                           {deleteButton(sub)}
                         </div>
                       </li>

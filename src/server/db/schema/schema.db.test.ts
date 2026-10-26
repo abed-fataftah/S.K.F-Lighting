@@ -68,6 +68,8 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
         "orders",
         "order_lines",
         "order_events",
+        "banners",
+        "featured_products",
       ]) {
         expect(byName.get(name), name).toBe(true);
       }
@@ -175,10 +177,10 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
       const zones = await db.select().from(deliveryZones);
       const settings = await db.select().from(shopSettings);
 
-      expect(zones.map((z) => [z.name, z.fee])).toEqual(
+      expect(zones.map((z) => [z.name, z.shortName, z.fee])).toEqual(
         expect.arrayContaining([
-          ["الضفة الغربية", 2000],
-          ["الداخل (مناطق 48)", 7000],
+          ["الضفة الغربية", "الضفة", 2000],
+          ["الداخل (مناطق 48)", "الداخل", 7000],
         ]),
       );
       expect(settings).toEqual([expect.objectContaining({ id: 1, shopName: "S.K.F Lighting" })]);

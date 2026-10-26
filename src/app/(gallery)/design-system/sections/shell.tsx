@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { AdminSide } from "@/features/shell/components/admin-side";
 import { BottomBar } from "@/features/shell/components/bottom-bar";
+import { buildStripText } from "@/features/home/fees";
 import { InfoStrip } from "@/features/shell/components/info-strip";
 import { SiteFooter } from "@/features/shell/components/site-footer";
 import { SiteHeader } from "@/features/shell/components/site-header";
@@ -10,15 +11,24 @@ import { GallerySection, SampleGroup } from "../gallery-section";
 // Board sample (gallery only): a phone number is not a word, so it stays here.
 const samplePhone = "0599 123 456";
 
+// The two launch zones, as the strip reads them from delivery_zones (spec 0011 AC-6).
+const sampleFees = [
+  { shortName: "الضفة", fee: 2000 },
+  { shortName: "الداخل", fee: 7000 },
+] as const;
+
 // Every shared part in its static display mode (AC-11 to AC-18).
 export async function ShellSection({ whatsappNumber }: { readonly whatsappNumber: string }) {
-  const s = await getTranslations("DesignSystem.shell");
+  const [s, home] = await Promise.all([
+    getTranslations("DesignSystem.shell"),
+    getTranslations("Home"),
+  ]);
 
   return (
     <GallerySection id="shell" title={s("title")} text={s("text")}>
       <SampleGroup title={s("headerGroup")}>
         <div className="max-w-(--page-max)">
-          <InfoStrip show />
+          <InfoStrip show text={buildStripText(sampleFees, (zones) => home("strip", { zones }))} />
           <SiteHeader whatsappNumber={whatsappNumber} />
         </div>
       </SampleGroup>

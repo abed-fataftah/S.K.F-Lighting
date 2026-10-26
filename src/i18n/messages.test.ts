@@ -24,7 +24,7 @@ describe("Arabic message catalog", () => {
   });
 
   it("writes every sentence in Arabic script", () => {
-    expect(ar.Home.productsText).toMatch(/[؀-ۿ]/);
+    expect(ar.Home.heroText).toMatch(/[؀-ۿ]/);
     expect(ar.Metadata.description).toMatch(/[؀-ۿ]/);
   });
 

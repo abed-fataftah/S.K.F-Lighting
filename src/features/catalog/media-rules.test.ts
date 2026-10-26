@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  HOME_CROPS,
   MEDIA_LIMITS,
+  homeImageKey,
+  homeImageLeftovers,
+  isHomeImageKey,
   isKeyForProduct,
   leftoverKeys,
   mediaKey,
   orderMedia,
   orphanFolders,
+  parseHomeImageKey,
   parseMediaKey,
   storedObjectFits,
   type StoredObject,
@@ -119,5 +124,73 @@ describe("orphanFolders", () => {
       OTHER,
       "3d6a4adc-4bc3-4f5d-85b7-ab3bd7c9855d",
     ]);
+  });
+});
+
+// covers: AC-13 (spec 0011)
+describe("home picture keys", () => {
+  it("makes and reads the banner and category key shapes", () => {
+    const banner = homeImageKey("banner", FILE.toUpperCase(), "webp");
+    expect(banner).toBe(`banners/${FILE}.webp`);
+    expect(parseHomeImageKey(banner)).toEqual({ target: "banner", ext: "webp" });
+    expect(parseHomeImageKey(homeImageKey("category", FILE, "jpg"))).toEqual({
+      target: "category",
+      ext: "jpg",
+    });
+  });
+
+  it("accepts a key only in the exact shape for its target", () => {
+    expect(isHomeImageKey(`banners/${FILE}.webp`, "banner")).toBe(true);
+    expect(isHomeImageKey(`banners/${FILE}.webp`, "category")).toBe(false);
+    expect(isHomeImageKey(`banners/${FILE}.mp4`, "banner")).toBe(false);
+    expect(isHomeImageKey(`banners/x/${FILE}.webp`, "banner")).toBe(false);
+    expect(isHomeImageKey(`../banners/${FILE}.webp`, "banner")).toBe(false);
+    expect(isHomeImageKey(mediaKey(PRODUCT, FILE, "webp"), "banner")).toBe(false);
+  });
+
+  it("checks a home picture's real file like a product photo", () => {
+    const key = `categories/${FILE}.jpg`;
+    const file = { name: `${FILE}.jpg`, createdAt: NOW, mimetype: "image/jpeg", size: 1000 };
+    expect(storedObjectFits(key, file)).toBe(true);
+    expect(storedObjectFits(key, { ...file, mimetype: "image/webp" })).toBe(false);
+    expect(storedObjectFits(key, { ...file, size: MEDIA_LIMITS.imageMaxBytes + 1 })).toBe(false);
+    expect(storedObjectFits(key, undefined)).toBe(false);
+  });
+
+  it("leaves to the sweep only unreferenced pictures older than a day", () => {
+    const file = (key: string, age: number) => ({
+      key,
+      name: key.split("/")[1],
+      createdAt: ago(age),
+      mimetype: "image/webp",
+      size: 10,
+    });
+    const day = 24 * 60 * 60 * 1000;
+    const files = [
+      file("banners/kept.webp", 3 * day),
+      file("banners/old.webp", 3 * day),
+      file("categories/new.webp", 60 * 1000),
+    ];
+    expect(homeImageLeftovers(files, new Set(["banners/kept.webp"]), NOW)).toEqual([
+      "banners/old.webp",
+    ]);
+  });
+});
+
+// covers: AC-10, AC-11 (spec 0011)
+describe("home crops", () => {
+  it("keeps the banner and circle sizes", () => {
+    expect(HOME_CROPS.banner).toEqual({
+      aspectWidth: 16,
+      aspectHeight: 9,
+      maxWidth: 1600,
+      minWidth: 800,
+    });
+    expect(HOME_CROPS.category).toEqual({
+      aspectWidth: 1,
+      aspectHeight: 1,
+      maxWidth: 800,
+      minWidth: 400,
+    });
   });
 });

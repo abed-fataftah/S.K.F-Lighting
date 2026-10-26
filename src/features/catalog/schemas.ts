@@ -5,7 +5,7 @@ import { z } from "zod";
 import { tidyText } from "@/lib/arabic";
 import { parseShekels } from "@/lib/money";
 import { arabicText, digitsField, tidiedText } from "@/lib/text-schemas";
-import { MEDIA_LIMITS, isKeyForProduct, parseMediaKey } from "./media-rules";
+import { MEDIA_LIMITS, isHomeImageKey, isKeyForProduct, parseMediaKey } from "./media-rules";
 
 export const PRODUCT_CODE = /^[A-Z0-9][A-Z0-9-]{0,29}$/;
 
@@ -272,7 +272,13 @@ export const editorFieldOrder = [
 
 // The category dialog (spec 0008 AC-2, AC-3): the same schema in the browser and in the actions.
 // Names may be Latin ("LED"), so they are tidied text, not Arabic only.
-export const CATEGORY_LIMITS = { nameMin: 2, nameMax: 60, descriptionMax: 500 } as const;
+export const CATEGORY_LIMITS = {
+  nameMin: 2,
+  nameMax: 60,
+  descriptionMax: 500,
+  /** The line under a main's Home circle (spec 0011 AC-11). */
+  homeSubtitleMax: 40,
+} as const;
 
 const optionalGuid = z
   .string()
@@ -294,6 +300,15 @@ export const categoryFormSchema = z.object({
     multiline: true,
   }),
   isVisible: formSwitch,
+  // Mains only (spec 0011 AC-11): the dialog sends neither for a sub, and the actions refuse them
+  // there. An empty line means none; an empty photo key removes the photo.
+  homeSubtitle: tidiedText({ optional: true, max: CATEGORY_LIMITS.homeSubtitleMax }),
+  imageKey: z
+    .string()
+    .max(200)
+    .optional()
+    .transform((key) => (key === undefined ? undefined : key.trim() || null))
+    .refine((key) => key == null || isHomeImageKey(key, "category"), { message: "invalid" }),
 });
 
 /** Add: a main (no `parentId`) or a sub under the main `parentId`. */

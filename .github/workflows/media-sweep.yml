@@ -1,7 +1,8 @@
 # Spec 0006 AC-15: the weekly backstop for product files. Removes `products/<id>/` folders in Storage
-# whose product is gone and whose newest file is more than a day old. Secrets live in the `production`
+# whose product is gone and whose newest file is more than a day old, and spec 0011 AC-13: banner and
+# category pictures no row points at that are more than a day old. Secrets live in the `production`
 # environment: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and MEDIA_SWEEP_DATABASE_URL (the `media_sweep`
-# login over the session pooler, which can read product ids and nothing else).
+# login over the session pooler, which can read product ids and picture keys and nothing else).
 name: Media sweep
 
 on:
@@ -19,7 +20,7 @@ permissions:
 
 jobs:
   sweep:
-    name: Remove orphan product folders
+    name: Remove orphan product folders and home pictures
     runs-on: ubuntu-latest
     environment: production
     steps:

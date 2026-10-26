@@ -124,7 +124,7 @@ describe.skipIf(!hasLocalDb)("updateCategoryInDb", () => {
           description: "وصف",
           isVisible: false,
         }),
-      ).toEqual({ kind: "updated", id: main.id });
+      ).toEqual({ kind: "updated", id: main.id, replacedKey: null });
       const [row] = await tx.select().from(categories).where(eq(categories.id, main.id));
       expect(row).toMatchObject({
         name: `جديد ${t}`,
@@ -223,8 +223,16 @@ describe.skipIf(!hasLocalDb)("deleteCategoryInDb", () => {
       const child = await created(tx, `ابن ${t}`, parent.id);
       expect(await deleteCategoryInDb(tx, parent.id)).toEqual({ kind: "not_empty" });
 
-      expect(await deleteCategoryInDb(tx, child.id)).toEqual({ kind: "deleted", id: child.id });
-      expect(await deleteCategoryInDb(tx, parent.id)).toEqual({ kind: "deleted", id: parent.id });
+      expect(await deleteCategoryInDb(tx, child.id)).toEqual({
+        kind: "deleted",
+        id: child.id,
+        imageKey: null,
+      });
+      expect(await deleteCategoryInDb(tx, parent.id)).toEqual({
+        kind: "deleted",
+        id: parent.id,
+        imageKey: null,
+      });
       expect(await deleteCategoryInDb(tx, parent.id)).toEqual({ kind: "not_found" });
     });
   });
@@ -252,6 +260,8 @@ describe.skipIf(!hasLocalDb)("readAdminCategories", () => {
           isVisible: true,
           productCount: 1,
           canDelete: false,
+          homeSubtitle: null,
+          imageKey: null,
         },
         {
           id: empty.id,
@@ -260,8 +270,97 @@ describe.skipIf(!hasLocalDb)("readAdminCategories", () => {
           isVisible: true,
           productCount: 0,
           canDelete: true,
+          homeSubtitle: null,
+          imageKey: null,
         },
       ]);
+    });
+  });
+});
+
+// covers: AC-11, AC-13 (spec 0011)
+describe.skipIf(!hasLocalDb)("the Home circle fields", () => {
+  const KEY = (n: number) => `categories/9f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5${n}.webp`;
+
+  it("stores a main's line and photo, and hands back the photo an edit replaces", async () => {
+    await withRollback(db, async (tx) => {
+      const t = tag();
+      const outcome = await createCategoryInDb(tx, {
+        name: `ثريات ${t}`,
+        homeSubtitle: "مودرن وكلاسيك",
+        imageKey: KEY(1),
+        ...visible,
+      });
+      if (outcome.kind !== "created") throw new Error(outcome.kind);
+      const edit = (fields: { homeSubtitle?: string; imageKey?: string | null }) =>
+        updateCategoryInDb(tx, { id: outcome.id, name: `ثريات ${t}`, ...visible, ...fields });
+      const row = async () =>
+        (await tx.select().from(categories).where(eq(categories.id, outcome.id)))[0];
+
+      expect(await row()).toMatchObject({ homeSubtitle: "مودرن وكلاسيك", imageKey: KEY(1) });
+      // The same key back changes nothing in Storage; a new one replaces the old.
+      expect(await edit({ homeSubtitle: "مودرن", imageKey: KEY(1) })).toMatchObject({
+        replacedKey: null,
+      });
+      expect(await edit({ homeSubtitle: "مودرن", imageKey: KEY(2) })).toMatchObject({
+        replacedKey: KEY(1),
+      });
+      // Left out, the photo stays; an empty line is stored as none.
+      expect(await edit({})).toMatchObject({ replacedKey: null });
+      expect(await row()).toMatchObject({ homeSubtitle: null, imageKey: KEY(2) });
+      expect(await edit({ imageKey: null })).toMatchObject({ replacedKey: KEY(2) });
+      expect((await row()).imageKey).toBeNull();
+    });
+  });
+
+  it("refuses the circle fields for a sub, on create and on edit", async () => {
+    await withRollback(db, async (tx) => {
+      const t = tag();
+      const main = await created(tx, `ثريات ${t}`);
+      expect(
+        await createCategoryInDb(tx, {
+          name: `كريستال ${t}`,
+          parentId: main.id,
+          homeSubtitle: "سطر",
+          ...visible,
+        }),
+      ).toEqual({ kind: "invalid" });
+      const sub = await created(tx, `كريستال ${t}`, main.id);
+      expect(
+        await updateCategoryInDb(tx, {
+          id: sub.id,
+          name: sub.name,
+          imageKey: KEY(3),
+          ...visible,
+        }),
+      ).toEqual({ kind: "invalid" });
+    });
+  });
+
+  it("hands back the photo of a deleted category", async () => {
+    await withRollback(db, async (tx) => {
+      const outcome = await createCategoryInDb(tx, {
+        name: `أباجورات ${tag()}`,
+        imageKey: KEY(4),
+        ...visible,
+      });
+      if (outcome.kind !== "created") throw new Error(outcome.kind);
+      expect(await deleteCategoryInDb(tx, outcome.id)).toMatchObject({ imageKey: KEY(4) });
+    });
+  });
+
+  it("builds a main's circle line from its menu subs for the dialog", async () => {
+    await withRollback(db, async (tx) => {
+      const t = tag();
+      const main = await created(tx, `إضاءة ${t}`);
+      const inside = await created(tx, `داخلية ${t}`, main.id);
+      const outside = await created(tx, `خارجية ${t}`, main.id);
+      await created(tx, `فارغ ${t}`, main.id);
+      await addProduct(tx, inside.id);
+      await addProduct(tx, outside.id);
+
+      const found = (await readAdminCategories(tx)).find((row) => row.id === main.id);
+      expect(found?.builtLine).toBe(`${inside.name} و ${outside.name}`);
     });
   });
 });

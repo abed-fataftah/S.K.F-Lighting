@@ -75,15 +75,62 @@ export type StoredObject = {
   readonly size: number | null;
 };
 
+// The homepage's pictures (spec 0011 AC-13): a banner, or a main category's circle photo, each in
+// its own flat folder of the same bucket. Photos only, cropped and resized in the browser first.
+export type HomeImageTarget = "banner" | "category";
+export type HomeImageExt = "webp" | "jpg";
+
+export const HOME_IMAGE_FOLDERS = {
+  banner: "banners",
+  category: "categories",
+} as const satisfies Record<HomeImageTarget, string>;
+
+/** The centred area each home picture is cropped to, its largest size, and the narrowest source kept. */
+export const HOME_CROPS = {
+  banner: { aspectWidth: 16, aspectHeight: 9, maxWidth: 1600, minWidth: 800 },
+  category: { aspectWidth: 1, aspectHeight: 1, maxWidth: 800, minWidth: 400 },
+} as const satisfies Record<HomeImageTarget, CropRule>;
+
+export type CropRule = {
+  readonly aspectWidth: number;
+  readonly aspectHeight: number;
+  /** The widest result, in pixels; a picture is never enlarged. */
+  readonly maxWidth: number;
+  /** A crop narrower than this is refused as too small. */
+  readonly minWidth: number;
+};
+
+/** `banners/<uuid>.<ext>` or `categories/<uuid>.<ext>`: the only home key shapes Storage gets. */
+export function homeImageKey(target: HomeImageTarget, uuid: string, ext: HomeImageExt): string {
+  return `${HOME_IMAGE_FOLDERS[target]}/${uuid.toLowerCase()}.${ext}`;
+}
+
+const HOME_KEY = new RegExp(`^(banners|categories)/${UUID}\\.(webp|jpg)$`);
+
+/** The parts of a well formed home key, or null. */
+export function parseHomeImageKey(
+  key: string,
+): { readonly target: HomeImageTarget; readonly ext: HomeImageExt } | null {
+  const match = HOME_KEY.exec(key);
+  if (!match) return null;
+  return { target: match[1] === "banners" ? "banner" : "category", ext: match[2] as HomeImageExt };
+}
+
+/** True only for a key in the exact shape the server makes for this target. */
+export function isHomeImageKey(key: string, target: HomeImageTarget): boolean {
+  return parseHomeImageKey(key)?.target === target;
+}
+
 /** The real file in Storage fits its key: the type matches the extension and the size its limit. */
 export function storedObjectFits(key: string, object: StoredObject | undefined): boolean {
-  const parsed = parseMediaKey(key);
+  const parsed = parseMediaKey(key) ?? parseHomeImageKey(key);
   if (!parsed || !object) return false;
+  const kind: MediaKind = "kind" in parsed ? parsed.kind : "image";
   return (
     object.mimetype === MIME_OF_EXT[parsed.ext] &&
     object.size !== null &&
     object.size > 0 &&
-    object.size <= maxBytesFor(parsed.kind)
+    object.size <= maxBytesFor(kind)
   );
 }
 
@@ -142,4 +189,23 @@ export function orphanFolders(
         (newest === null || now.getTime() - newest.getTime() > SWEEP_MIN_AGE_MS),
     )
     .map(({ productId }) => productId);
+}
+
+/**
+ * Home pictures (`banners/` or `categories/` files, by full key) that no row points at and that are
+ * more than a day old: closed dialogs and failed after commit removals (the weekly sweep, AC-13).
+ */
+export function homeImageLeftovers(
+  files: readonly (StoredObject & { readonly key: string })[],
+  keptKeys: ReadonlySet<string>,
+  now: Date,
+): readonly string[] {
+  return files
+    .filter(
+      (file) =>
+        !keptKeys.has(file.key) &&
+        file.createdAt !== null &&
+        now.getTime() - file.createdAt.getTime() > SWEEP_MIN_AGE_MS,
+    )
+    .map((file) => file.key);
 }

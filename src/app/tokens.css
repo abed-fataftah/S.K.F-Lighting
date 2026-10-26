@@ -1,7 +1,8 @@
 /* ==========================================================================
    S.K.F Lighting: design tokens in code (spec 0003).
    Sections 1 and 3 to 11 are the approved tokens from docs/design/tokens.css,
-   copied as they are. Section 2 (the drawing palette) is dropped: there are no drawings.
+   copied as they are. Section 2 (the drawing palette) keeps only the two colours the Home
+   hero chandelier uses (spec 0011 AC-3); the rest of it is dropped.
    This is the ONLY file in src/ allowed to hold a raw hex colour (design rule test).
    Arabic only, right to left. There is no dark mode: do not add one.
    ========================================================================== */
@@ -30,6 +31,12 @@
   --skf-swatch-chrome: #b8bcc2;
   --skf-swatch-wood: #8b5a2b;
   /* Swatch black is --skf-ink, swatch white is --skf-white. Swatches always have a 1px --skf-control-border ring and a text label. */
+}
+
+/* ---- 2. Illustration palette (the hero drawing only) ---------------------- */
+:root {
+  --illus-08: #e9d58a; /* chandelier chain and drop wires */
+  --illus-09: #f5efd0; /* chandelier candle sleeves */
 }
 
 /* ---- 3. shadcn/ui variable names (map the roles onto what the components read) */
@@ -308,6 +315,8 @@ html {
   --color-swatch-gold: var(--skf-swatch-gold);
   --color-swatch-chrome: var(--skf-swatch-chrome);
   --color-swatch-wood: var(--skf-swatch-wood);
+  --color-illus-08: var(--illus-08);
+  --color-illus-09: var(--illus-09);
 
   /* shadcn role names the generated components read. */
   --color-background: var(--background);

@@ -25,6 +25,7 @@ export function ProductCard({
   id,
   whatsappNumber,
   siteUrl,
+  heading: Heading = "h2",
 }: {
   readonly product: CardProduct;
   readonly index: number;
@@ -32,6 +33,8 @@ export function ProductCard({
   readonly id?: string;
   readonly whatsappNumber: string;
   readonly siteUrl: string;
+  /** `h3` under a section heading (Home's featured products, spec 0011 AC-5). */
+  readonly heading?: "h2" | "h3";
 }) {
   const t = useTranslations("Catalog");
   const link = `${siteUrl}${routes.product(product.slug)}`;
@@ -68,14 +71,14 @@ export function ProductCard({
           ) : null}
         </div>
         <div className="flex flex-1 flex-col gap-1 p-3 pb-0">
-          <h2 className="type-body font-extrabold">
+          <Heading className="type-body font-extrabold">
             <Link
               href={routes.product(product.slug)}
               className="flex min-h-11 items-center rounded-btn after:absolute after:inset-0"
             >
               {product.name}
             </Link>
-          </h2>
+          </Heading>
           <p className="type-caption text-muted">
             {t("codeLabel")} <Ltr>{product.code}</Ltr>
           </p>

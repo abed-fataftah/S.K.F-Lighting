@@ -179,6 +179,9 @@ export type AdminCategoryRow = Ordered & {
   readonly parentId: string | null;
   readonly description: string | null;
   readonly isVisible: boolean;
+  /** Home's circle line and photo (spec 0011 AC-11); only ever set on a main. */
+  readonly homeSubtitle: string | null;
+  readonly imageKey: string | null;
 };
 
 export type CategoryProductCounts = {
@@ -195,9 +198,15 @@ export type AdminSub = {
   readonly isVisible: boolean;
   readonly productCount: number;
   readonly canDelete: boolean;
+  readonly homeSubtitle: string | null;
+  readonly imageKey: string | null;
 };
 
-export type AdminMain = AdminSub & { readonly subs: readonly AdminSub[] };
+export type AdminMain = AdminSub & {
+  readonly subs: readonly AdminSub[];
+  /** The line Home builds from the menu subs when `homeSubtitle` is empty (the dialog's hint). */
+  readonly builtLine: string | null;
+};
 
 /**
  * The categories page (AC-1): mains in category order, each with its subs. A main counts its own
@@ -207,6 +216,7 @@ export type AdminMain = AdminSub & { readonly subs: readonly AdminSub[] };
 export function buildAdminCategories(
   rows: readonly AdminCategoryRow[],
   counts: ReadonlyMap<string, CategoryProductCounts>,
+  builtLines: ReadonlyMap<string, string | null> = new Map(),
 ): readonly AdminMain[] {
   const ordered = inCategoryOrder(rows);
   const countOf = (id: string) => counts.get(id) ?? { live: 0, all: 0 };
@@ -222,6 +232,8 @@ export function buildAdminCategories(
           isVisible: sub.isVisible,
           productCount: countOf(sub.id).live,
           canDelete: countOf(sub.id).all === 0,
+          homeSubtitle: sub.homeSubtitle,
+          imageKey: sub.imageKey,
         }));
       return {
         id: main.id,
@@ -230,6 +242,9 @@ export function buildAdminCategories(
         isVisible: main.isVisible,
         productCount: countOf(main.id).live + subs.reduce((sum, sub) => sum + sub.productCount, 0),
         canDelete: countOf(main.id).all === 0 && subs.length === 0,
+        homeSubtitle: main.homeSubtitle,
+        imageKey: main.imageKey,
+        builtLine: builtLines.get(main.id) ?? null,
         subs,
       };
     });

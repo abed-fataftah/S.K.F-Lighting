@@ -11,6 +11,7 @@ import {
   type CategoryProductCounts,
   type MoveDirection,
 } from "../category-rules";
+import { builtCircleLines } from "@/features/home/home-rules";
 import { nextFreeSlug } from "../slug";
 
 // Category writes (spec 0008 AC-2 to AC-5, AC-4a) and the shared insert the import's find or
@@ -60,6 +61,8 @@ type NewCategory = {
   readonly description: string | null;
   readonly parentId: string | null;
   readonly isVisible: boolean;
+  readonly homeSubtitle?: string | null;
+  readonly imageKey?: string | null;
 };
 
 /**
@@ -146,11 +149,19 @@ export type CategoryFields = {
   readonly name: string;
   readonly description?: string;
   readonly isVisible: boolean;
+  /** Mains only (spec 0011 AC-11); empty is none. */
+  readonly homeSubtitle?: string;
+  /** Mains only: a key sets the photo, null removes it, undefined leaves it as stored. */
+  readonly imageKey?: string | null;
 };
+
+/** The circle fields were sent, which only a main may carry (spec 0011 AC-11). */
+const sendsCircle = (input: CategoryFields) =>
+  input.homeSubtitle !== undefined || input.imageKey !== undefined;
 
 export type CreateOutcome =
   | { readonly kind: "created"; readonly id: string; readonly slug: string }
-  | { readonly kind: "name_taken" | "too_deep" | "not_found" | "failed" };
+  | { readonly kind: "name_taken" | "too_deep" | "not_found" | "failed" | "invalid" };
 
 /** Add a main (`parentId` null) or a sub (AC-2, AC-4a). */
 export async function createCategoryInDb(
@@ -158,6 +169,7 @@ export async function createCategoryInDb(
   input: CategoryFields & { readonly parentId?: string },
 ): Promise<CreateOutcome> {
   const parentId = input.parentId ?? null;
+  if (parentId !== null && sendsCircle(input)) return { kind: "invalid" };
   try {
     return await db.transaction(async (tx): Promise<CreateOutcome> => {
       if (parentId !== null) {
@@ -175,6 +187,8 @@ export async function createCategoryInDb(
         description: input.description ?? null,
         parentId,
         isVisible: input.isVisible,
+        homeSubtitle: input.homeSubtitle ?? null,
+        imageKey: input.imageKey ?? null,
       });
       return { kind: "created", ...created };
     });
@@ -187,19 +201,29 @@ export async function createCategoryInDb(
 }
 
 export type UpdateOutcome =
-  { readonly kind: "updated"; readonly id: string } | { readonly kind: "name_taken" | "not_found" };
+  | {
+      readonly kind: "updated";
+      readonly id: string;
+      /** The circle photo this edit replaced or removed, to remove from Storage after commit. */
+      readonly replacedKey: string | null;
+    }
+  | { readonly kind: "name_taken" | "not_found" | "invalid" };
 
-/** Edit the name, description, and visibility only; slug, parent, and sort never change (AC-3). */
+/**
+ * Edit the name, description, visibility, and for a main the circle line and photo; slug, parent,
+ * and sort never change (AC-3). Never touches `home_version` (spec 0011 AC-11).
+ */
 export async function updateCategoryInDb(
   db: Db,
   input: CategoryFields & { readonly id: string },
 ): Promise<UpdateOutcome> {
   return db.transaction(async (tx): Promise<UpdateOutcome> => {
     const [row] = await tx
-      .select({ parentId: categories.parentId })
+      .select({ parentId: categories.parentId, imageKey: categories.imageKey })
       .from(categories)
       .where(eq(categories.id, input.id));
     if (!row) return { kind: "not_found" };
+    if (row.parentId !== null && sendsCircle(input)) return { kind: "invalid" };
     await lockSiblings(tx, row.parentId);
     const [clash] = await tx
       .select({ id: categories.id })
@@ -213,10 +237,15 @@ export async function updateCategoryInDb(
         name: input.name,
         description: input.description ?? null,
         isVisible: input.isVisible,
+        ...(row.parentId === null ? { homeSubtitle: input.homeSubtitle ?? null } : {}),
+        ...(input.imageKey === undefined ? {} : { imageKey: input.imageKey }),
       })
       .where(eq(categories.id, input.id))
       .returning({ id: categories.id });
-    return updated.length ? { kind: "updated", id: input.id } : { kind: "not_found" };
+    if (!updated.length) return { kind: "not_found" };
+    const replaced =
+      input.imageKey !== undefined && row.imageKey !== null && row.imageKey !== input.imageKey;
+    return { kind: "updated", id: input.id, replacedKey: replaced ? row.imageKey : null };
   });
 }
 
@@ -245,7 +274,13 @@ export async function moveCategoryInDb(
 }
 
 export type DeleteOutcome =
-  { readonly kind: "deleted"; readonly id: string } | { readonly kind: "not_empty" | "not_found" };
+  | {
+      readonly kind: "deleted";
+      readonly id: string;
+      /** Its circle photo, removed from Storage after commit (spec 0011 AC-13). */
+      readonly imageKey: string | null;
+    }
+  | { readonly kind: "not_empty" | "not_found" };
 
 /** Deletes a category with no product in any status and no sub (AC-5); the foreign keys back it. */
 export async function deleteCategoryInDb(db: Db, id: string): Promise<DeleteOutcome> {
@@ -253,6 +288,7 @@ export async function deleteCategoryInDb(db: Db, id: string): Promise<DeleteOutc
     return await db.transaction(async (tx): Promise<DeleteOutcome> => {
       const [row] = await tx
         .select({
+          imageKey: categories.imageKey,
           blocked:
             sql<boolean>`(exists (select 1 from ${products} p where p.category_id = ${categories.id}) or exists (select 1 from ${categories} c where c.parent_id = ${categories.id}))`.mapWith(
               Boolean,
@@ -264,7 +300,7 @@ export async function deleteCategoryInDb(db: Db, id: string): Promise<DeleteOutc
       if (!row) return { kind: "not_found" };
       if (row.blocked) return { kind: "not_empty" };
       await tx.delete(categories).where(eq(categories.id, id));
-      return { kind: "deleted", id };
+      return { kind: "deleted", id, imageKey: row.imageKey };
     });
   } catch (error) {
     // A product saved into it, or a sub added, after the check (AC-4a).
@@ -273,22 +309,29 @@ export async function deleteCategoryInDb(db: Db, id: string): Promise<DeleteOutc
   }
 }
 
-/** The categories page (AC-1): the tree with counts and whether each one can be deleted. */
+/**
+ * The categories page (AC-1): the tree with counts and whether each one can be deleted, plus each
+ * main's built circle line from its menu subs (spec 0011 AC-11).
+ */
 export async function readAdminCategories(db: Db): Promise<readonly AdminMain[]> {
   const [rows, counts] = await Promise.all([
     db
       .select({
         id: categories.id,
         parentId: categories.parentId,
+        slug: categories.slug,
         name: categories.name,
         description: categories.description,
         sort: categories.sort,
         isVisible: categories.isVisible,
+        homeSubtitle: categories.homeSubtitle,
+        imageKey: categories.imageKey,
       })
       .from(categories),
     db
       .select({
         categoryId: products.categoryId,
+        listed: sql<number>`count(*) filter (where ${products.status} = 'active')`.mapWith(Number),
         live: sql<number>`count(*) filter (where ${products.status} <> 'archived')`.mapWith(Number),
         all: count(),
       })
@@ -298,5 +341,7 @@ export async function readAdminCategories(db: Db): Promise<readonly AdminMain[]>
   const byCategory = new Map<string, CategoryProductCounts>(
     counts.map((row) => [row.categoryId, { live: row.live, all: row.all }]),
   );
-  return buildAdminCategories(rows, byCategory);
+  const lines = builtCircleLines(rows, new Map(counts.map((row) => [row.categoryId, row.listed])));
+  const linesById = new Map(rows.map((row) => [row.id, lines.get(row.slug) ?? null]));
+  return buildAdminCategories(rows, byCategory, linesById);
 }

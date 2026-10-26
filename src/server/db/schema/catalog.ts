@@ -31,6 +31,11 @@ export const categories = pgTable(
     description: text("description"),
     sort: integer("sort").notNull().default(0),
     isVisible: boolean("is_visible").notNull().default(true),
+    // Home's category circles (spec 0011 AC-4, AC-11). The line and photo are only ever set on a
+    // main: the category actions refuse them for a sub. The photo is `categories/<uuid>.<ext>`.
+    showOnHome: boolean("show_on_home").notNull().default(true),
+    homeSubtitle: text("home_subtitle"),
+    imageKey: text("image_key"),
     ...timestamps(),
   },
   (t) => [

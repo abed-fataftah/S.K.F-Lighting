@@ -10,9 +10,10 @@ import { isLocalDatabaseUrl } from "@/server/db/local";
 import { categories, colours, products, productVariants } from "@/server/db/schema";
 import type { Transaction } from "@/server/db/types";
 
+// Two Home circle lines (spec 0011); the circle photos stay empty, and there are no banners.
 const CATEGORIES = [
-  { name: "ثريات", sort: 0 },
-  { name: "إنارة داخلية", sort: 1 },
+  { name: "ثريات", sort: 0, homeSubtitle: "مودرن وكريستال وكلاسيك" },
+  { name: "إنارة داخلية", sort: 1, homeSubtitle: "أباليك وإنارة درج" },
 ] as const;
 
 const COLOURS = [
@@ -91,7 +92,11 @@ async function seed(tx: Transaction) {
     .values(CATEGORIES.map((c) => ({ ...c, slug: slugify(c.name) })))
     .onConflictDoUpdate({
       target: categories.slug,
-      set: { name: excluded("name"), sort: excluded("sort") },
+      set: {
+        name: excluded("name"),
+        sort: excluded("sort"),
+        homeSubtitle: excluded("home_subtitle"),
+      },
     })
     .returning();
   const categoryId = new Map(categoryRows.map((c) => [c.name, c.id]));

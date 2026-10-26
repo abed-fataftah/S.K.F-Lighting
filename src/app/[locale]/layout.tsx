@@ -6,6 +6,8 @@ import { HtmlDocument } from "@/components/html-document";
 import { SkipLink } from "@/components/skip-link";
 import { readCartCount } from "@/features/cart/server/queries";
 import { listNavigation } from "@/features/catalog/server/queries";
+import { buildStripText } from "@/features/home/fees";
+import { getDeliveryFees } from "@/features/home/server/home";
 import { BottomBar } from "@/features/shell/components/bottom-bar";
 import { InfoStrip } from "@/features/shell/components/info-strip";
 import { SiteFooter } from "@/features/shell/components/site-footer";
@@ -30,18 +32,22 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   if (!hasLocale(routing.locales, locale)) notFound();
   const { whatsappNumber } = parsePublicEnv();
   // The menu's categories never break the shell: a failed or slow read gives null (spec 0008 AC-14).
-  const [contact, cartCount, navigation] = await Promise.all([
+  // The fees are one small cached read the home page reuses for its delivery card (spec 0011 AC-6).
+  const [contact, cartCount, navigation, fees, home] = await Promise.all([
     getShopContact(),
     readCartCount(),
     listNavigation(),
+    getDeliveryFees(),
+    getTranslations({ locale, namespace: "Home" }),
   ]);
+  const strip = buildStripText(fees, (zones) => home("strip", { zones }));
 
   return (
     <HtmlDocument className="scroll-pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))]">
       <NextIntlClientProvider>
         <div className="mx-auto flex min-h-dvh w-full max-w-(--page-max) flex-col pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))]">
           <SkipLink />
-          <InfoStrip />
+          <InfoStrip text={strip} />
           <SiteHeader
             whatsappNumber={whatsappNumber}
             cartCount={cartCount}
