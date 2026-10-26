@@ -20,7 +20,8 @@ env:
   NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321' }}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'ci-placeholder' }}
   NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:8787' }}
-  NEXT_PUBLIC_WHATSAPP_NUMBER: ${{ vars.NEXT_PUBLIC_WHATSAPP_NUMBER || '' }}
+  # Required and validated since spec 0003; an obvious test number keeps check builds working.
+  NEXT_PUBLIC_WHATSAPP_NUMBER: ${{ vars.NEXT_PUBLIC_WHATSAPP_NUMBER || '970500000000' }}
 
 jobs:
   checks:
@@ -51,6 +52,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
+      # The Worker reads .dev.vars under `pnpm preview`: turn on the design system gallery (spec 0003).
+      # Never set in production.
+      - run: echo "DESIGN_SYSTEM_PAGE=1" > .dev.vars
       # playwright.config.ts starts `pnpm preview` (OpenNext build, then workerd) when CI is set.
       - run: pnpm exec playwright test
       - if: failure()
@@ -95,3 +99,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # After the deploy, not before: no old code can then save a product without its search keys
+      # (spec 0010 AC-7). Writes only stale rows, so it is safe on every run.
+      - name: Backfill search keys
+        run: pnpm db:backfill-search
+        env:
+          DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}

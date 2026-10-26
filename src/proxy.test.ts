@@ -91,7 +91,7 @@ describe("proxy", () => {
       expect(response.cookies.get("NEXT_LOCALE")).toBeUndefined();
     });
 
-    it.each(["/administrator", "/authors"])(
+    it.each(["/administrator", "/authors", "/design-systems"])(
       "still locale routes %s, which only starts with a reserved word",
       async (path) => {
         const response = await proxy(request(path));
@@ -102,16 +102,39 @@ describe("proxy", () => {
   });
 
   describe("paths outside locale routing", () => {
-    it.each(["/admin", "/admin/", "/admin/orders/42", "/auth/callback", "/auth/confirm"])(
-      "passes %s straight through, with no locale rewrite or redirect",
-      async (path) => {
-        const response = await proxy(request(path));
+    it.each([
+      "/admin",
+      "/admin/",
+      "/admin/orders/42",
+      "/auth/callback",
+      "/auth/confirm",
+      "/design-system",
+    ])("passes %s straight through, with no locale rewrite or redirect", async (path) => {
+      const response = await proxy(request(path));
 
-        expect(rewrittenTo(response)).toBeNull();
-        expect(redirectedTo(response)).toBeNull();
-        expect(response.headers.get("x-middleware-next")).toBe("1");
-      },
-    );
+      expect(rewrittenTo(response)).toBeNull();
+      expect(redirectedTo(response)).toBeNull();
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+    });
+
+    // covers: AC-1 (spec 0004), the guard's `?next=`
+    it("tells the dashboard which path was asked for, over any value the browser sent", async () => {
+      const response = await proxy(
+        new NextRequest("http://localhost/admin/orders?page=2", {
+          headers: { "x-admin-path": "//evil.com" },
+        }),
+      );
+
+      expect(response.headers.get("x-middleware-request-x-admin-path")).toBe(
+        "/admin/orders?page=2",
+      );
+    });
+
+    it("adds no path header outside the dashboard", async () => {
+      const response = await proxy(request("/auth/callback"));
+
+      expect(response.headers.get("x-middleware-request-x-admin-path")).toBeNull();
+    });
   });
 
   describe("session refresh", () => {
@@ -125,6 +148,34 @@ describe("proxy", () => {
 
       const response = await proxy(request(path));
 
+      expect(response.cookies.get("sb-auth")?.value).toBe("fresh");
+    });
+
+    // covers: AC-15 (spec 0010)
+    it("skips the refresh on the public catalog count", async () => {
+      supabase.refresh = true;
+
+      const response = await proxy(request("/api/catalog/count?q=ثريا"));
+
+      expect(response.cookies.get("sb-auth")).toBeUndefined();
+    });
+  });
+
+  // covers: AC-15 (spec 0010)
+  describe("route handlers", () => {
+    it("keeps /api outside locale routing", async () => {
+      const response = await proxy(request("/api/catalog/count?q=ثريا"));
+
+      expect(rewrittenTo(response)).toBeNull();
+      expect(redirectedTo(response)).toBeNull();
+    });
+
+    it("still refreshes the session on other /api paths", async () => {
+      supabase.refresh = true;
+
+      const response = await proxy(request("/api/other"));
+
+      expect(rewrittenTo(response)).toBeNull();
       expect(response.cookies.get("sb-auth")?.value).toBe("fresh");
     });
   });

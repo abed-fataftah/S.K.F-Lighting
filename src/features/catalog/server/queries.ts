@@ -1,0 +1,509 @@
+import "server-only";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  isNull,
+  max,
+  min,
+  sql,
+} from "drizzle-orm";
+import { cache } from "react";
+import { clampPage } from "@/lib/paging";
+import { getDb } from "@/server/db";
+import { categories, colours, productMedia, products, productVariants } from "@/server/db/schema";
+import type { Database, Transaction } from "@/server/db/types";
+import { withTimeLimit } from "@/server/db/time-limit";
+import { buildCardProduct, type CardProduct } from "../card-view";
+import {
+  buildNavigation,
+  resolveCategoryPage,
+  type NavMain,
+  type NavSub,
+  type PageCategory,
+} from "../category-rules";
+import { buildProductPage, type ProductPageData } from "../product-view";
+import type { SearchTerms } from "../search-text";
+import {
+  EMPTY_FILTERS,
+  isFiltered,
+  NO_FILTERS,
+  priceBounds,
+  resolveFilters,
+  sizeChoices,
+  type FilterChoices,
+  type ListFilters,
+  type ResolvedFilters,
+} from "../list-filters";
+import { listJoins, listOrder, listWhere, type ListScope } from "./list-query";
+import { listedProduct, parentCategory, sellableVariant } from "./storefront-sql";
+
+// The storefront's catalog reads (spec 0004 AC-3, spec 0008). Every one applies the shown and
+// sellable rules from `storefront-sql.ts`, so a hidden category and its products never reach a
+// public response. The `read…` functions take a client for the database tests.
+
+type Db = Database | Transaction;
+
+/** The newest products Home falls back to when no featured pick is left (spec 0011 AC-5). */
+export const HOME_GRID_SIZE = 8;
+export const CATEGORY_PAGE_SIZE = 24;
+
+export type CardRow = {
+  readonly id: string;
+  readonly slug: string;
+  readonly name: string;
+  readonly code: string;
+  readonly specs: readonly { readonly label: string; readonly value: string }[];
+  readonly status: "active" | "hidden" | "archived";
+  readonly isAvailable: boolean;
+};
+
+export const cardColumns = {
+  id: products.id,
+  slug: products.slug,
+  name: products.name,
+  code: products.code,
+  specs: products.specs,
+  status: products.status,
+  isAvailable: products.isAvailable,
+};
+
+/**
+ * Cards for product rows already in order, all in shown categories: one read of their live
+ * variants and one of their first photos, then the pure card builder (spec 0008, API surface).
+ */
+export async function readCards(db: Db, rows: readonly CardRow[]): Promise<readonly CardProduct[]> {
+  if (!rows.length) return [];
+  const ids = rows.map((row) => row.id);
+  const [variants, images] = await Promise.all([
+    db
+      .select({
+        id: productVariants.id,
+        productId: productVariants.productId,
+        price: productVariants.price,
+        isAvailable: productVariants.isAvailable,
+        archivedAt: productVariants.archivedAt,
+        isDefault: productVariants.isDefault,
+        sort: productVariants.sort,
+      })
+      .from(productVariants)
+      .where(inArray(productVariants.productId, ids)),
+    db
+      .selectDistinctOn([productMedia.productId], {
+        productId: productMedia.productId,
+        storageKey: productMedia.storageKey,
+      })
+      .from(productMedia)
+      .where(and(inArray(productMedia.productId, ids), eq(productMedia.kind, "image")))
+      .orderBy(productMedia.productId, asc(productMedia.sort), asc(productMedia.id)),
+  ]);
+  const imageOf = new Map(images.map((image) => [image.productId, image.storageKey]));
+  return rows.map((row) =>
+    buildCardProduct({
+      slug: row.slug,
+      name: row.name,
+      code: row.code,
+      specs: row.specs,
+      product: { status: row.status, isAvailable: row.isAvailable, categoryShown: true },
+      variants: variants.filter((variant) => variant.productId === row.id),
+      imageKey: imageOf.get(row.id) ?? null,
+    }),
+  );
+}
+
+const hasSellableVariant = exists(
+  sql`(select 1 from ${productVariants} where ${and(
+    eq(productVariants.productId, products.id),
+    sellableVariant,
+  )})`,
+);
+
+/** The newest sellable products: Home's featured fallback (spec 0004 AC-3, spec 0011 AC-5). */
+export async function readHomeProducts(db: Db): Promise<readonly CardProduct[]> {
+  const rows = await db
+    .select(cardColumns)
+    .from(products)
+    .innerJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(parentCategory, eq(parentCategory.id, categories.parentId))
+    .where(hasSellableVariant)
+    .orderBy(desc(products.createdAt), desc(products.id))
+    .limit(HOME_GRID_SIZE);
+  return readCards(db, rows);
+}
+
+/** A category row with Home's circle fields (spec 0011 AC-4), read with the menu's tree. */
+export type TreeCategory = PageCategory & {
+  readonly showOnHome: boolean;
+  readonly homeSubtitle: string | null;
+  readonly imageKey: string | null;
+};
+
+export type CatalogTree = {
+  readonly categories: readonly TreeCategory[];
+  /** Listed (`active`) products placed directly on each category; shown is decided in code. */
+  readonly listed: ReadonlyMap<string, number>;
+};
+
+export async function readCatalogTree(db: Db): Promise<CatalogTree> {
+  const [rows, counts] = await Promise.all([
+    db
+      .select({
+        id: categories.id,
+        parentId: categories.parentId,
+        slug: categories.slug,
+        name: categories.name,
+        description: categories.description,
+        sort: categories.sort,
+        isVisible: categories.isVisible,
+        showOnHome: categories.showOnHome,
+        homeSubtitle: categories.homeSubtitle,
+        imageKey: categories.imageKey,
+      })
+      .from(categories),
+    db
+      .select({ categoryId: products.categoryId, listed: count() })
+      .from(products)
+      .where(eq(products.status, "active"))
+      .groupBy(products.categoryId),
+  ]);
+  return {
+    categories: rows,
+    listed: new Map(counts.map((row) => [row.categoryId, row.listed])),
+  };
+}
+
+// One read per request, shared by the menu, `/c`, a category page, and Home's circles.
+export const loadCatalogTree = cache(async () => readCatalogTree(await getDb()));
+
+export const NAVIGATION_TIMEOUT_MS = 1500;
+
+/**
+ * The menu sheet's categories (AC-14). It runs on every storefront page, so a failed or slow read
+ * gives null and the sheet shows without them. Logs say what failed, never values.
+ */
+export const listNavigation = cache(async (): Promise<readonly NavMain[] | null> => {
+  const result = await withTimeLimit(loadCatalogTree, NAVIGATION_TIMEOUT_MS);
+  if (result.ok) return buildNavigation(result.data.categories, result.data.listed);
+  console.error("listNavigation: read failed", {
+    error: result.error === "timeout" ? "timeout" : errorName(result),
+  });
+  return null;
+});
+
+const errorName = (result: { readonly cause?: unknown }) =>
+  result.cause instanceof Error ? result.cause.name : "unknown";
+
+/** `/c` (AC-15): navigation with no time limit of its own; the page sets one. */
+export async function getNavigation(): Promise<readonly NavMain[]> {
+  const tree = await loadCatalogTree();
+  return buildNavigation(tree.categories, tree.listed);
+}
+
+type PageHead = {
+  readonly slug: string;
+  readonly name: string;
+  readonly description: string | null;
+};
+
+/**
+ * What a category page knows before its products load (AC-8, AC-9, AC-11): the category, its
+ * chips, M, and the clamped page. Read first, so a not found page still gets a real 404 before the
+ * page starts streaming; the products then load under the page's own Suspense boundary.
+ */
+export type CategoryHead = {
+  readonly main: PageHead;
+  readonly sub: PageHead | null;
+  readonly navSubs: readonly NavSub[];
+  readonly chipSubs: readonly NavSub[];
+  /** M: every listed product of the page. */
+  readonly total: number;
+  /** The page after clamping to `1..last`; the first `page × 24` products are shown. */
+  readonly page: number;
+  readonly categoryIds: readonly string[];
+};
+
+export type CategoryPageData = CategoryHead & { readonly products: readonly CardProduct[] };
+
+const head = (category: PageCategory): PageHead => ({
+  slug: category.slug,
+  name: category.name,
+  description: category.description,
+});
+
+export function readCategoryHead(
+  tree: CatalogTree,
+  mainSlug: string,
+  subSlug: string | null,
+  requestedPage: number,
+): CategoryHead | null {
+  const scope = resolveCategoryPage(tree.categories, tree.listed, mainSlug, subSlug);
+  if (!scope) return null;
+  return {
+    main: head(scope.main),
+    sub: scope.sub ? head(scope.sub) : null,
+    navSubs: scope.navSubs,
+    chipSubs: scope.chipSubs,
+    total: scope.total,
+    // Clamp before the limit is built (AC-11): a page beyond the last shows everything.
+    page: clampPage(requestedPage, scope.total, CATEGORY_PAGE_SIZE),
+    categoryIds: scope.categoryIds,
+  };
+}
+
+export async function readCategoryPage(
+  db: Db,
+  tree: CatalogTree,
+  mainSlug: string,
+  subSlug: string | null,
+  requestedPage: number,
+): Promise<CategoryPageData | null> {
+  const pageHead = readCategoryHead(tree, mainSlug, subSlug, requestedPage);
+  if (!pageHead) return null;
+  const list = await readListView(
+    db,
+    { kind: "category", categoryIds: pageHead.categoryIds },
+    EMPTY_FILTERS,
+    pageHead.page,
+    pageHead.total,
+  );
+  return { ...pageHead, products: list.products };
+}
+
+/** A category page's head (AC-8), or null for the not found page. */
+export async function getCategoryHead(
+  mainSlug: string,
+  subSlug: string | null,
+  page: number,
+): Promise<CategoryHead | null> {
+  return readCategoryHead(await loadCatalogTree(), mainSlug, subSlug, page);
+}
+
+/** M: the listed products of the scope that meet the filters (spec 0010 AC-5, AC-12, AC-13). */
+export async function readListTotal(
+  db: Db,
+  scope: ListScope,
+  filters: ResolvedFilters = NO_FILTERS,
+): Promise<number> {
+  const [row] = await db
+    .select({ total: count() })
+    .from(products)
+    .innerJoin(categories, listJoins.category)
+    .leftJoin(parentCategory, listJoins.parent)
+    .where(listWhere(scope, filters));
+  return row?.total ?? 0;
+}
+
+/** The first `page × 24` products of the scope, in list order (spec 0010 AC-4, AC-5, AC-9). */
+async function readListProducts(
+  db: Db,
+  scope: ListScope,
+  filters: ResolvedFilters,
+  page: number,
+): Promise<readonly CardProduct[]> {
+  const rows = await db
+    .select(cardColumns)
+    .from(products)
+    .innerJoin(categories, listJoins.category)
+    .leftJoin(parentCategory, listJoins.parent)
+    .where(listWhere(scope, filters))
+    .orderBy(...listOrder(scope))
+    .limit(page * CATEGORY_PAGE_SIZE);
+  return readCards(db, rows);
+}
+
+/**
+ * What the unfiltered list offers (spec 0010 AC-10), over its live options: one row per size key
+ * and label with its count, the colours used in `colours.sort` then name order, and the price
+ * range. Read on every view, since the applied chips need the size labels.
+ */
+export async function readFilterChoices(db: Db, scope: ListScope): Promise<FilterChoices> {
+  const live = and(listWhere(scope), isNull(productVariants.archivedAt));
+  const [sizes, used, [price]] = await Promise.all([
+    db
+      .select({
+        sizeKey: productVariants.sizeKey,
+        sizeLabel: productVariants.sizeLabel,
+        count: count(),
+      })
+      .from(productVariants)
+      .innerJoin(products, eq(products.id, productVariants.productId))
+      .innerJoin(categories, listJoins.category)
+      .leftJoin(parentCategory, listJoins.parent)
+      .where(and(live, isNotNull(productVariants.sizeKey)))
+      .groupBy(productVariants.sizeKey, productVariants.sizeLabel),
+    db
+      .selectDistinct({ id: colours.id, name: colours.name, hex: colours.hex, sort: colours.sort })
+      .from(productVariants)
+      .innerJoin(colours, eq(colours.id, productVariants.colourId))
+      .innerJoin(products, eq(products.id, productVariants.productId))
+      .innerJoin(categories, listJoins.category)
+      .leftJoin(parentCategory, listJoins.parent)
+      .where(live)
+      .orderBy(asc(colours.sort), asc(colours.name)),
+    db
+      .select({ min: min(productVariants.price), max: max(productVariants.price) })
+      .from(productVariants)
+      .innerJoin(products, eq(products.id, productVariants.productId))
+      .innerJoin(categories, listJoins.category)
+      .leftJoin(parentCategory, listJoins.parent)
+      .where(live),
+  ]);
+  return {
+    sizes: sizeChoices(sizes),
+    colours: used.map(({ id, name, hex }) => ({ id, name, hex })),
+    price: priceBounds(price ?? null),
+  };
+}
+
+export type ListView = {
+  readonly choices: FilterChoices;
+  /** The address's filters after `resolveFilters`; "a filter is active" reads these. */
+  readonly filters: ResolvedFilters;
+  /** M: every matching product. */
+  readonly total: number;
+  /** The page after clamping to `1..last` against M, before the limit is built. */
+  readonly page: number;
+  readonly products: readonly CardProduct[];
+};
+
+/**
+ * One list view in the spec's read order (spec 0010, API surface): the choices, then the resolved
+ * filters, then M (the known unfiltered total when no filter is active), then the clamped page,
+ * then the first `page × 24` cards. Shared by the category page and search.
+ */
+export async function readListView(
+  db: Db,
+  scope: ListScope,
+  parsed: ListFilters,
+  requestedPage: number,
+  unfilteredTotal?: number,
+): Promise<ListView> {
+  const choices = await readFilterChoices(db, scope);
+  const filters = resolveFilters(parsed, choices);
+  const total =
+    !isFiltered(filters) && unfilteredTotal !== undefined
+      ? unfilteredTotal
+      : await readListTotal(db, scope, filters);
+  const page = clampPage(requestedPage, total, CATEGORY_PAGE_SIZE);
+  const cards = total ? await readListProducts(db, scope, filters, page) : [];
+  return { choices, filters, total, page, products: cards };
+}
+
+/**
+ * N for the filters screen (spec 0010 AC-12): the same choices, resolve, and total steps as
+ * `readListView`, so it always equals the M the page then shows.
+ */
+export async function readListCount(
+  db: Db,
+  scope: ListScope,
+  parsed: ListFilters,
+  unfilteredTotal?: number,
+): Promise<number> {
+  const filters = resolveFilters(parsed, await readFilterChoices(db, scope));
+  return !isFiltered(filters) && unfilteredTotal !== undefined
+    ? unfilteredTotal
+    : readListTotal(db, scope, filters);
+}
+
+/** A category page's list (spec 0010 AC-13): the head's scope and total, with the filters. */
+export async function getCategoryList(
+  pageHead: CategoryHead,
+  parsed: ListFilters,
+): Promise<ListView> {
+  return readListView(
+    await getDb(),
+    { kind: "category", categoryIds: pageHead.categoryIds },
+    parsed,
+    pageHead.page,
+    pageHead.total,
+  );
+}
+
+/** A search's list (spec 0010 AC-3 to AC-5). */
+export async function getSearchList(
+  terms: SearchTerms,
+  parsed: ListFilters,
+  page: number,
+): Promise<ListView> {
+  return readListView(await getDb(), { kind: "search", ...terms }, parsed, page);
+}
+
+/**
+ * An `active` product in a shown category by slug with all its live variants and media, or null
+ * for the not found page (spec 0009 AC-1, spec 0008 AC-7). `?v` is applied after, in a pure step.
+ */
+export async function readProductPage(db: Db, slug: string): Promise<ProductPageData | null> {
+  const [product] = await db
+    .select({
+      id: products.id,
+      slug: products.slug,
+      name: products.name,
+      code: products.code,
+      description: products.description,
+      specs: products.specs,
+      status: products.status,
+      isAvailable: products.isAvailable,
+      categoryName: categories.name,
+      categorySlug: categories.slug,
+      parentName: parentCategory.name,
+      parentSlug: parentCategory.slug,
+    })
+    .from(products)
+    .innerJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(parentCategory, eq(parentCategory.id, categories.parentId))
+    .where(and(eq(products.slug, slug), listedProduct))
+    .limit(1);
+  if (!product) return null;
+
+  const [variants, media] = await Promise.all([
+    db
+      .select({
+        id: productVariants.id,
+        sizeLabel: productVariants.sizeLabel,
+        sizeSort: productVariants.sizeSort,
+        colourId: productVariants.colourId,
+        colourName: colours.name,
+        colourHex: colours.hex,
+        price: productVariants.price,
+        isAvailable: productVariants.isAvailable,
+        archivedAt: productVariants.archivedAt,
+        isDefault: productVariants.isDefault,
+        sort: productVariants.sort,
+      })
+      .from(productVariants)
+      .leftJoin(colours, eq(colours.id, productVariants.colourId))
+      .where(and(eq(productVariants.productId, product.id), isNull(productVariants.archivedAt))),
+    db
+      .select({
+        kind: productMedia.kind,
+        key: productMedia.storageKey,
+        alt: productMedia.alt,
+        width: productMedia.width,
+        height: productMedia.height,
+      })
+      .from(productMedia)
+      .where(eq(productMedia.productId, product.id))
+      .orderBy(asc(productMedia.sort), asc(productMedia.id)),
+  ]);
+
+  return buildProductPage({
+    product,
+    category: { name: product.categoryName, slug: product.categorySlug },
+    parent:
+      product.parentName !== null && product.parentSlug !== null
+        ? { name: product.parentName, slug: product.parentSlug }
+        : null,
+    variants,
+    media,
+  });
+}
+
+/** One read per request, shared by the page and its metadata, keyed on the decoded slug (AC-16). */
+export const getProductPage = cache(async (slug: string): Promise<ProductPageData | null> =>
+  readProductPage(await getDb(), slug),
+);

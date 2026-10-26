@@ -1,0 +1,453 @@
+/* ==========================================================================
+   S.K.F Lighting: design tokens in code (spec 0003).
+   Sections 1 and 3 to 11 are the approved tokens from docs/design/tokens.css,
+   copied as they are. Section 2 (the drawing palette) keeps only the two colours the Home
+   hero chandelier uses (spec 0011 AC-3); the rest of it is dropped.
+   This is the ONLY file in src/ allowed to hold a raw hex colour (design rule test).
+   Arabic only, right to left. There is no dark mode: do not add one.
+   ========================================================================== */
+
+/* ---- 1. Brand and UI colors (roles) ------------------------------------- */
+:root {
+  --skf-yellow: #fcf42c; /* brand yellow, measured from the logo. FILL ONLY, with ink text. Never text on white. */
+  --skf-yellow-tint: #fff6d0; /* selected radio card, notice banner, highlight rows */
+  --skf-ink: #111111; /* primary text, black header, black footer, black sidebar */
+  --skf-white: #ffffff; /* cards, inputs, bottom bar */
+  --skf-page: #f5f5f3; /* page background (warm gray) */
+  --skf-muted: #555555; /* secondary text */
+  --skf-border: #deded8; /* card borders, table row lines, dividers (decorative, not a control edge) */
+  --skf-control-border: #8a8a84; /* edge of every interactive control: inputs, chips, outline buttons, checkboxes */
+  --skf-chip-border: #b9b9b2; /* spec chips on product cards (read-only, not interactive) */
+  --skf-fill-muted: #e2e2dd; /* skeleton blocks, disabled button fill, empty-state icon disc, "off" badge fill */
+  --skf-on-dark-muted: #d8d8d2; /* text on black: footer, sidebar links */
+  --skf-sidebar-active: #2a2a2a; /* active row in the dashboard sidebar */
+  --skf-whatsapp: #1e7b4f; /* every WhatsApp button, with white text or icon */
+  --skf-danger: #b3261e; /* form errors only, always with an icon and text */
+  --skf-product-bg-1: #1b1714; /* product image background (also gallery, cart tile) */
+  --skf-product-bg-2: #27221e; /* product image background, variant */
+  --skf-product-bg-3: #1f1b18; /* product image background, variant */
+  --skf-product-bg-4: #2a2420; /* product image background, variant */
+  --skf-swatch-gold: #d4af37; /* colour swatch dots on product page and filters */
+  --skf-swatch-chrome: #b8bcc2;
+  --skf-swatch-wood: #8b5a2b;
+  /* Swatch black is --skf-ink, swatch white is --skf-white. Swatches always have a 1px --skf-control-border ring and a text label. */
+}
+
+/* ---- 2. Illustration palette (the hero drawing only) ---------------------- */
+:root {
+  --illus-08: #e9d58a; /* chandelier chain and drop wires */
+  --illus-09: #f5efd0; /* chandelier candle sleeves */
+}
+
+/* ---- 3. shadcn/ui variable names (map the roles onto what the components read) */
+:root {
+  --background: var(--skf-page);
+  --foreground: var(--skf-ink);
+  --card: var(--skf-white);
+  --card-foreground: var(--skf-ink);
+  --popover: var(--skf-white);
+  --popover-foreground: var(--skf-ink);
+  --primary: var(--skf-yellow);
+  --primary-foreground: var(--skf-ink);
+  --secondary: var(--skf-white);
+  --secondary-foreground: var(--skf-ink);
+  --muted: var(--skf-fill-muted);
+  --muted-foreground: var(--skf-muted);
+  --accent: var(--skf-yellow-tint);
+  --accent-foreground: var(--skf-ink);
+  --destructive: var(--skf-danger);
+  --destructive-foreground: var(--skf-white);
+  --border: var(--skf-border);
+  --input: var(--skf-control-border);
+  --ring: var(--skf-ink);
+  --radius: 0.75rem; /* 12px = card radius */
+}
+
+/* ---- 4. Typography ------------------------------------------------------- */
+:root {
+  /* Almarai comes from src/app/fonts.ts (next/font sets --font-almarai on <html>). */
+  --skf-font:
+    var(--font-almarai), "Segoe UI", Tahoma, Arial, sans-serif; /* only family. Weights 400, 700, 800. */
+  --fw-regular: 400;
+  --fw-bold: 700;
+  --fw-heavy: 800;
+  /* Sizes by role (px). Nothing smaller than 12px. */
+  --fs-caption: 12px; /* code under a name, chips, badges, notes under a field */
+  --fs-small: 13px; /* secondary lines, breadcrumb, table header, helper text, footer */
+  --fs-body: 14px; /* default body, table cells, small buttons */
+  --fs-control: 15px; /* inputs, large outline buttons, tabs */
+  --fs-lead: 16px; /* card titles, primary buttons, price on card, section headings */
+  --fs-title-s: 18px; /* empty-state title, totals row, dashboard section title */
+  --fs-title-m: 22px; /* product title, small page titles */
+  --fs-title-l: 24px; /* page title (h1) */
+  --fs-display-s: 26px; /* dashboard page title */
+  --fs-price: 28px; /* product price, confirmation order number */
+  --fs-kpi: 30px; /* dashboard KPI number */
+  --fs-hero: 32px; /* home hero headline */
+  --fs-404: 64px; /* not-found code */
+  /* Line heights */
+  --lh-body: 1.6;
+  --lh-compact: 1.5; /* small helper text blocks */
+  --lh-title: 1.3; /* page titles */
+  --lh-card-title: 1.35; /* product names */
+  --lh-prose: 1.8; /* policy text */
+  --lh-tight: 1.1; /* 404 code, big numbers */
+  --lh-hero: 1.25; /* home hero headline (design.md section 3; added in spec 0003) */
+}
+
+/* ---- 5. Spacing (named by pixels) ---------------------------------------- */
+:root {
+  --sp-2: 2px;
+  --sp-4: 4px;
+  --sp-6: 6px;
+  --sp-8: 8px;
+  --sp-10: 10px;
+  --sp-12: 12px;
+  --sp-14: 14px;
+  --sp-16: 16px;
+  --sp-18: 18px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-28: 28px;
+  --sp-34: 34px;
+  --sp-48: 48px;
+  --page-pad: 16px; /* side padding of every storefront page */
+  --page-max: 480px; /* storefront column width, centered */
+  --admin-sidebar-max: 260px; /* sidebar flex-basis 220px, max 260px */
+  --admin-sidebar-basis: 220px; /* sidebar flex-basis (design.md section 4; added in spec 0003) */
+  --admin-content-basis: 560px; /* below this the sidebar wraps above the content */
+  --admin-pad: 24px 28px 48px; /* dashboard content padding (top, sides, bottom) */
+  --admin-form-max: 960px; /* widest form column in the dashboard */
+  --admin-column-max: 900px; /* single column card lists, like the categories page (added in spec 0008) */
+  --admin-detail-main: 520px; /* two column detail pages: main column basis (design.md section 4; added in spec 0004) */
+  --admin-detail-side: 300px; /* two column detail pages: side column basis */
+}
+
+/* ---- 6. Shape ------------------------------------------------------------ */
+:root {
+  --skf-radius-chip: 4px; /* spec chips, status badges, count badges */
+  --skf-radius-btn: 8px; /* small buttons, chips you tap, steppers, circle-less icon buttons */
+  --skf-radius-tile: 10px; /* icon tiles (40x40) */
+  --skf-radius-card: 12px; /* cards, inputs, large buttons, tables, notices */
+  --skf-radius-hero: 20px; /* home hero card only */
+  --skf-radius-full: 9999px; /* circles: category circles, owner circle, WhatsApp float, gallery arrows */
+  --border-w: 1px; /* all borders; selected radio cards and selected photo thumbnails use 2px */
+  --shadow-none: none; /* THE DESIGN HAS NO SHADOWS. Do not add any. */
+}
+
+/* ---- 7. Sizes of controls ------------------------------------------------ */
+:root {
+  --h-touch: 44px; /* minimum height AND width of every tappable thing */
+  --h-input: 48px;
+  --h-button-lg: 52px; /* primary full-width buttons, hero buttons, search bar */
+  --h-logo-header: 52px;
+  --h-logo-footer: 64px;
+  --h-logo-sidebar: 56px;
+  --size-fab: 52px; /* floating WhatsApp button */
+  --size-tile-cart: 72px; /* cart line image tile */
+  --size-tile-order: 52px; /* order lines */
+  --size-tile-table: 44px; /* dashboard tables */
+  --size-thumb: 56px; /* product gallery thumbnails */
+  --h-card-image: 128px; /* product card image area */
+  --h-gallery: 300px; /* product page main image area */
+  /* Added in spec 0003 for the fixed shell parts. */
+  --h-bottom-bar: 64px; /* bottom bar height, without the safe area */
+  --fab-bottom: 84px; /* WhatsApp float offset above the bottom */
+  --w-sheet: 320px; /* menu sheet width (capped at 85vw where used) */
+}
+
+/* ---- 8. Focus ------------------------------------------------------------ */
+:root {
+  --focus-ring: 3px solid var(--skf-ink); /* on light surfaces */
+  --focus-ring-on-dark: 3px solid var(--skf-yellow); /* on black header, footer, sidebar */
+  --focus-offset: 2px;
+}
+/* Unlayered on purpose, so no Tailwind utility can override it. Widened in spec 0003
+   to the ARIA roles that Base UI renders on non native controls. */
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [tabindex],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"],
+  [role="tab"],
+  [role="option"]
+):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+.on-dark
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [tabindex],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"],
+    [role="tab"],
+    [role="option"]
+  ):focus-visible {
+  outline: var(--focus-ring-on-dark);
+}
+/* A light box inside a black surface (the header search) goes back to the ink outline. */
+.on-dark
+  .on-light
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [tabindex],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"],
+    [role="tab"],
+    [role="option"]
+  ):focus-visible {
+  outline: var(--focus-ring);
+}
+/* A field that fills its box hands the outline to the box (data-focus-ring="parent"),
+   so the outline sits outside the white box where it can be seen. */
+:where(:has(> [data-focus-ring="parent"]:focus-visible)) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+.on-dark :where(:has(> [data-focus-ring="parent"]:focus-visible)) {
+  outline: var(--focus-ring-on-dark);
+}
+:where([data-focus-ring="parent"]):focus-visible,
+.on-dark :where([data-focus-ring="parent"]):focus-visible,
+.on-dark .on-light :where([data-focus-ring="parent"]):focus-visible {
+  outline: none;
+}
+/* Programmatic focus targets (main, popups) draw no outline. */
+:where([tabindex="-1"]):focus-visible,
+.on-dark :where([tabindex="-1"]):focus-visible {
+  outline: none;
+}
+
+/* ---- 9. Layers and motion ------------------------------------------------ */
+:root {
+  --z-bar: 30; /* fixed bottom bar (added in spec 0003) */
+  --z-fab: 40; /* floating WhatsApp button */
+  --z-sheet: 50; /* menu sheet and its overlay (added in spec 0003) */
+  --dur-skeleton: 1.4s; /* skeleton pulse: opacity 1 -> .55 -> 1, ease-in-out, infinite */
+  --dur-carousel-auto: 3500ms; /* category carousel auto-advance */
+  --dur-carousel-move: 0.7s; /* carousel item move: transform .7s and opacity .7s, cubic-bezier(.3,.7,.3,1) */
+  --ease-carousel: cubic-bezier(0.3, 0.7, 0.3, 1);
+  --dur-sheet: 0.2s; /* menu sheet slide (added in spec 0003) */
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-skeleton: 0s;
+    --dur-sheet: 0s;
+  }
+  /* Also: no carousel auto-advance, no skeleton pulse, no sheet slide. */
+}
+
+/* ---- 10. Breakpoints (CSS variables cannot hold these; use them in Tailwind config / media queries) */
+/* Storefront: one column, max 480px, any width. Desktop layout NOT designed (open item O-1).
+   Dashboard: designed at 1280. Sidebar wraps above content below (220 + 560) = 780px of available width (flex-wrap, no media query).
+   Test widths: 390 (phone), 1280 (desktop). */
+
+/* ---- 11. Right to left --------------------------------------------------- */
+html {
+  direction: rtl;
+}
+/* Use logical CSS only (margin-inline-start, padding-inline-end, inset-inline-start, text-align: start). No left or right. */
+/* Icons that point in a direction (chevrons, arrows, back) must flip in RTL: add "rtl:rotate-180" or use the mirrored path. */
+
+/* ---- 12. Tailwind lock and theme bridge (spec 0003) ---------------------
+   Every default Tailwind scale that the design does not use is removed, so
+   classes like bg-red-500, rounded-lg, shadow-md, text-sm or animate-pulse
+   produce no CSS. Only the names below exist. Spacing keeps Tailwind's 4px unit. */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-*: initial;
+  --font-*: initial;
+  --leading-*: initial;
+  --tracking-*: initial;
+  --container-*: initial;
+  --blur-*: initial;
+  --ease-*: initial;
+  --animate-*: initial;
+  /* Almarai has three weights; only they exist. */
+  --font-weight-*: initial;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-normal: 400;
+}
+
+@theme inline {
+  --font-sans: var(--skf-font);
+
+  /* Colour names: the only colour classes. */
+  --color-ink: var(--skf-ink);
+  --color-yellow: var(--skf-yellow);
+  --color-yellow-tint: var(--skf-yellow-tint);
+  --color-white: var(--skf-white);
+  --color-page: var(--skf-page);
+  --color-muted: var(--skf-muted);
+  --color-border: var(--skf-border);
+  --color-control-border: var(--skf-control-border);
+  --color-chip-border: var(--skf-chip-border);
+  --color-fill-muted: var(--skf-fill-muted);
+  --color-on-dark-muted: var(--skf-on-dark-muted);
+  --color-sidebar-active: var(--skf-sidebar-active);
+  --color-whatsapp: var(--skf-whatsapp);
+  --color-danger: var(--skf-danger);
+  --color-product-1: var(--skf-product-bg-1);
+  --color-product-2: var(--skf-product-bg-2);
+  --color-product-3: var(--skf-product-bg-3);
+  --color-product-4: var(--skf-product-bg-4);
+  --color-swatch-gold: var(--skf-swatch-gold);
+  --color-swatch-chrome: var(--skf-swatch-chrome);
+  --color-swatch-wood: var(--skf-swatch-wood);
+  --color-illus-08: var(--illus-08);
+  --color-illus-09: var(--illus-09);
+
+  /* shadcn role names the generated components read. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Radii, used only by name. rounded-full is built in. */
+  --radius-chip: var(--skf-radius-chip);
+  --radius-btn: var(--skf-radius-btn);
+  --radius-tile: var(--skf-radius-tile);
+  --radius-card: var(--skf-radius-card);
+  --radius-hero: var(--skf-radius-hero);
+}
+
+/* Type roles (design.md section 3): size, weight, and line height together.
+   Override the weight with font-bold (700) or font-extrabold (800). */
+@utility type-caption {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+}
+@utility type-small {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-compact);
+}
+@utility type-body {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+}
+@utility type-control {
+  font-size: var(--fs-control);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-compact);
+}
+@utility type-lead {
+  font-size: var(--fs-lead);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-compact);
+}
+@utility type-title-s {
+  font-size: var(--fs-title-s);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-title);
+}
+@utility type-title-m {
+  font-size: var(--fs-title-m);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-card-title);
+}
+@utility type-title-l {
+  font-size: var(--fs-title-l);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-title);
+}
+@utility type-display-s {
+  font-size: var(--fs-display-s);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-title);
+}
+@utility type-price {
+  font-size: var(--fs-price);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-title);
+}
+@utility type-kpi {
+  font-size: var(--fs-kpi);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-title);
+}
+@utility type-hero {
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-hero);
+}
+@utility type-404 {
+  font-size: var(--fs-404);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-tight);
+}
+@utility type-prose {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-prose);
+}
+
+/* Skeleton pulse. At 0s (reduced motion) it does not run. */
+@keyframes skeleton {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@utility animate-skeleton {
+  animation: skeleton var(--dur-skeleton) ease-in-out infinite;
+}
+
+/* ---- 13. Contrast table (computed by code, WCAG 2.x) ---------------------
+   src/app/tokens-contrast.test.ts recomputes every pair below from the hex values.
+   Text pairs (need 4.5:1 for text under 24px, 3:1 for large text)
+   --skf-ink on --skf-yellow ............ 16.29   buttons, chips, selected states
+   --skf-ink on --skf-white ............. 18.88   card text
+   --skf-ink on --skf-page .............. 17.30   page text
+   --skf-ink on --skf-yellow-tint ....... 17.40   selected radio card, notice
+   --skf-ink on --skf-fill-muted ........ 14.53   skeleton, disabled areas
+   --skf-muted on --skf-white ........... 7.46    secondary text on cards
+   --skf-muted on --skf-page ............ 6.83    secondary text on page
+   --skf-muted on --skf-yellow-tint ..... 6.87    secondary text on tint
+   --skf-muted on --skf-fill-muted ...... 5.74    disabled button text
+   --skf-white on --skf-whatsapp ........ 5.25    WhatsApp buttons
+   --skf-whatsapp on --skf-white ........ 5.25    "in stock" text, "paid" badge text
+   --skf-yellow on --skf-ink ............ 16.29   text on black
+   --skf-white on --skf-ink ............. 18.88   text on black
+   --skf-on-dark-muted on --skf-ink ..... 13.19   footer and sidebar links
+   --skf-white on --skf-sidebar-active .. 14.35   active sidebar item
+   --skf-danger on --skf-white .......... 6.54    error text
+   Non-text pairs (need 3:1)
+   --skf-control-border on --skf-white .. 3.47    input and chip edges on cards
+   --skf-control-border on --skf-page ... 3.18    input and chip edges on page
+   FORBIDDEN: --skf-yellow as text on white or on --skf-page (about 1.2:1).
+   -------------------------------------------------------------------------- */

@@ -22,16 +22,16 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
 | 1 | Stack & architecture | Foundation | in-progress |
-| 2 | Coding standards & tooling | Foundation | in-progress |
+| 2 | Coding standards & tooling | Foundation | done |
 | 3 | Data model | Foundation | in-progress |
-| 4 | Design system & UI foundation | Foundation | planned |
-| 5 | Arabic language | Foundation | planned |
-| 6 | First order end to end | Slice 1 | planned |
-| 7 | Product management | Slice 2 | planned |
-| 8 | Spreadsheet import & bulk photos | Slice 2 | planned |
-| 9 | Categories & browsing | Slice 2 | planned |
-| 10 | Product page | Slice 2 | planned |
-| 11 | Search & filters | Slice 2 | planned |
+| 4 | Design system & UI foundation | Foundation | in-progress |
+| 5 | Arabic language | Foundation | in-progress |
+| 6 | First order end to end | Slice 1 | in-progress |
+| 7 | Product management | Slice 2 | in-progress |
+| 8 | Spreadsheet import & bulk photos | Slice 2 | in-progress |
+| 9 | Categories & browsing | Slice 2 | in-progress |
+| 10 | Product page | Slice 2 | in-progress |
+| 11 | Search & filters | Slice 2 | in-progress |
 | 12 | Cart | Slice 3 | planned |
 | 13 | Checkout & delivery | Slice 3 | planned |
 | 14 | Order confirmation & WhatsApp | Slice 3 | planned |
@@ -45,7 +45,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 22 | Add to draft from the catalog | Slice 6 | planned |
 | 23 | Electrician price adjustments | Slice 6 | planned |
 | 24 | Payments & balances | Slice 7 | planned |
-| 25 | Homepage, banners & featured products | Slice 8 | planned |
+| 25 | Homepage, banners & featured products | Slice 8 | in-progress |
 | 26 | Shop settings & policy pages | Slice 8 | planned |
 | 27 | Sales reports | Slice 8 | planned |
 | 28 | Search engine visibility | Slice 8 | planned |
@@ -58,7 +58,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 ## Areas
 
-- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 0 of 6 done.
+- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 1 of 6 done.
 - [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 0 of 6 done.
 - [Ordering](ordering.md): features 12 to 17 (cart, checkout, confirmation, order management, lookup, cancel). 0 of 6 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
@@ -75,6 +75,8 @@ Out of scope for now, kept so the plan stays honest.
 - **PDF of a draft or order**: a clean quote electricians can share · needs a decision
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
 - **JSON export of an order** · needs a decision
+- **Colour tagged product photos**: choosing a colour on the product page jumps to its photos (a `colour_id` on `product_media`, the editor, and the import) · needs a decision · from spec 0009
+- **Product page desktop layout and loading skeleton**: a designed wide screen layout (O-1) and a skeleton that keeps the real 404 · needs a decision · from spec 0009
 
 ## Open questions to settle in the specs
 
