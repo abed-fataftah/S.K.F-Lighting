@@ -86,5 +86,5 @@ spec [0011](../specs/0011-homepage-banners-featured/index.md) · code in `src/fe
   - [x] Category circles: photo and line in the category dialog, Home ticks, circle carousel with pause, still row of links (AC-4, AC-8, AC-11)
   - [x] Fees, trust cards, states, sweep: strip and cards from `delivery_zones`, address fallback, per section failures, editor states, weekly sweep (AC-6, AC-7, AC-8, AC-13)
   - [x] Finish: remaining tests, phone flow, axe (AC-16)
-- [ ] Verify it: `/check verify homepage, banners & featured products`
+- [x] Verify it: `/check verify homepage, banners & featured products`
 - [ ] Test it: `/test homepage, banners & featured products`
