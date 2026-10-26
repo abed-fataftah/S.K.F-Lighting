@@ -75,7 +75,16 @@ spec [0010](../specs/0010-search-filters/index.md) · code in `src/features/cata
 
 ## Slice 8: Shop content
 
-### 25. Homepage, banners & featured products
+### 25. Homepage, banners & featured products · in-progress
 A homepage you control: banners and featured products chosen in the dashboard, plus quick links to the main categories.
-**Done when:** you can add, order, and remove banners and featured products, and the homepage shows them in both languages.
-- [ ] Build it: `/develop homepage, banners & featured products`
+**Done when:** you can add, order, and remove banners and featured products, and the homepage shows them in Arabic.
+spec [0011](../specs/0011-homepage-banners-featured/index.md) · code in `src/features/home/`, `src/app/[locale]/(home)/`, `src/app/admin/(dashboard)/homepage/`, the category dialog in `src/features/catalog/`
+- [x] Design it (spec): `/architect homepage, banners & featured products`
+- [x] Build it: `/develop homepage, banners & featured products`
+  - [x] Thin thread: migration, image keys and crop, upload, add a banner in `/admin/homepage`, new Home with banner or hero and the newest fallback (AC-1, AC-2, AC-3, AC-13, AC-14, AC-15)
+  - [x] Banners and featured: edit, links and picker, delete, caps, full carousel, page save with the version check, featured list on Home (AC-2, AC-5, AC-8, AC-9, AC-10, AC-12)
+  - [x] Category circles: photo and line in the category dialog, Home ticks, circle carousel with pause, still row of links (AC-4, AC-8, AC-11)
+  - [x] Fees, trust cards, states, sweep: strip and cards from `delivery_zones`, address fallback, per section failures, editor states, weekly sweep (AC-6, AC-7, AC-8, AC-13)
+  - [x] Finish: remaining tests, phone flow, axe (AC-16)
+- [ ] Verify it: `/check verify homepage, banners & featured products`
+- [ ] Test it: `/test homepage, banners & featured products`

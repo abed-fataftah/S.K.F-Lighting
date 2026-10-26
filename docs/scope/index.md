@@ -45,7 +45,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 22 | Add to draft from the catalog | Slice 6 | planned |
 | 23 | Electrician price adjustments | Slice 6 | planned |
 | 24 | Payments & balances | Slice 7 | planned |
-| 25 | Homepage, banners & featured products | Slice 8 | planned |
+| 25 | Homepage, banners & featured products | Slice 8 | in-progress |
 | 26 | Shop settings & policy pages | Slice 8 | planned |
 | 27 | Sales reports | Slice 8 | planned |
 | 28 | Search engine visibility | Slice 8 | planned |
