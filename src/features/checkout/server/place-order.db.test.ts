@@ -12,7 +12,7 @@ import {
   productVariants,
 } from "@/server/db/schema";
 import { hasLocalDb } from "@/server/db/testing";
-import type { CheckoutInput } from "../schemas";
+import { checkoutSchema, type CheckoutInput } from "../schemas";
 
 vi.mock("server-only", () => ({}));
 
@@ -157,6 +157,67 @@ describe.skipIf(!hasLocalDb)("placeOrderInDb on the local database", () => {
       deliveryFee: zone.fee,
       total: 1_990 + zone.fee,
     });
+  });
+
+  // covers: AC-5 (spec 0012)
+  it("saves a pickup form sent with stale delivery fields without zone, city, address, or area", async () => {
+    const input = checkoutSchema.parse({
+      idempotencyKey: randomUUID(),
+      name: "زبون اختبار",
+      phone: "0599 123 456",
+      fulfilment: "pickup",
+      zoneId: zone.id,
+      city: "نابلس",
+      address: "شارع فيصل، بناية 3",
+      expectedTotal: "1990",
+    });
+    const outcome = await placeOrderInDb(db, {
+      input,
+      cart: [{ variantId: variantB, quantity: 1 }],
+      placedAt,
+    });
+    expect(outcome.kind).toBe("placed");
+    if (outcome.kind !== "placed") return;
+    const [order] = await db.select().from(orders).where(eq(orders.id, outcome.orderId));
+    expect(order).toMatchObject({
+      fulfilment: "pickup",
+      deliveryZoneId: null,
+      deliveryZoneName: null,
+      city: null,
+      area: null,
+      address: null,
+      deliveryFee: 0,
+      total: 1_990,
+    });
+  });
+
+  // covers: AC-6 (spec 0012)
+  it("saves each active zone's own fee and name on a delivery order", async () => {
+    const active = await db.select().from(deliveryZones).where(eq(deliveryZones.isActive, true));
+    expect(active.length).toBeGreaterThan(0);
+    for (const each of active) {
+      const outcome = await placeOrderInDb(db, {
+        input: pickup({
+          fulfilment: "delivery",
+          zoneId: each.id,
+          city: "رام الله",
+          address: "شارع الإرسال 4",
+          expectedTotal: 1_990 + each.fee,
+        } as Partial<CheckoutInput>),
+        cart: [{ variantId: variantB, quantity: 1 }],
+        placedAt,
+      });
+      expect(outcome.kind).toBe("placed");
+      if (outcome.kind !== "placed") return;
+      const [order] = await db.select().from(orders).where(eq(orders.id, outcome.orderId));
+      expect(order).toMatchObject({
+        deliveryZoneId: each.id,
+        deliveryZoneName: each.name,
+        deliveryFee: each.fee,
+        area: null,
+        total: 1_990 + each.fee,
+      });
+    }
   });
 
   it("replays the same order for a used key, even with an empty cart", async () => {

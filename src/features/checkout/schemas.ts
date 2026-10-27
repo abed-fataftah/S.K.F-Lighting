@@ -1,8 +1,8 @@
-// The checkout form (spec 0004 AC-6), shared by the form and `placeOrder`. A union on the method:
-// a pickup order drops any zone, city, or address that was sent.
+// The checkout form (spec 0004 AC-6, spec 0012), shared by the form and `placeOrder`. A union on
+// the method: a pickup order drops any zone, city, or address that was sent.
 import { z } from "zod";
 import { normalizePhone } from "@/lib/phone";
-import { digitsField, tidiedText } from "@/lib/text-schemas";
+import { addressText, digitsField, personName, placeName, tidiedText } from "@/lib/text-schemas";
 
 export const NAME_LIMITS = { min: 2, max: 80 } as const;
 export const CITY_LIMITS = { min: 2, max: 60 } as const;
@@ -24,7 +24,7 @@ export const phoneField = digitsField(
 
 const shared = {
   idempotencyKey: z.guid(),
-  name: tidiedText(NAME_LIMITS),
+  name: personName(NAME_LIMITS),
   phone: phoneField,
   notes: tidiedText({ optional: true, max: NOTES_MAX, multiline: true }),
   // The total the summary showed, in agorot (AC-8).
@@ -37,8 +37,8 @@ export const checkoutSchema = z.discriminatedUnion("fulfilment", [
     ...shared,
     fulfilment: z.literal("delivery"),
     zoneId: z.guid({ error: "zone_required" }),
-    city: tidiedText(CITY_LIMITS),
-    address: tidiedText(ADDRESS_LIMITS),
+    city: placeName(CITY_LIMITS),
+    address: addressText(ADDRESS_LIMITS),
   }),
 ]);
 

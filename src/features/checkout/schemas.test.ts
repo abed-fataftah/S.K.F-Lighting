@@ -110,6 +110,36 @@ describe("checkoutSchema", () => {
     expect(errorsOf({ ...pickup, expectedTotal: "-1" }).expectedTotal).toBeDefined();
   });
 
+  // covers: AC-1 to AC-5, AC-9 (spec 0012)
+  it("refuses an unrealistic name, city, and address with their own codes", () => {
+    const errors = errorsOf({ ...delivery, name: "أحمد", city: "رام الله 2", address: "12345" });
+    expect(errors.name).toEqual({ code: "name_full" });
+    expect(errors.city).toEqual({ code: "letters_only" });
+    expect(errors.address).toEqual({ code: "address_letters" });
+    expect(errorsOf({ ...delivery, address: "شارع ههههههه" }).address).toEqual({
+      code: "repeated",
+    });
+  });
+
+  it.each(["022123456", "+962791234567"])("asks for a mobile on %j", (phone) => {
+    expect(errorsOf({ ...pickup, phone }).phone).toEqual({ code: "phone_mobile" });
+  });
+
+  it.each([
+    ["+970599123456", "+970599123456"],
+    ["00972 54 123 4567", "+972541234567"],
+    ["٠٥٦١٢٣٤٥٦٧", "+970561234567"],
+    ["‏(059) 912-3456", "+970599123456"],
+  ])("takes the phone %j", (phone, e164) => {
+    expect(checkoutSchema.parse({ ...pickup, phone }).phone.e164).toBe(e164);
+  });
+
+  it("does not check the city or address rules on a pickup order", () => {
+    const result = checkoutSchema.parse({ ...pickup, city: "@@", address: "12345" });
+    expect(result).not.toHaveProperty("city");
+    expect(result).not.toHaveProperty("address");
+  });
+
   it("never puts a typed value in an error", () => {
     const errors = errorsOf({ ...pickup, phone: "0222222", name: "x" });
     expect(JSON.stringify(errors)).not.toMatch(/0222222/);

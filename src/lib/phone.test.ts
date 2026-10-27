@@ -48,6 +48,10 @@ describe("normalizePhone", () => {
     ["0599a23456", "a letter in it"],
     ["970599123456", "a country code without + or 00"],
     ["٠٢ ٢٧٤ ١٢٣٤", "a landline in Arabic digits"],
+    // covers: AC-2 (spec 0012): these rules are final, so the examples are pinned here.
+    ["022123456", "a landline without spaces"],
+    ["+962791234567", "a Jordanian mobile"],
+    ["00962791234567", "a Jordanian mobile with 00"],
   ])("returns null for %s (%s)", (raw) => {
     expect(normalizePhone(raw)).toBeNull();
   });

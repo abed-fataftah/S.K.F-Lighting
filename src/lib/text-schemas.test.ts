@@ -2,7 +2,15 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import ar from "@/i18n/messages/ar.json";
 import { normalizePhone } from "./phone";
-import { arabicText, digitsField, textErrors, tidiedText } from "./text-schemas";
+import {
+  addressText,
+  arabicText,
+  digitsField,
+  personName,
+  placeName,
+  textErrors,
+  tidiedText,
+} from "./text-schemas";
 
 // covers: AC-9, AC-10, AC-11 (spec 0005)
 
@@ -99,6 +107,96 @@ describe("digitsField", () => {
   it("reads a price typed with Arabic separators", () => {
     const price = digitsField((clean) => clean, z.string());
     expect(price.parse("١٬٢٥٠")).toBe("1,250");
+  });
+});
+
+// covers: AC-1, AC-3, AC-4, AC-9 (spec 0012)
+describe("personName", () => {
+  const name = personName({ min: 2, max: 80 });
+
+  it.each([
+    "أحمد يوسف",
+    "Ahmad Yousef",
+    "أحمد O'Neil",
+    "Abu-Bakr Saleh",
+    "مُحَمَّد عَلِيّ",
+    "سارة ’Ali",
+    "  أحمد   يوسف ",
+  ])("accepts %j", (text) => {
+    expect(name.safeParse(text).success).toBe(true);
+  });
+
+  it.each([
+    ["أحمد", "name_full"],
+    ["ا ب", "name_full"],
+    ["أحمد '", "name_full"],
+    ["أحمد اً", "name_full"],
+    ["عبدالله", "name_full"],
+    ["أحمد 2", "letters_only"],
+    ["أحمد2", "letters_only"],
+    ["أحمد 😊", "letters_only"],
+    ["أحمد_يوسف", "letters_only"],
+    ["أحمد ٣", "letters_only"],
+    ["أ", "too_short"],
+    ["ا".repeat(81), "too_long"],
+  ])("refuses %j with %s", (text, error) => {
+    expect(issueOf(name.safeParse(text))).toBe(error);
+  });
+
+  it("shows only the first failure, length before characters before words", () => {
+    expect(name.safeParse("2").error?.issues).toHaveLength(1);
+    expect(issueOf(name.safeParse("2"))).toBe("too_short");
+    expect(name.safeParse("أحمد2").error?.issues).toHaveLength(1);
+  });
+
+  it("saves the tidied name", () => {
+    expect(name.parse(" أحمـــد‏  يوسف ")).toBe("أحمد يوسف");
+  });
+});
+
+describe("placeName", () => {
+  const city = placeName({ min: 2, max: 60 });
+
+  it.each(["رام الله - البيرة", "القدس (الشرقية)", "Kafr Qasim", "رام الله", "St. Elias", "ر.ا"])(
+    "accepts %j",
+    (text) => {
+      expect(city.safeParse(text).success).toBe(true);
+    },
+  );
+
+  it.each([
+    ["رام الله 2", "letters_only"],
+    ["@@", "letters_only"],
+    ["نابلس،", "letters_only"],
+    ["ر", "too_short"],
+  ])("refuses %j with %s", (text, error) => {
+    expect(issueOf(city.safeParse(text))).toBe(error);
+  });
+});
+
+describe("addressText", () => {
+  const address = addressText({ min: 5, max: 300 });
+
+  it.each([
+    "رام الله، شارع الإرسال، بناية 12",
+    "قطعة 00000 قرب المسجد",
+    "قطعة ٠٠٠٠٠ قرب المسجد",
+    "abc 12",
+    "شارع هههه",
+  ])("accepts %j", (text) => {
+    expect(address.safeParse(text).success).toBe(true);
+  });
+
+  it.each([
+    ["12345", "address_letters"],
+    ["....!", "address_letters"],
+    ["ab 12", "address_letters"],
+    ["شارع ههههههه", "repeated"],
+    ["شارع ههههه", "repeated"],
+    ["شارع 12 .....", "repeated"],
+    ["شارع", "too_short"],
+  ])("refuses %j with %s", (text, error) => {
+    expect(issueOf(address.safeParse(text))).toBe(error);
   });
 });
 
