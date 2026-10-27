@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatOrderNumber, orderYear } from "./order-number";
+import { formatOrderNumber, isOrderNumber, orderYear } from "./order-number";
 
 // covers: AC-7 (spec 0002)
 describe("formatOrderNumber", () => {
@@ -34,4 +34,18 @@ describe("orderYear", () => {
   it("follows summer time too (UTC+3)", () => {
     expect(orderYear(new Date("2026-07-01T12:00:00Z"))).toBe(2026);
   });
+});
+
+// covers: AC-1 (spec 0013)
+describe("isOrderNumber", () => {
+  it.each(["26-00042", "26-123456"])("accepts %s", (text) => {
+    expect(isOrderNumber(text)).toBe(true);
+  });
+
+  it.each(["2600042", "26-0042", "26-00042x", " 26-00042", "", "٢٦-٠٠٠٤٢"])(
+    "refuses %j",
+    (text) => {
+      expect(isOrderNumber(text)).toBe(false);
+    },
+  );
 });

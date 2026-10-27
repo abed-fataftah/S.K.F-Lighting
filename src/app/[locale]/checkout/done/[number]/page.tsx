@@ -7,8 +7,10 @@ import { Ltr } from "@/components/ltr";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CopyOrderNumber } from "@/features/checkout/components/copy-order-number";
 import { WhatsAppHandoff } from "@/features/checkout/components/whatsapp-handoff";
 import { getPlacedOrder } from "@/features/checkout/server/queries";
+import { OrderSummary } from "@/features/orders/components/order-summary";
 import { buildNewOrderMessage } from "@/features/orders/whatsapp-message";
 import { Link } from "@/i18n/navigation";
 import { parsePublicEnv } from "@/lib/public-env";
@@ -20,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("confirmation"), robots: { index: false } };
 }
 
-// The confirmation (spec 0004 AC-11, AC-12; docs/design/pages/confirmation.md). Opens only in the
+// The confirmation (spec 0004 AC-11, AC-12; spec 0013; docs/design/pages/confirmation.md). Opens only in the
 // browser whose `skf_placed` cookie holds the order; anyone else gets the not found page.
 export default async function ConfirmationPage({
   params,
@@ -58,6 +60,13 @@ export default async function ConfirmationPage({
         >
           <Ltr>{order.orderNumber}</Ltr>
         </p>
+        <CopyOrderNumber number={order.orderNumber} />
+        <p data-testid="order-phone">
+          {t.rich("phoneLine", {
+            phone: order.customerPhone,
+            ltr: (chunks) => <Ltr>{chunks}</Ltr>,
+          })}
+        </p>
         <p className="type-small text-muted">{t("keep")}</p>
       </Card>
 
@@ -86,6 +95,19 @@ export default async function ConfirmationPage({
           {t("back")}
         </ButtonLink>
       </div>
+
+      <OrderSummary
+        lines={order.lines}
+        fulfilment={order.fulfilment}
+        deliveryZoneName={order.deliveryZoneName}
+        city={order.city}
+        address={order.address}
+        pickupAddress={order.pickupAddress}
+        notes={order.notes}
+        subtotal={order.subtotal}
+        deliveryFee={order.deliveryFee}
+        total={order.total}
+      />
     </div>
   );
 }

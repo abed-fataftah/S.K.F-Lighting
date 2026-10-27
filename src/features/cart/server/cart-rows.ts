@@ -1,7 +1,8 @@
 import "server-only";
 import { eq, inArray, sql } from "drizzle-orm";
+import { firstProductImageKey } from "@/features/catalog/server/product-image-sql";
 import { categoryShown, parentCategory } from "@/features/catalog/server/storefront-sql";
-import { categories, colours, productMedia, products, productVariants } from "@/server/db/schema";
+import { categories, colours, products, productVariants } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import type { CartRow } from "../cart-view";
 
@@ -28,10 +29,7 @@ export async function readCartRows(
       price: productVariants.price,
       variantAvailable: productVariants.isAvailable,
       archivedAt: productVariants.archivedAt,
-      // The product's first photo, the same one its card shows (photos are per product, spec 0009).
-      imageKey: sql<
-        string | null
-      >`(select m.storage_key from ${productMedia} m where m.product_id = ${products.id} and m.kind = 'image' order by m.sort, m.id limit 1)`,
+      imageKey: firstProductImageKey(products.id),
     })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))

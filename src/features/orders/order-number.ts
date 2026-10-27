@@ -18,3 +18,8 @@ export function formatOrderNumber(year: number, seq: number): string {
   const yy = String(year % 100).padStart(2, "0");
   return `${yy}-${String(seq).padStart(5, "0")}`;
 }
+
+/** `true` for text shaped like an order number, `YY-NNNNN` or longer (spec 0013 AC-1). */
+export function isOrderNumber(text: string): boolean {
+  return /^\d{2}-\d{5,}$/.test(text);
+}

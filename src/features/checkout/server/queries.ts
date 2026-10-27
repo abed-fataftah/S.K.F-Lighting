@@ -1,8 +1,10 @@
 import "server-only";
 import { and, asc, eq, inArray } from "drizzle-orm";
+import { firstProductImageKey } from "@/features/catalog/server/product-image-sql";
 import type { MessageOrder } from "@/features/orders/whatsapp-message";
 import { getDb } from "@/server/db";
 import { orderLines, orders } from "@/server/db/schema";
+import type { Database, Transaction } from "@/server/db/types";
 import { readActiveZones, readPickupAddress, type DeliveryZoneOption } from "./checkout-options";
 import { readPlacedIds } from "./placed";
 
@@ -17,7 +19,13 @@ export async function getCheckoutOptions(): Promise<CheckoutOptions> {
   return { zones, pickupAddress };
 }
 
-export type PlacedOrder = MessageOrder & { readonly id: string };
+export type PlacedOrder = MessageOrder & {
+  readonly id: string;
+  readonly subtotal: number;
+  /** The shop's current address for a pickup order, `null` for delivery or when blank. */
+  readonly pickupAddress: string | null;
+  readonly lines: readonly (MessageOrder["lines"][number] & { readonly imageKey: string | null })[];
+};
 
 /**
  * The order behind a confirmation page (spec 0004 AC-11), only when this browser's `skf_placed`
@@ -26,8 +34,16 @@ export type PlacedOrder = MessageOrder & { readonly id: string };
 export async function getPlacedOrder(orderNumber: string): Promise<PlacedOrder | null> {
   const ids = await readPlacedIds();
   if (ids.length === 0) return null;
+  return readPlacedOrder(await getDb(), orderNumber, ids);
+}
 
-  const db = await getDb();
+/** The saved order with this number among `placedIds`, with what its summary shows (spec 0013). */
+export async function readPlacedOrder(
+  db: Database | Transaction,
+  orderNumber: string,
+  placedIds: readonly string[],
+): Promise<PlacedOrder | null> {
+  if (placedIds.length === 0) return null;
   const [order] = await db
     .select({
       id: orders.id,
@@ -38,25 +54,30 @@ export async function getPlacedOrder(orderNumber: string): Promise<PlacedOrder |
       deliveryZoneName: orders.deliveryZoneName,
       city: orders.city,
       address: orders.address,
+      subtotal: orders.subtotal,
       deliveryFee: orders.deliveryFee,
       notes: orders.notes,
       total: orders.total,
     })
     .from(orders)
-    .where(and(eq(orders.orderNumber, orderNumber), inArray(orders.id, [...ids])))
+    .where(and(eq(orders.orderNumber, orderNumber), inArray(orders.id, [...placedIds])))
     .limit(1);
   if (!order) return null;
 
-  const lines = await db
-    .select({
-      productName: orderLines.productName,
-      sizeLabel: orderLines.sizeLabel,
-      colourName: orderLines.colourName,
-      quantity: orderLines.quantity,
-      lineTotal: orderLines.lineTotal,
-    })
-    .from(orderLines)
-    .where(eq(orderLines.orderId, order.id))
-    .orderBy(asc(orderLines.sort));
-  return { ...order, lines };
+  const [lines, pickupAddress] = await Promise.all([
+    db
+      .select({
+        productName: orderLines.productName,
+        sizeLabel: orderLines.sizeLabel,
+        colourName: orderLines.colourName,
+        quantity: orderLines.quantity,
+        lineTotal: orderLines.lineTotal,
+        imageKey: firstProductImageKey(orderLines.productId),
+      })
+      .from(orderLines)
+      .where(eq(orderLines.orderId, order.id))
+      .orderBy(asc(orderLines.sort)),
+    order.fulfilment === "pickup" ? readPickupAddress(db) : null,
+  ]);
+  return { ...order, pickupAddress, lines };
 }
