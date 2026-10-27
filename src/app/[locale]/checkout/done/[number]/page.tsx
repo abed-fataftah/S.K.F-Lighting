@@ -22,6 +22,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("confirmation"), robots: { index: false } };
 }
 
+// A broken `%` in the segment is a 404, never a server error (spec 0013 AC-2).
+function decodeSegment(raw: string): string | null {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return null;
+  }
+}
+
 // The confirmation (spec 0004 AC-11, AC-12; spec 0013; docs/design/pages/confirmation.md). Opens only in the
 // browser whose `skf_placed` cookie holds the order; anyone else gets the not found page.
 export default async function ConfirmationPage({
@@ -29,7 +38,9 @@ export default async function ConfirmationPage({
   searchParams,
 }: PageProps<"/[locale]/checkout/done/[number]">) {
   const [{ number }, query] = await Promise.all([params, searchParams]);
-  const order = await getPlacedOrder(decodeURIComponent(number));
+  const orderNumber = decodeSegment(number);
+  if (orderNumber === null) notFound();
+  const order = await getPlacedOrder(orderNumber);
   if (!order) notFound();
 
   const [t, messageT] = await Promise.all([

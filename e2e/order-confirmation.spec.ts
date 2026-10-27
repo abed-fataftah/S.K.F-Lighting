@@ -194,6 +194,18 @@ test("a delivery order shows its rows, address, notes, and saved totals, and eve
   await other.close();
 });
 
+test("an unknown number and a broken segment get the not found page, with no float", async ({
+  page,
+}) => {
+  // AC-2, AC-9, AC-13: both are a 404 on the root not found page, never a 500.
+  for (const segment of ["99-99999", "%E0%A4%A"]) {
+    const response = await page.goto(`/checkout/done/${segment}`);
+    expect(response?.status()).toBe(404);
+    await expect(page.getByText("الصفحة غير موجودة")).toBeVisible();
+    await expect(fab(page)).toHaveCount(0);
+  }
+});
+
 test("a pickup order shows pickup at the shop with no fee", async ({ page, context }) => {
   const slug = await productSlug("DEMO-1");
   test.skip(!slug, "needs the dev seed (pnpm db:seed)");
