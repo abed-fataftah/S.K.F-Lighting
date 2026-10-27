@@ -58,11 +58,17 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
 }
 
 // 13/700 danger with an error icon, announced as an alert.
-function FieldError({ className, children, ...props }: React.ComponentProps<"p">) {
+/** `announce={false}` drops the alert role, for an error a live check set while typing. */
+function FieldError({
+  className,
+  children,
+  announce = true,
+  ...props
+}: React.ComponentProps<"p"> & { readonly announce?: boolean }) {
   if (!children) return null;
   return (
     <p
-      role="alert"
+      role={announce ? "alert" : undefined}
       data-slot="field-error"
       className={cn("flex items-start gap-1.5 type-small font-bold text-danger", className)}
       {...props}

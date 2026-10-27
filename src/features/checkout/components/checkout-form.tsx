@@ -22,6 +22,7 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { checkoutTotal, type CartView } from "@/features/cart/cart-view";
 import { Link } from "@/i18n/navigation";
+import { fieldErrorsOf, formValues, type FieldError as FieldErrorValue } from "@/lib/form-errors";
 import { formatNumber } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
 import { routes } from "@/lib/routes";
@@ -30,6 +31,8 @@ import {
   ADDRESS_LIMITS,
   CITY_LIMITS,
   checkoutFieldOrder,
+  checkoutSchema,
+  HONEYPOT_FIELD,
   NAME_LIMITS,
   NOTES_MAX,
 } from "../schemas";
@@ -37,6 +40,9 @@ import type { DeliveryZoneOption } from "../server/checkout-options";
 import { placeOrder, type CheckoutState } from "../server/actions";
 
 type Fulfilment = "pickup" | "delivery";
+type TextField = "name" | "phone" | "city" | "address" | "notes";
+/** A live check's verdict over the send's error: an error replaces it, null clears it. */
+type LiveErrors = Readonly<Partial<Record<string, FieldErrorValue | null>>>;
 
 const fieldId = (field: string) => `checkout-${field}`;
 const errorId = (field: string) => `checkout-${field}-error`;
@@ -64,10 +70,18 @@ export function CheckoutForm({
 
   // The fresh cart and zones a refused submit sends back replace the ones the page rendered.
   const [fresh, setFresh] = useState({ cart: initialCart, zones: initialZones });
+  // Live checks (spec 0012 AC-7) start at the first refused send and stay on; each new refused
+  // send's errors replace whatever the live checks had set.
+  const [live, setLive] = useState(false);
+  const [liveErrors, setLiveErrors] = useState<LiveErrors>({});
   const [seenState, setSeenState] = useState(state);
   if (state !== seenState) {
     setSeenState(state);
     if (state?.cart && state.zones) setFresh({ cart: state.cart, zones: state.zones });
+    if (state?.error === "invalid") {
+      setLive(true);
+      setLiveErrors({});
+    }
   }
   const { cart, zones } = fresh;
 
@@ -78,8 +92,36 @@ export function CheckoutForm({
   const fee = delivery && zone ? zone.fee : 0;
   const total = checkoutTotal(cart, fee);
 
-  const fieldErrors = state?.error === "invalid" ? (state.fieldErrors ?? {}) : {};
+  const sentErrors = state?.error === "invalid" ? (state.fieldErrors ?? {}) : {};
+  const errorOf = (field: string): FieldErrorValue | undefined =>
+    field in liveErrors ? (liveErrors[field] ?? undefined) : sentErrors[field];
   const formRef = useRef<HTMLFormElement>(null);
+
+  // The same schema the server runs, over the form as it is now; only this field's issue counts.
+  const checkField = (field: TextField, form: HTMLFormElement | null): FieldErrorValue | null => {
+    if (!form) return null;
+    const result = checkoutSchema.safeParse(formValues(new FormData(form)));
+    return result.success ? null : (fieldErrorsOf(result.error)[field] ?? null);
+  };
+  type FieldEvent = { readonly currentTarget: HTMLInputElement | HTMLTextAreaElement };
+  // Typing only clears an error once the value passes; leaving the field sets it either way, so
+  // a new error never appears mid typing. Focus stays where it is.
+  const liveCheck = (field: TextField) => ({
+    onChange: (event: FieldEvent) => {
+      if (!live || checkField(field, event.currentTarget.form)) return;
+      setLiveErrors((errors) => ({ ...errors, [field]: null }));
+    },
+    onBlur: (event: FieldEvent) => {
+      if (!live) return;
+      const error = checkField(field, event.currentTarget.form);
+      setLiveErrors((errors) => ({ ...errors, [field]: error }));
+    },
+  });
+
+  const chooseFulfilment = (value: Fulfilment) => {
+    setFulfilment(value);
+    setLiveErrors((errors) => ({ ...errors, city: null, address: null, zoneId: null }));
+  };
 
   // Focus the first invalid field, in page order, after a refused submit.
   useEffect(() => {
@@ -96,9 +138,12 @@ export function CheckoutForm({
   };
 
   const invalid = (field: string) =>
-    fieldErrors[field] ? { "aria-invalid": true as const, "aria-describedby": errorId(field) } : {};
+    errorOf(field) ? { "aria-invalid": true as const, "aria-describedby": errorId(field) } : {};
+  // Only errors from a send are announced; a live one appears quietly under its field.
   const errorFor = (field: string) => (
-    <FieldError id={errorId(field)}>{errorText(fieldErrors[field])}</FieldError>
+    <FieldError id={errorId(field)} announce={!(field in liveErrors)}>
+      {errorText(errorOf(field))}
+    </FieldError>
   );
 
   const banner = state && state.error !== "invalid" ? t(`errors.${state.error}`) : null;
@@ -111,6 +156,19 @@ export function CheckoutForm({
       <input type="hidden" name="fulfilment" value={delivery ? "delivery" : "pickup"} />
       {delivery && zone ? <input type="hidden" name="zoneId" value={zone.id} /> : null}
 
+      {/* The bot trap (spec 0012 AC-8): out of view, out of the tab order, hidden from screen
+          readers, and inert, but still in the page for a bot that fills every field. */}
+      <div className="sr-only" inert aria-hidden="true">
+        <label htmlFor="checkout-trap">{t("honeypot")}</label>
+        <input
+          id="checkout-trap"
+          type="text"
+          name={HONEYPOT_FIELD}
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
+
       <Card>
         <h2 className="type-lead">{t("contact")}</h2>
         <FieldGroup>
@@ -122,6 +180,7 @@ export function CheckoutForm({
               autoComplete="name"
               maxLength={NAME_LIMITS.max * 2}
               required
+              {...liveCheck("name")}
               {...invalid("name")}
             />
             {errorFor("name")}
@@ -136,8 +195,9 @@ export function CheckoutForm({
               autoComplete="tel"
               dir="ltr"
               required
-              aria-describedby={fieldErrors.phone ? errorId("phone") : "checkout-phone-help"}
-              aria-invalid={fieldErrors.phone ? true : undefined}
+              {...liveCheck("phone")}
+              aria-describedby={errorOf("phone") ? errorId("phone") : "checkout-phone-help"}
+              aria-invalid={errorOf("phone") ? true : undefined}
             />
             <FieldDescription id="checkout-phone-help">{t("phoneHelp")}</FieldDescription>
             {errorFor("phone")}
@@ -153,7 +213,7 @@ export function CheckoutForm({
           id={fieldId("fulfilment")}
           aria-labelledby="checkout-method"
           value={delivery ? "delivery" : "pickup"}
-          onValueChange={(value) => setFulfilment(value as Fulfilment)}
+          onValueChange={(value) => chooseFulfilment(value as Fulfilment)}
           className="gap-2"
         >
           <RadioCard
@@ -202,6 +262,7 @@ export function CheckoutForm({
                 autoComplete="address-level2"
                 maxLength={CITY_LIMITS.max * 2}
                 required
+                {...liveCheck("city")}
                 {...invalid("city")}
               />
               {errorFor("city")}
@@ -215,10 +276,9 @@ export function CheckoutForm({
                 maxLength={ADDRESS_LIMITS.max * 2}
                 required
                 className="min-h-22"
-                aria-invalid={fieldErrors.address ? true : undefined}
-                aria-describedby={
-                  fieldErrors.address ? errorId("address") : "checkout-address-help"
-                }
+                {...liveCheck("address")}
+                aria-invalid={errorOf("address") ? true : undefined}
+                aria-describedby={errorOf("address") ? errorId("address") : "checkout-address-help"}
               />
               <FieldDescription id="checkout-address-help">{t("addressHelp")}</FieldDescription>
               {errorFor("address")}
@@ -232,6 +292,7 @@ export function CheckoutForm({
             id={fieldId("notes")}
             name="notes"
             maxLength={NOTES_MAX * 2}
+            {...liveCheck("notes")}
             {...invalid("notes")}
           />
           {errorFor("notes")}

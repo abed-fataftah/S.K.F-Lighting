@@ -7,7 +7,7 @@ import { fieldErrorsOf, formValues, type FieldErrors } from "@/lib/form-errors";
 import type { Fail } from "@/lib/result";
 import { routes } from "@/lib/routes";
 import { getDb } from "@/server/db";
-import { checkoutSchema } from "../schemas";
+import { checkoutSchema, HONEYPOT_FIELD } from "../schemas";
 import type { DeliveryZoneOption } from "./checkout-options";
 import { placeOrderInDb } from "./place-order";
 import { rememberPlacedOrder } from "./placed";
@@ -40,6 +40,13 @@ function logFailure(error: CheckoutError, fields: readonly string[] = []) {
 
 /** Place the order (spec 0004 AC-7 to AC-9): parse, check and save in one transaction, redirect. */
 export async function placeOrder(_previous: CheckoutState, form: FormData): Promise<CheckoutState> {
+  // Step 0: a filled trap saves nothing and costs no rate limit or database call (spec 0012 AC-8).
+  const trap = form.get(HONEYPOT_FIELD);
+  if (typeof trap === "string" && trap.trim() !== "") {
+    console.warn(JSON.stringify({ event: "order_honeypot" }));
+    return { ok: false, error: "save_failed" };
+  }
+
   const parsed = checkoutSchema.safeParse(formValues(form));
   if (!parsed.success) {
     const fieldErrors = fieldErrorsOf(parsed.error);

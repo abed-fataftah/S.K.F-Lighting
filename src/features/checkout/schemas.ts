@@ -44,6 +44,12 @@ export const checkoutSchema = z.discriminatedUnion("fulfilment", [
 
 export type CheckoutInput = z.output<typeof checkoutSchema>;
 
+/**
+ * The hidden trap field (spec 0012 AC-8). People and screen readers never reach it, so a value
+ * means a bot filled it. It is read before parsing and is not part of `checkoutSchema`.
+ */
+export const HONEYPOT_FIELD = "company_fax_2";
+
 /** The order of the fields on the page, so focus can move to the first one in error. */
 export const checkoutFieldOrder = [
   "name",
