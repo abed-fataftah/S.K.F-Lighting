@@ -21,7 +21,8 @@ export async function expectNoAxeViolations(page: Page) {
 }
 
 // Every visible interactive element is at least 44 by 44. A checkbox or radio is
-// measured by its label row; hidden inputs and a visually hidden skip link are skipped.
+// measured by its label row; hidden inputs, a visually hidden skip link, and anything inert are
+// skipped.
 export async function expectTouchTargets(page: Page) {
   const small = await page.evaluate(() => {
     const selector = [
@@ -41,6 +42,8 @@ export async function expectTouchTargets(page: Page) {
     return [...document.querySelectorAll<HTMLElement>(selector)].flatMap((el) => {
       const style = getComputedStyle(el);
       if (style.visibility === "hidden" || style.display === "none") return [];
+      // Inside an inert subtree (the checkout bot trap): nobody can tap or focus it.
+      if (el.closest("[inert]")) return [];
       let rect = el.getBoundingClientRect();
       // Visually hidden (sr-only) or not rendered: nothing to tap.
       if (rect.width <= 1 || rect.height <= 1) return [];
