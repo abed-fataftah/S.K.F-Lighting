@@ -16,6 +16,8 @@ describe("orderNumberInPath", () => {
     "/checkout/done/abc",
     "/checkout/done/%E0%A4%A",
     "/checkout/done/26-00042/x",
+    "/checkout/done/26%2F00042",
+    "/checkout/done/%D9%A2%D9%A6-00042",
     "/checkout/done/",
     "/checkout/done",
     "/checkout",
