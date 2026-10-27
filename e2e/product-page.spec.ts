@@ -13,8 +13,9 @@ import { localSql } from "./local-db";
 // its default; a size change updates the price and the address; the unticked pair's colour is
 // disabled for that size; a reload keeps the choice; 2 units go to the cart with that size and
 // colour; the arrows loop the counter; the full screen view opens and closes with focus back;
-// share copies the link; a stale add moves the choice; an out of stock product offers only W4; an
-// unknown slug is a real 404. Axe runs in stock, out of stock, and on the full screen view.
+// share copies the link; a stale add moves the choice and keeps the quantity, as chip changes do; a
+// product that sells out while open turns into the out of stock page; an out of stock product
+// offers only W4; an unknown slug is a real 404. Axe runs in stock, out of stock, and on the full screen view.
 
 const expect = baseExpect.configure({ timeout: 15_000 });
 const accounts = adminAccounts();
@@ -119,6 +120,7 @@ const sizeChip = (page: Page, size: string) =>
 const colourChip = (page: Page, colour: string) =>
   page.getByRole("group", { name: "اللون" }).getByRole("button", { name: new RegExp(colour) });
 const price = (page: Page) => page.getByTestId("product-price");
+const quantity = (page: Page) => page.getByRole("textbox", { name: "الكمية", exact: true });
 
 test("a customer chooses a size and colour, sees the price follow, and buys that pair", async ({
   page,
@@ -134,10 +136,15 @@ test("a customer chooses a size and colour, sees the price follow, and buys that
   expect(new URL(page.url()).search).toBe("");
   await checkA11y(page);
 
+  // The quantity belongs to the provider, so it survives every chip change below (AC-8).
+  await page.getByRole("button", { name: "زيادة الكمية" }).click();
+  await expect(quantity(page)).toHaveValue("2");
+
   // A size change updates the price and the address at once (AC-5, AC-6).
   await sizeChip(page, "60 سم").click();
   await expect(price(page)).toHaveText("₪450");
   await expect(page).toHaveURL(new RegExp(`\\?v=${ids["60-gold"]}$`));
+  await expect(quantity(page)).toHaveValue("2");
 
   // Follow the size: black is disabled for 60 سم only, with the visible note (AC-3).
   await expect(colourChip(page, BLACK)).toBeDisabled();
@@ -150,6 +157,7 @@ test("a customer chooses a size and colour, sees the price follow, and buys that
   await sizeChip(page, "60 سم").click();
   await expect(colourChip(page, GOLD)).toHaveAttribute("aria-pressed", "true");
   await expect(page).toHaveURL(new RegExp(`\\?v=${ids["60-gold"]}$`));
+  await expect(quantity(page)).toHaveValue("2");
 
   // W3 names the size and colour and links the same choice (AC-9).
   const whatsapp = decodeURIComponent(
@@ -217,6 +225,8 @@ test("a pair that sells out after the page loaded is refused and the choice move
 }) => {
   await page.goto(productPath(slug));
   await expect(colourChip(page, GOLD)).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "زيادة الكمية" }).click();
+  await page.getByRole("button", { name: "زيادة الكمية" }).click();
   const sql = localSql();
   try {
     await sql`update product_variants set is_available = false where id = ${ids["40-gold"]}`;
@@ -225,8 +235,34 @@ test("a pair that sells out after the page loaded is refused and the choice move
     await expect(page).toHaveURL(new RegExp(`\\?v=${ids["40-black"]}$`));
     await expect(colourChip(page, BLACK)).toHaveAttribute("aria-pressed", "true");
     await expect(colourChip(page, GOLD)).toBeDisabled();
+    // The refresh moved the choice but kept the quantity (AC-8).
+    await expect(quantity(page)).toHaveValue("3");
   } finally {
     await sql`update product_variants set is_available = true where id = ${ids["40-gold"]}`;
+    await sql.end();
+  }
+});
+
+test("a product that goes out of stock after the page loaded turns into the out of stock page", async ({
+  page,
+}) => {
+  await page.goto(productPath(slug));
+  await page.getByRole("button", { name: "زيادة الكمية" }).click();
+  await expect(quantity(page)).toHaveValue("2");
+  const sql = localSql();
+  try {
+    await sql`update products set is_available = false where code = ${CODE}`;
+    await page.getByTestId("add-to-cart").click();
+    await expect(page.getByTestId("add-problem")).toHaveText("هذا المنتج لم يعد متوفرًا.");
+    // The refresh finds nothing to sell: no choice, no stepper, the disabled button (AC-7, AC-8).
+    await expect(page.getByTestId("add-to-cart")).toHaveText("غير متوفر");
+    await expect(page.getByTestId("add-to-cart")).toBeDisabled();
+    await expect(page.getByTestId("product-stock")).toHaveText("غير متوفر");
+    await expect(quantity(page)).toHaveCount(0);
+    await expect(sizeChip(page, "40 سم")).toBeDisabled();
+    await expect(sizeChip(page, "40 سم")).not.toHaveAttribute("aria-pressed", "true");
+  } finally {
+    await sql`update products set is_available = true where code = ${CODE}`;
     await sql.end();
   }
 });
