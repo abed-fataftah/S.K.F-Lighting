@@ -32,7 +32,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 9 | Categories & browsing | Slice 2 | in-progress |
 | 10 | Product page | Slice 2 | in-progress |
 | 11 | Search & filters | Slice 2 | in-progress |
-| 12 | Cart | Slice 3 | planned |
+| 12 | Cart | Slice 3 | done |
 | 13 | Checkout & delivery | Slice 3 | planned |
 | 14 | Order confirmation & WhatsApp | Slice 3 | planned |
 | 15 | Order management | Slice 4 | planned |
@@ -60,7 +60,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 - [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 1 of 6 done.
 - [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 0 of 6 done.
-- [Ordering](ordering.md): features 12 to 17 (cart, checkout, confirmation, order management, lookup, cancel). 0 of 6 done.
+- [Ordering](ordering.md): features 12 to 17 (cart, checkout, confirmation, order management, lookup, cancel). 1 of 6 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
 - [Site & launch](site.md): features 26, 28 to 30 (settings and policies, search visibility, stats, go live). 0 of 4 done.

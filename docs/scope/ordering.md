@@ -4,10 +4,11 @@ Part of the [S.K.F Lighting scope](index.md). From cart to a saved order you can
 
 ## Slice 3: Cart & checkout
 
-### 12. Cart
+### 12. Cart · done
 Review chosen products with their options, change quantities, remove items, and see the total.
 **Done when:** the cart keeps its items between visits, the total updates as quantities change, and items that went out of stock are flagged before ordering.
-- [ ] Build it: `/develop cart`
+spec [0004](../specs/0004-first-order-end-to-end/index.md) (cart behavior, AC-4, AC-5) · code in `src/features/cart/`, `src/app/[locale]/cart/`
+- [x] Build it: `/develop cart`
 
 ### 13. Checkout & delivery · needs a decision
 The order form: full name, phone, area and city or town, a detailed address when delivery is chosen, and optional notes. Choose shop pickup or delivery; the delivery fee (West Bank ₪20, ’48 areas ₪70) is added to the total.

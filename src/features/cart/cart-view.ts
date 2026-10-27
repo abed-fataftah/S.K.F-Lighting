@@ -22,6 +22,8 @@ export type CartRow = {
   readonly price: number;
   readonly variantAvailable: boolean;
   readonly archivedAt: Date | null;
+  /** The product's first photo, or null for the placeholder. */
+  readonly imageKey: string | null;
 };
 
 export type CartViewLine = {
@@ -33,6 +35,7 @@ export type CartViewLine = {
   readonly slug: string | null;
   readonly sizeLabel: string | null;
   readonly colourName: string | null;
+  readonly imageKey: string | null;
   readonly unitPrice: number;
   readonly quantity: number;
   readonly lineTotal: number;
@@ -60,6 +63,7 @@ export function buildCartView(cart: readonly CartLine[], rows: readonly CartRow[
         slug: null,
         sizeLabel: null,
         colourName: null,
+        imageKey: null,
         unitPrice: 0,
         quantity: line.quantity,
         lineTotal: 0,
@@ -73,6 +77,7 @@ export function buildCartView(cart: readonly CartLine[], rows: readonly CartRow[
       slug: row.productStatus === "active" && row.categoryShown ? row.slug : null,
       sizeLabel: row.sizeLabel,
       colourName: row.colourName,
+      imageKey: row.imageKey,
       unitPrice: row.price,
       quantity: line.quantity,
       lineTotal: computeLineTotal(row.price, line.quantity),

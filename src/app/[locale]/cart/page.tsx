@@ -1,5 +1,6 @@
 import { ShoppingCart } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { ImagePlaceholder } from "@/components/image-placeholder";
@@ -49,7 +50,7 @@ export default async function CartPage() {
           text={t("emptyText")}
           actions={
             <>
-              <ButtonLink size="lg" render={<Link href={routes.home} />}>
+              <ButtonLink size="lg" render={<Link href={routes.categories} />}>
                 {t("browse")}
               </ButtonLink>
               <ButtonLink
@@ -91,13 +92,28 @@ export default async function CartPage() {
           return (
             <li key={line.variantId}>
               <Card className="flex-row gap-3">
-                <ImagePlaceholder
-                  tone={((index % 4) + 1) as 1 | 2 | 3 | 4}
-                  className={cn(
-                    "size-18 shrink-0 rounded-tile [&_svg]:size-8",
-                    !line.sellable && "opacity-45",
-                  )}
-                />
+                {line.imageKey ? (
+                  // Decorative: the product name sits beside it as a link.
+                  <Image
+                    src={line.imageKey}
+                    alt=""
+                    width={72}
+                    height={72}
+                    sizes="72px"
+                    className={cn(
+                      "size-18 shrink-0 rounded-tile bg-product-1 object-cover",
+                      !line.sellable && "opacity-45",
+                    )}
+                  />
+                ) : (
+                  <ImagePlaceholder
+                    tone={((index % 4) + 1) as 1 | 2 | 3 | 4}
+                    className={cn(
+                      "size-18 shrink-0 rounded-tile [&_svg]:size-8",
+                      !line.sellable && "opacity-45",
+                    )}
+                  />
+                )}
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex items-start justify-between gap-2">
                     {line.slug ? (
@@ -174,7 +190,7 @@ export default async function CartPage() {
               {t("checkout")}
             </ButtonLink>
           )}
-          <ButtonLink variant="outline" size="lg" render={<Link href={routes.home} />}>
+          <ButtonLink variant="outline" size="lg" render={<Link href={routes.categories} />}>
             {t("keepShopping")}
           </ButtonLink>
         </div>

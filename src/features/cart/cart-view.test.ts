@@ -20,6 +20,7 @@ const row = (n: number, over: Partial<CartRow> = {}): CartRow => ({
   price: 1000 * n,
   variantAvailable: true,
   archivedAt: null,
+  imageKey: null,
   ...over,
 });
 
@@ -76,6 +77,28 @@ describe("the cart line link", () => {
     expect(line({ productAvailable: false }).slug).toBe("p-1");
     expect(line({ categoryShown: false }).slug).toBeNull();
     expect(line({ productStatus: "hidden" }).slug).toBeNull();
+  });
+});
+
+describe("the cart line photo", () => {
+  it("shows the product's first photo, and none for a missing variant", () => {
+    const view = buildCartView(
+      [
+        { variantId: id(1), quantity: 1 },
+        { variantId: id(2), quantity: 1 },
+        { variantId: id(9), quantity: 1 },
+      ],
+      [row(1, { imageKey: "products/p-1/a.webp" }), row(2)],
+    );
+    expect(view.lines.map((line) => line.imageKey)).toEqual(["products/p-1/a.webp", null, null]);
+  });
+
+  it("keeps the photo on a line that can no longer be sold", () => {
+    const view = buildCartView(
+      [{ variantId: id(1), quantity: 1 }],
+      [row(1, { imageKey: "products/p-1/a.webp", variantAvailable: false })],
+    );
+    expect(view.lines[0]).toMatchObject({ imageKey: "products/p-1/a.webp", sellable: false });
   });
 });
 
