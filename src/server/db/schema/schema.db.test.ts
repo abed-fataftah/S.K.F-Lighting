@@ -129,6 +129,7 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
           "orders_city_check",
           "orders_idempotency_key_unique",
           "orders_cancelled_check",
+          "orders_delivered_check",
           "order_lines_line_total_check",
           "order_lines_variant_product_fk",
           "product_variants_options_unique",
@@ -551,6 +552,24 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
             status: "cancelled",
           }),
         );
+      });
+    });
+
+    // covers: AC-18 (spec 0014)
+    it("ties delivered_at to the delivered status, both ways", async () => {
+      await withRollback(db, async (tx) => {
+        const pickup = { ...base, fulfilment: "pickup" as const, total: base.subtotal };
+        await expectViolation(tx, "orders_delivered_check", (sp) =>
+          sp.insert(orders).values({ ...pickup, orderNumber: "T-17", status: "delivered" }),
+        );
+        await expectViolation(tx, "orders_delivered_check", (sp) =>
+          sp
+            .insert(orders)
+            .values({ ...pickup, orderNumber: "T-18", status: "ready", deliveredAt: new Date() }),
+        );
+        await tx
+          .insert(orders)
+          .values({ ...pickup, orderNumber: "T-19", status: "delivered", deliveredAt: new Date() });
       });
     });
   });

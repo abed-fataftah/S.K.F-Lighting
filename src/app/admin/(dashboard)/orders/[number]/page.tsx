@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Ltr } from "@/components/ltr";
-import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,10 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { adminContactMessage } from "@/features/orders/admin-contact-message";
+import { OrderHistory } from "@/features/orders/components/order-history";
+import { OrderStatusCard } from "@/features/orders/components/order-status-card";
+import { OrderStatusBadge } from "@/features/orders/components/status-badge";
 import { getAdminOrder } from "@/features/orders/server/admin-queries";
 import { formatDateTime, formatNumber, formatPhone } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
 import { routes } from "@/lib/routes";
+import { whatsappUrl } from "@/lib/whatsapp";
 
 export async function generateMetadata({
   params,
@@ -27,8 +31,9 @@ export async function generateMetadata({
   return { title: t("orderMeta", { number: decodeURIComponent(number) }) };
 }
 
-// One order (spec 0004 AC-13; docs/design/pages/admin-order-details.md without status, payments,
-// and price edits, which come with features 15 and 24). Opening it clears its "جديد" flag.
+// One order (spec 0004 AC-13, spec 0014; docs/design/pages/admin-order-details.md without payments
+// and price edits, which come with features 23 and 24): its status card, customer, and history.
+// Opening it marks it seen (spec 0014 AC-14).
 export default async function AdminOrderPage({ params }: PageProps<"/admin/orders/[number]">) {
   const { number } = await params;
   const [t, order] = await Promise.all([
@@ -37,6 +42,13 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
   ]);
   if (!order) notFound();
   const delivery = order.fulfilment === "delivery";
+  const contact = whatsappUrl(
+    order.phoneE164,
+    adminContactMessage(
+      { name: order.name, number: order.number, statusLabel: t(`status.${order.status}`) },
+      (key, values) => t(key, values),
+    ),
+  );
 
   const details: readonly (readonly [string, React.ReactNode])[] = [
     [t("name"), order.name],
@@ -63,11 +75,22 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="flex items-center gap-2 type-display-s">
           {t("orderTitle")} <Ltr>{order.number}</Ltr>
-          {order.wasNew ? <Badge variant="new">{t("new")}</Badge> : null}
+          <OrderStatusBadge status={order.status} data-testid="order-header-status" />
         </h1>
-        <ButtonLink variant="outline" render={<Link href={routes.admin.orders} />}>
-          {t("backToOrders")}
-        </ButtonLink>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink
+            variant="whatsapp"
+            href={contact}
+            target="_blank"
+            rel="noopener"
+            data-testid="order-contact"
+          >
+            {t("contact")}
+          </ButtonLink>
+          <ButtonLink variant="outline" render={<Link href={routes.admin.orders} />}>
+            {t("backToOrders")}
+          </ButtonLink>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-start gap-4">
@@ -130,17 +153,30 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
           </Card>
         </section>
 
-        <Card className="min-w-0 flex-[1_1_var(--admin-detail-side)]">
-          <h2 className="type-title-s">{t("customerCard")}</h2>
-          <dl className="flex flex-col gap-2">
-            {details.map(([label, value]) => (
-              <div key={label} className="flex flex-col">
-                <dt className="type-small text-muted">{label}</dt>
-                <dd className="break-words whitespace-pre-line">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
+        <div className="flex min-w-0 flex-[1_1_var(--admin-detail-side)] flex-col gap-4">
+          <OrderStatusCard
+            orderId={order.id}
+            number={order.number}
+            fulfilment={order.fulfilment}
+            status={order.status}
+            deliveredAt={order.deliveredAt}
+            cancelledAt={order.cancelledAt}
+            cancelledBy={order.cancelledBy}
+            cancelReason={order.cancelReason}
+          />
+          <Card>
+            <h2 className="type-title-s">{t("customerCard")}</h2>
+            <dl className="flex flex-col gap-2">
+              {details.map(([label, value]) => (
+                <div key={label} className="flex flex-col">
+                  <dt className="type-small text-muted">{label}</dt>
+                  <dd className="break-words whitespace-pre-line">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+          <OrderHistory events={order.events} />
+        </div>
       </div>
     </>
   );

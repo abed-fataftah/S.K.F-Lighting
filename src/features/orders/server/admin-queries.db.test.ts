@@ -68,22 +68,23 @@ describe.skipIf(!hasLocalDb)("dashboard order reads on the local database", () =
           name: "زبون اختبار",
           phoneE164: "+970599123456",
           fulfilment: "pickup",
-          isNew: true,
+          isUnseen: true,
         },
-        { number: older.orderNumber, total: 25_000, isNew: true },
+        { number: older.orderNumber, total: 25_000, isUnseen: true },
       ]);
 
       const opened = await readAdminOrder(tx, newer.orderNumber);
       expect(opened).toMatchObject({
         number: newer.orderNumber,
         phoneE164: "+970599123456",
-        wasNew: true,
+        status: "new",
+        events: [{ type: "created", actorKind: "guest", toStatus: null }],
         lines: [{ name: "ثريا اختبار", code: "TEST-ADM", quantity: 2, lineTotal: 25_000 }],
       });
       await markOrderSeen(tx, newer.id);
 
       const after = await readAdminOrders(tx, 1);
-      expect(after.rows.slice(0, 2).map((row) => row.isNew)).toEqual([false, true]);
+      expect(after.rows.slice(0, 2).map((row) => row.isUnseen)).toEqual([false, true]);
       const [event] = await tx.select().from(orderEvents).where(eq(orderEvents.orderId, newer.id));
       expect(event.seenAt).toBeInstanceOf(Date);
     });

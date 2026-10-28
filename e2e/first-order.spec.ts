@@ -13,7 +13,7 @@ import {
 // AC-17 (spec 0008: the category is made on the categories page first).
 // The tracer bullet end to end on a phone sized right to left screen: the owner signs in with a code
 // and adds a product in the product editor, a guest orders it for delivery, and the owner sees the
-// order flagged "جديد" until they open it.
+// order flagged with the unseen dot until they open it (spec 0014 AC-8).
 
 const expect = baseExpect.configure({ timeout: 15_000 });
 const accounts = adminAccounts();
@@ -42,10 +42,13 @@ async function expectMoneyAndTime(scope: Locator) {
   await expect(
     scope.locator("bdi[dir=ltr]", { hasText: /^₪[\d,]+(\.\d{2})?$/ }).first(),
   ).toBeVisible();
-  const time = scope.locator("time");
-  await expect(time).toHaveCount(1);
-  await expect(time).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-  await expect(time).toHaveText(/^\d{2}\/\d{2}\/\d{4} · \d{1,2}:\d{2} [صم]$/);
+  // The order page also lists each history entry with its own time (spec 0014 AC-6).
+  const times = await scope.locator("time").all();
+  expect(times.length).toBeGreaterThan(0);
+  for (const time of times) {
+    await expect(time).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    await expect(time).toHaveText(/^\d{2}\/\d{2}\/\d{4} · \d{1,2}:\d{2} [صم]$/);
+  }
   await expect(scope.locator("bdi time, time bdi")).toHaveCount(0);
 }
 
@@ -114,7 +117,7 @@ test("the owner adds a product, a guest orders it, and the owner sees the order 
   // The owner's list flags it; opening it clears the flag.
   await page.goto("/admin/orders");
   const row = page.getByTestId(`order-row-${number}`);
-  await expect(row.getByText("جديد")).toBeVisible();
+  await expect(row.getByTestId("order-unseen")).toBeVisible();
   // The phone reads through formatPhone, left to right (spec 0005 AC-8, AC-14).
   await expect(row.locator("bdi[dir=ltr]", { hasText: "059 912 3456" })).toHaveCount(1);
   await expectMoneyAndTime(row);
@@ -137,7 +140,7 @@ test("the owner adds a product, a guest orders it, and the owner sees the order 
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/admin\/orders$/);
   await expect(page.getByTestId(`order-row-${number}`)).toBeVisible();
-  await expect(page.getByTestId(`order-row-${number}`).getByText("جديد")).toHaveCount(0);
+  await expect(page.getByTestId(`order-row-${number}`).getByTestId("order-unseen")).toHaveCount(0);
 
   // One price, no "من": the products list shows it alone, left to right (spec 0005 AC-14).
   await page.goto(`/admin/products?q=${code}`);

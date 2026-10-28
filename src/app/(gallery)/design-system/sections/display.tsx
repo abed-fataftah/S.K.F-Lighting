@@ -28,6 +28,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -181,6 +187,18 @@ export async function DisplaySection() {
             </AlertDialogActions>
           </AlertDialogContent>
         </AlertDialog>
+      </SampleGroup>
+
+      <SampleGroup title={d("menuGroup")}>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="outline" />}>
+            {d("openMenu")}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>{d("menuFirst")}</DropdownMenuItem>
+            <DropdownMenuItem>{d("menuSecond")}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SampleGroup>
 
       <SampleGroup title={d("formDialogGroup")}>

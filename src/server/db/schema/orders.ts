@@ -88,6 +88,11 @@ export const orders = pgTable(
       "orders_cancelled_check",
       sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null)`,
     ),
+    // Spec 0014 AC-18: set exactly when the order is delivered.
+    check(
+      "orders_delivered_check",
+      sql`(${t.status} = 'delivered') = (${t.deliveredAt} is not null)`,
+    ),
   ],
 ).enableRLS();
 

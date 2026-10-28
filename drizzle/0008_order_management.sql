@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD CONSTRAINT "orders_delivered_check" CHECK (("orders"."status" = 'delivered') = ("orders"."delivered_at" is not null));
