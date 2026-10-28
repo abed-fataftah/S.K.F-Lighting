@@ -167,7 +167,8 @@ test.describe("storefront shell", () => {
     const fab = await box(page.getByRole("link", { name: "واتساب", exact: true }));
     const bar = await box(page.getByRole("navigation", { name: "التنقل الرئيسي" }));
     const footerLinks = page.locator("footer").getByRole("link");
-    await expect(footerLinks).toHaveCount(3);
+    // "تتبّع طلبك" (spec 0015 AC-15) and the three policy links.
+    await expect(footerLinks).toHaveCount(4);
     for (const link of await footerLinks.all()) {
       const linkBox = await box(link);
       expect(overlaps(linkBox, fab)).toBe(false);

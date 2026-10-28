@@ -102,6 +102,14 @@ export default async function ConfirmationPage({
           <WhatsAppIcon />
           {t("openWhatsapp")}
         </ButtonLink>
+        {/* The order page, unlocked by the same skf_placed cookie (spec 0015 AC-14). */}
+        <ButtonLink
+          size="lg"
+          render={<Link href={routes.order(order.orderNumber)} />}
+          data-testid="continue-order"
+        >
+          {t("continueOrder")}
+        </ButtonLink>
         <ButtonLink variant="outline" size="lg" render={<Link href={routes.home} />}>
           {t("back")}
         </ButtonLink>
