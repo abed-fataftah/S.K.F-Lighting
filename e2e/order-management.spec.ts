@@ -16,9 +16,19 @@ const expect = baseExpect.configure({ timeout: 15_000 });
 const accounts = adminAccounts();
 const sql = accounts ? localSql() : (null as never);
 
+// The names, phone, address, and reason these flows use; none may reach the browser console.
+const PERSONAL = /سامي|عودة|ريم|سعادة|زبون لوحة التحكم|599123456|\+970|شارع فيصل|التأجيل/;
+let logged: string[] = [];
+
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(!accounts, "needs the local Supabase (pnpm db:start)");
   await usePhoneWidth(page, testInfo);
+  logged = [];
+  page.on("console", (message) => logged.push(message.text()));
+});
+
+test.afterEach(() => {
+  expect(logged.filter((text) => PERSONAL.test(text))).toEqual([]);
 });
 
 test.afterAll(async () => {
@@ -388,8 +398,6 @@ test("search opens an order by number or short number, and lists a phone's order
   const phone = uniquePhone();
   const first = await insertOrder(sql, { national: phone.national, name: "ريم سعادة" });
   const second = await insertOrder(sql, { national: phone.national, status: "preparing" });
-  const logged: string[] = [];
-  page.on("console", (message) => logged.push(message.text()));
   const urls: string[] = [];
   page.on("request", (request) => urls.push(request.url()));
 
