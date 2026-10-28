@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CustomerTimeline, TimelineStep } from "../customer-timeline";
 import type { Fulfilment } from "../status";
@@ -19,14 +20,17 @@ const CIRCLE = {
 } as const;
 
 // The "حالة الطلب" card (spec 0015 AC-9; design.md section 6, Timeline): an ordered list of the
-// order's path, or one line for a cancelled order. The connector runs from 4px under a circle to
+// order's path, or one line for a cancelled order: who cancelled it and when (spec 0016 AC-7), or
+// "تم إلغاء هذا الطلب" when no time is recorded. The connector runs from 4px under a circle to
 // 4px above the next one, so it never crosses a circle.
 export function OrderTimeline({
   timeline,
   fulfilment,
+  cancelled = null,
 }: {
   readonly timeline: CustomerTimeline;
   readonly fulfilment: Fulfilment;
+  readonly cancelled?: { readonly line: "byYou" | "byShop"; readonly at: Date } | null;
 }) {
   const t = useTranslations("OrderPage");
 
@@ -35,7 +39,12 @@ export function OrderTimeline({
       <h2 className="type-lead">{t("statusTitle")}</h2>
       {timeline.kind === "cancelled" ? (
         <p className="font-bold" data-testid="timeline-cancelled">
-          {t("cancelledNotice")}
+          {cancelled
+            ? t.rich(cancelled.line === "byYou" ? "cancelledByYou" : "cancelledByShop", {
+                date: formatDateTime(cancelled.at),
+                time: (chunks) => <time dateTime={cancelled.at.toISOString()}>{chunks}</time>,
+              })
+            : t("cancelledNotice")}
         </p>
       ) : (
         <ol className="flex flex-col">

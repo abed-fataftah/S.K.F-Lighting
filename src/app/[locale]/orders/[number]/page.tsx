@@ -5,9 +5,13 @@ import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Ltr } from "@/components/ltr";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { CancelBlocked } from "@/features/orders/components/cancel-blocked";
+import { CustomerCancel } from "@/features/orders/components/customer-cancel";
 import { OrderSummary } from "@/features/orders/components/order-summary";
 import { OrderTimeline, stepKey } from "@/features/orders/components/order-timeline";
 import { PaymentCard } from "@/features/orders/components/payment-card";
+import { RefreshOnRestore } from "@/features/orders/components/refresh-on-restore";
+import { cancelledLine, customerCancelState } from "@/features/orders/customer-cancel";
 import { currentStep, customerTimeline } from "@/features/orders/customer-timeline";
 import { parseOrderNumberInput } from "@/features/orders/order-number";
 import { getCustomerOrder } from "@/features/orders/server/customer-order";
@@ -55,7 +59,8 @@ async function sendElsewhere(number: string | null): Promise<never> {
   redirect(parsed ? routes.orderTrackWith(parsed) : routes.orderTrack);
 }
 
-// The customer's order page (spec 0015 AC-7 to AC-13, AC-16; docs/design/pages/order.md). It
+// The customer's order page (spec 0015 AC-7 to AC-13, AC-16; spec 0016 AC-2, AC-5, AC-7, AC-8;
+// docs/design/pages/order.md). It
 // opens only for an order id this browser holds in `skf_placed` or `skf_tracked`; it renders on
 // every request, and with no Suspense above it every redirect is a real 307.
 export default async function OrderPage({ params }: PageProps<"/[locale]/orders/[number]">) {
@@ -67,12 +72,15 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
   const [t, shell] = await Promise.all([getTranslations("OrderPage"), getTranslations("Shell")]);
   const timeline = customerTimeline(order.fulfilment, order.status);
   const current = timeline.kind === "path" ? currentStep(timeline.steps) : null;
-  // W7 with the plain order number (AC-12), as the float sends on this path.
+  // W7 with the plain order number (AC-12), as the float sends on this path; W6 after the
+  // customer's own cancel, and the W6 request on an order they can no longer cancel (spec 0016).
   const { whatsappNumber } = parsePublicEnv();
-  const contactUrl = whatsappUrl(
-    whatsappNumber,
-    shell("whatsappMessages.order", { number: order.orderNumber }),
-  );
+  const message = (key: "order" | "cancelled" | "cancelRequest") =>
+    whatsappUrl(whatsappNumber, shell(`whatsappMessages.${key}`, { number: order.orderNumber }));
+  const notifyUrl = message("cancelled");
+  const cancelState = customerCancelState(order.status, order.amountPaid);
+  const cancelledBy = order.status === "cancelled" ? cancelledLine(order.cancelledBy) : null;
+  const byYou = cancelledBy === "byYou";
   const receive =
     order.fulfilment === "pickup"
       ? t("pickup")
@@ -88,22 +96,28 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
               ltr: (chunks) => <Ltr>{chunks}</Ltr>,
             })}
           </h1>
-          {current === null ? (
-            <Badge variant="off" data-testid="order-status">
-              {t("cancelled")}
-            </Badge>
-          ) : (
-            <Badge variant={statusBadgeVariant(current)} data-testid="order-status">
-              {t(`steps.${stepKey(current, order.fulfilment)}`)}
-            </Badge>
-          )}
+          {/* One element for every status, so focus moved here survives the cancel (spec 0016). */}
+          <Badge
+            id="order-status"
+            tabIndex={-1}
+            variant={current === null ? "off" : statusBadgeVariant(current)}
+            data-testid="order-status"
+          >
+            {current === null ? t("cancelled") : t(`steps.${stepKey(current, order.fulfilment)}`)}
+          </Badge>
         </div>
         <p className="type-small text-muted" data-testid="order-meta">
           {formatDate(order.placedAt)} · {receive}
         </p>
       </header>
 
-      <OrderTimeline timeline={timeline} fulfilment={order.fulfilment} />
+      <OrderTimeline
+        timeline={timeline}
+        fulfilment={order.fulfilment}
+        cancelled={
+          cancelledBy && order.cancelledAt ? { line: cancelledBy, at: order.cancelledAt } : null
+        }
+      />
 
       <OrderSummary
         lines={order.lines}
@@ -128,14 +142,26 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
       <ButtonLink
         variant="whatsapp"
         size="lg"
-        href={contactUrl}
+        href={byYou ? notifyUrl : message("order")}
         target="_blank"
         rel="noopener"
         data-testid="order-contact"
       >
         <WhatsAppIcon />
-        {t("contact")}
+        {t(byYou ? "tellCancelled" : "contact")}
       </ButtonLink>
+
+      {cancelState === "allowed" ? (
+        <CustomerCancel
+          orderId={order.id}
+          number={order.orderNumber}
+          status={order.status}
+          notifyUrl={notifyUrl}
+        />
+      ) : cancelState === "shipped" || cancelState === "paid" ? (
+        <CancelBlocked reason={cancelState} requestUrl={message("cancelRequest")} />
+      ) : null}
+      <RefreshOnRestore />
     </div>
   );
 }

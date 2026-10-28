@@ -6,6 +6,7 @@ vi.mock("server-only", () => ({}));
 const { getDirectDb } = await import("@/server/db/direct");
 const { insertTestOrder } = await import("./testing");
 const { findLookupOrderId, readCustomerOrder } = await import("./customer-order");
+const { cancelOrderByCustomerInDb } = await import("./admin-status");
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
 
@@ -64,6 +65,8 @@ describe.skipIf(!hasLocalDb)("customer order reads on the local database", () =>
         deliveryFee: 2_000,
         total: 27_000,
         amountPaid: 0,
+        cancelledAt: null,
+        cancelledBy: null,
         pickupAddress: null,
       });
       expect(read?.lines).toEqual([
@@ -78,6 +81,28 @@ describe.skipIf(!hasLocalDb)("customer order reads on the local database", () =>
       ]);
       for (const column of PERSONAL) expect(read).not.toHaveProperty(column);
       expect(JSON.stringify(read)).not.toMatch(/رام الله|الإرسال|زبون اختبار|599123456/);
+    });
+  });
+});
+
+// covers: AC-7, AC-10 (spec 0016)
+describe.skipIf(!hasLocalDb)("a cancelled order on the customer's page", () => {
+  it("reads who cancelled it and when, and never the reason", async () => {
+    await withRollback(db, async (tx) => {
+      const { variant } = await insertSimpleProduct(tx, "TEST-LOOKUP");
+      const order = await insertTestOrder(tx, { placedAt, variant, status: "ready" });
+      const cancelled = await cancelOrderByCustomerInDb(tx, {
+        orderId: order.id,
+        from: "ready",
+        reason: "سبب خاص جداً",
+      });
+      expect(cancelled.ok).toBe(true);
+
+      const read = await readCustomerOrder(tx, order.orderNumber, [order.id]);
+      expect(read).toMatchObject({ status: "cancelled", cancelledBy: "guest" });
+      expect(read?.cancelledAt).toBeInstanceOf(Date);
+      expect(read).not.toHaveProperty("cancelReason");
+      expect(JSON.stringify(read)).not.toContain("سبب خاص جداً");
     });
   });
 });

@@ -7,11 +7,12 @@ import { getDb } from "@/server/db";
 import { orderLines, orders } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import type { OrderSummaryLine } from "../order-summary-view";
-import type { Fulfilment, OrderStatus } from "../status";
+import type { ActorKind, Fulfilment, OrderStatus } from "../status";
 import { readTrackedIds } from "./tracked";
 
 // The customer's order page reads (spec 0015 AC-5, AC-7, AC-13). The page select never names the
-// customer's name, phone, city, area, address, or notes, so none of them can reach the HTML.
+// customer's name, phone, city, area, address, or notes, so none of them can reach the HTML, nor
+// the cancel reason (spec 0016 AC-10).
 
 /** The order whose number and E.164 phone both match, or null: one query, one bit (AC-5). */
 export async function findLookupOrderId(
@@ -38,6 +39,9 @@ export type CustomerOrder = {
   readonly deliveryFee: number;
   readonly total: number;
   readonly amountPaid: number;
+  /** Set exactly when the order is cancelled (spec 0016 AC-7). */
+  readonly cancelledAt: Date | null;
+  readonly cancelledBy: ActorKind | null;
   /** The shop's current address for a pickup order, `null` for delivery or when blank. */
   readonly pickupAddress: string | null;
   readonly lines: readonly OrderSummaryLine[];
@@ -73,6 +77,8 @@ export async function readCustomerOrder(
       deliveryFee: orders.deliveryFee,
       total: orders.total,
       amountPaid: orders.amountPaid,
+      cancelledAt: orders.cancelledAt,
+      cancelledBy: orders.cancelledBy,
     })
     .from(orders)
     .where(and(eq(orders.orderNumber, orderNumber), inArray(orders.id, [...allowedIds])))
