@@ -1,8 +1,6 @@
 // The order history and who did what (spec 0014 AC-5, AC-6, AC-8). Pure: the page turns each
 // entry into its `AdminOrders.*` line.
-import type { OrderStatus } from "./status";
-
-type ActorKind = "guest" | "customer" | "electrician" | "admin" | "system";
+import type { ActorKind, OrderStatus } from "./status";
 
 /** المتجر for the owner, العميل for anyone else (a guest, a customer, an electrician, the system). */
 export function actorKey(kind: ActorKind): "actorShop" | "actorCustomer" {

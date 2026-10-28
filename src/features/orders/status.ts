@@ -29,6 +29,9 @@ export const ORDER_STATUSES_SHOWN = [
 
 export type Fulfilment = "pickup" | "delivery";
 
+/** Who wrote an order event or cancelled an order (the `actor_kind` enum). */
+export type ActorKind = "guest" | "customer" | "electrician" | "admin" | "system";
+
 /** Each fulfilment's steps in order: the dashboard moves and the customer timeline (spec 0015 AC-9). */
 export const PATHS: Readonly<Record<Fulfilment, readonly WritableStatus[]>> = {
   pickup: ["new", "preparing", "ready", "delivered"],

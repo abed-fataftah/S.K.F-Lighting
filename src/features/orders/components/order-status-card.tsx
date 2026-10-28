@@ -16,11 +16,15 @@ import {
 import { formatDateTime } from "@/lib/format";
 import { actorKey } from "../admin-history";
 import { changeOrderStatus } from "../server/admin-actions";
-import { orderMoves, type Fulfilment, type OrderStatus, type WritableStatus } from "../status";
+import {
+  orderMoves,
+  type ActorKind,
+  type Fulfilment,
+  type OrderStatus,
+  type WritableStatus,
+} from "../status";
 import { CancelOrderDialog } from "./cancel-order-dialog";
 import { OrderStatusBadge } from "./status-badge";
-
-type ActorKind = "guest" | "customer" | "electrician" | "admin" | "system";
 
 type Notice = {
   readonly key: "stale" | "saveFailed";

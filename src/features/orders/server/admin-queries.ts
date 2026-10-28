@@ -22,7 +22,7 @@ import { orderEvents, orderLines, orders } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import { pageWindow, splitPage } from "@/lib/paging";
 import type { OrderDays, OrderFilters } from "../admin-filters";
-import type { OrderStatus } from "../status";
+import type { ActorKind, OrderStatus } from "../status";
 
 // The dashboard's order reads (spec 0004 AC-13, spec 0014). Each public query runs
 // `requireAdminPage()` itself, so a page that forgets the layout guard still shows nothing to
@@ -32,7 +32,7 @@ type Db = Database | Transaction;
 
 export const ADMIN_ORDERS_PAGE_SIZE = 50;
 
-export type ActorKind = "guest" | "customer" | "electrician" | "admin" | "system";
+export type { ActorKind } from "../status";
 
 export type AdminOrderRow = {
   readonly number: string;

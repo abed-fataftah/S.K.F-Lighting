@@ -4,12 +4,15 @@ import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { fail, ok, type Fail, type Ok } from "@/lib/result";
 import { orderEvents, orders } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
+import { customerCancelState } from "../customer-cancel";
 import type { CancelOrderInput, ChangeStatusInput } from "../schemas";
 import { isAllowedMove, orderMoves, type WritableStatus } from "../status";
 
-// The owner's status writes (spec 0014 AC-3, AC-4). Each runs in one transaction: the order is
-// read `for update`, checked against the status the page showed, then updated only while it
-// still holds that status, with exactly one event row written seen (your own moves never flag).
+// The order status writes: the owner's moves and cancel (spec 0014 AC-3, AC-4), and the customer's
+// own cancel (spec 0016 AC-4). Each runs in one transaction: the order is read `for update`,
+// checked against the status the page showed, then updated only while it still holds that status,
+// with exactly one event row. The owner's events are written seen (your own moves never flag); a
+// customer's cancel is written unseen, so the dashboard flags it.
 
 type Db = Database | Transaction;
 
@@ -20,7 +23,12 @@ export type MoveResult<S extends WritableStatus> =
 
 async function lockOrder(tx: Transaction, orderId: string) {
   const [order] = await tx
-    .select({ number: orders.orderNumber, status: orders.status, fulfilment: orders.fulfilment })
+    .select({
+      number: orders.orderNumber,
+      status: orders.status,
+      fulfilment: orders.fulfilment,
+      amountPaid: orders.amountPaid,
+    })
     .from(orders)
     .where(eq(orders.id, orderId))
     .for("update");
@@ -110,6 +118,44 @@ export function cancelOrderInDb(
         toStatus: "cancelled",
         data: {},
         seenAt: sql`now()`,
+      });
+      return ok({ status: "cancelled" as const, number: order.number });
+    }),
+  );
+}
+
+/**
+ * The customer's cancel from the order page (spec 0016 AC-4): only while the customer cancel rule
+ * allows it, checked inside the lock, recorded as `guest` with an unseen event.
+ */
+export function cancelOrderByCustomerInDb(
+  db: Db,
+  input: CancelOrderInput,
+): Promise<MoveResult<"cancelled">> {
+  return staleOnRace(
+    db.transaction(async (tx) => {
+      const order = await lockOrder(tx, input.orderId);
+      if (!order) return fail("not_found");
+      if (order.status !== input.from) return fail("stale");
+      if (customerCancelState(order.status, order.amountPaid) !== "allowed") {
+        return fail("not_allowed");
+      }
+
+      await updateWhileAt(tx, input, {
+        status: "cancelled",
+        cancelledAt: sql`now()`,
+        cancelledBy: "guest",
+        cancelReason: input.reason,
+      });
+      await tx.insert(orderEvents).values({
+        orderId: input.orderId,
+        type: "cancelled",
+        actorKind: "guest",
+        actorUserId: null,
+        fromStatus: input.from,
+        toStatus: "cancelled",
+        data: {},
+        seenAt: null,
       });
       return ok({ status: "cancelled" as const, number: order.number });
     }),

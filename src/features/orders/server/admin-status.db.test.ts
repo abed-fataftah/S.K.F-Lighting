@@ -8,7 +8,8 @@ import { cancelOrderSchema } from "../schemas";
 vi.mock("server-only", () => ({}));
 
 const { getDirectDb } = await import("@/server/db/direct");
-const { cancelOrderInDb, changeOrderStatusInDb } = await import("./admin-status");
+const { cancelOrderByCustomerInDb, cancelOrderInDb, changeOrderStatusInDb } =
+  await import("./admin-status");
 const { insertAdminUser, insertTestOrder } = await import("./testing");
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
@@ -181,3 +182,99 @@ describe.skipIf(!hasLocalDb)("cancelOrderInDb on the local database", () => {
     });
   });
 });
+
+const recordPayment = (tx: Transaction, id: string, amountPaid: number) =>
+  tx.update(orders).set({ amountPaid }).where(eq(orders.id, id));
+
+// covers: AC-1, AC-4, AC-6 (spec 0016)
+describe.skipIf(!hasLocalDb)("cancelOrderByCustomerInDb on the local database", () => {
+  it("sets the four columns and writes one unseen cancelled event as a guest", async () => {
+    await withRollback(db, async (tx) => {
+      const { row } = await setup(tx, { fulfilment: "delivery", status: "preparing" });
+      const input = cancelOrderSchema.parse({
+        orderId: row.id,
+        from: "preparing",
+        reason: "  وجدت أرخص ",
+      });
+
+      expect(await cancelOrderByCustomerInDb(tx, input)).toEqual({
+        ok: true,
+        data: { status: "cancelled", number: row.orderNumber },
+      });
+      const order = await readOrder(tx, row.id);
+      expect(order).toMatchObject({
+        status: "cancelled",
+        cancelledBy: "guest",
+        cancelReason: "وجدت أرخص",
+      });
+      expect(order.cancelledAt).toBeInstanceOf(Date);
+      const events = (await eventsOf(tx, row.id)).filter((e) => e.type !== "created");
+      expect(events).toHaveLength(1);
+      expect(events[0]).toMatchObject({
+        type: "cancelled",
+        actorKind: "guest",
+        actorUserId: null,
+        fromStatus: "preparing",
+        toStatus: "cancelled",
+        data: {},
+        seenAt: null,
+      });
+    });
+  });
+
+  it("cancels new, confirmed, and a pickup order at ready, with a blank reason as null", async () => {
+    await withRollback(db, async (tx) => {
+      const { row, another } = await setup(tx, { status: "new" });
+      const confirmed = await another({ status: "confirmed" });
+      const ready = await another({ fulfilment: "pickup", status: "ready" });
+      for (const [order, from] of [
+        [row, "new"],
+        [confirmed, "confirmed"],
+        [ready, "ready"],
+      ] as const) {
+        const input = cancelOrderSchema.parse({ orderId: order.id, from, reason: " " });
+        expect((await cancelOrderByCustomerInDb(tx, input)).ok).toBe(true);
+        expect((await readOrder(tx, order.id)).cancelReason).toBeNull();
+      }
+    });
+  });
+
+  it("gives stale for a wrong from, and not_allowed when shipped, paid, or final", async () => {
+    await withRollback(db, async (tx) => {
+      const { row, another } = await setup(tx, { status: "preparing" });
+      const shipped = await another({ fulfilment: "delivery", status: "out_for_delivery" });
+      const paid = await another({ status: "ready" });
+      await recordPayment(tx, paid.id, 5_000);
+      const delivered = await another({ status: "delivered" });
+      const cancelled = await another({ status: "cancelled" });
+      const cancel = (orderId: string, from: CancelFrom) =>
+        cancelOrderByCustomerInDb(tx, { orderId, from, reason: null });
+
+      expect(await cancel(row.id, "new")).toEqual({ ok: false, error: "stale" });
+      expect(await cancel(shipped.id, "out_for_delivery")).toEqual({
+        ok: false,
+        error: "not_allowed",
+      });
+      expect(await cancel(paid.id, "ready")).toEqual({ ok: false, error: "not_allowed" });
+      expect(await cancel(delivered.id, "delivered")).toEqual({ ok: false, error: "not_allowed" });
+      expect(await cancel(delivered.id, "ready")).toEqual({ ok: false, error: "stale" });
+      expect(await cancel(cancelled.id, "new")).toEqual({ ok: false, error: "stale" });
+      expect(await cancel("9f8e7d6c-5b4a-4321-8fed-cba987654321", "new")).toEqual({
+        ok: false,
+        error: "not_found",
+      });
+
+      for (const [order, status] of [
+        [row, "preparing"],
+        [shipped, "out_for_delivery"],
+        [paid, "ready"],
+        [delivered, "delivered"],
+      ] as const) {
+        expect(await readOrder(tx, order.id)).toMatchObject({ status, cancelReason: null });
+        expect((await eventsOf(tx, order.id)).map((e) => e.type)).toEqual(["created"]);
+      }
+    });
+  });
+});
+
+type CancelFrom = Parameters<typeof cancelOrderByCustomerInDb>[1]["from"];
