@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { orderEvents, orderLines, orders } from "@/server/db/schema";
+import { NO_ORDER_FILTERS, type OrderDays } from "../admin-filters";
 import { hasLocalDb, insertSimpleProduct, withRollback } from "@/server/db/testing";
 import type { Transaction } from "@/server/db/types";
 
@@ -12,6 +13,7 @@ const { markOrderSeen, readAdminOrder, readAdminOrders, readUnseenCount } =
   await import("./admin-queries");
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
+const NO_DAYS = { from: null, to: null };
 
 afterAll(async () => {
   if (hasLocalDb) await db.$client.end();
@@ -62,7 +64,7 @@ describe.skipIf(!hasLocalDb)("dashboard order reads on the local database", () =
       const older = await insertOrder(tx, at(1), variant);
       const newer = await insertOrder(tx, at(2), variant);
 
-      const { rows } = await readAdminOrders(tx, 1);
+      const { rows } = await readAdminOrders(tx, NO_ORDER_FILTERS, NO_DAYS);
       expect(rows.slice(0, 2)).toMatchObject([
         {
           number: newer.orderNumber,
@@ -84,7 +86,7 @@ describe.skipIf(!hasLocalDb)("dashboard order reads on the local database", () =
       });
       await markOrderSeen(tx, newer.id);
 
-      const after = await readAdminOrders(tx, 1);
+      const after = await readAdminOrders(tx, NO_ORDER_FILTERS, NO_DAYS);
       expect(after.rows.slice(0, 2).map((row) => row.isUnseen)).toEqual([false, true]);
       const [event] = await tx.select().from(orderEvents).where(eq(orderEvents.orderId, newer.id));
       expect(event.seenAt).toBeInstanceOf(Date);
@@ -121,7 +123,7 @@ describe.skipIf(!hasLocalDb)("unseen orders on the local database", () => {
       await changeOrderStatusInDb(tx, adminId, { orderId: opened.id, from: "new", to: "ready" });
       await cancelOrderInDb(tx, adminId, { orderId: opened.id, from: "ready", reason: null });
       expect(await readUnseenCount(tx)).toBe(before + 1);
-      const { rows } = await readAdminOrders(tx, 1);
+      const { rows } = await readAdminOrders(tx, NO_ORDER_FILTERS, NO_DAYS);
       expect(rows.find((row) => row.number === opened.orderNumber)).toMatchObject({
         status: "cancelled",
         isUnseen: false,
@@ -142,7 +144,7 @@ describe.skipIf(!hasLocalDb)("unseen orders on the local database", () => {
         toStatus: "cancelled",
       });
       expect(await readUnseenCount(tx)).toBe(before + 2);
-      const after = await readAdminOrders(tx, 1);
+      const after = await readAdminOrders(tx, NO_ORDER_FILTERS, NO_DAYS);
       expect(after.rows.find((row) => row.number === later.orderNumber)).toMatchObject({
         isUnseen: true,
         cancelledByCustomer: true,
@@ -175,6 +177,102 @@ describe.skipIf(!hasLocalDb)("unseen orders on the local database", () => {
         ["created", null],
         ["status_changed", "preparing"],
       ]);
+    });
+  });
+});
+
+// covers: AC-1, AC-9 to AC-12, AC-14 (spec 0014)
+describe.skipIf(!hasLocalDb)("filtered order list on the local database", () => {
+  // Every order here is placed on one shop day in 2094, which the date filter isolates.
+  const DAY = "2094-06-01";
+  const on = (hour: number) => new Date(`2094-06-01T${String(hour).padStart(2, "0")}:00:00+03:00`);
+  const numbersOf = (rows: readonly { number: string }[]) => rows.map((row) => row.number);
+
+  it("narrows by status, unseen, type, method, and day, alone and combined", async () => {
+    await withRollback(db, async (tx) => {
+      const { insertTestOrder } = await import("./testing");
+      const { variant } = await insertSimpleProduct(tx, "TEST-FLT");
+      const make = (hour: number, more: Partial<Parameters<typeof insertTestOrder>[1]> = {}) =>
+        insertTestOrder(tx, { placedAt: on(hour), variant, ...more });
+      const guestNew = await make(1);
+      const confirmed = await make(2, { status: "confirmed", unseen: false });
+      const electricianReady = await make(3, {
+        status: "ready",
+        placedByRole: "electrician",
+        unseen: false,
+      });
+      const adminDelivery = await make(4, { fulfilment: "delivery", placedByRole: "admin" });
+      const customerPickup = await make(5, { placedByRole: "customer", unseen: false });
+      // The next shop day starts at 00:00 Hebron time: this one is outside DAY.
+      await make(24);
+
+      const read = (
+        filters: Partial<typeof NO_ORDER_FILTERS>,
+        days: OrderDays = { from: DAY, to: DAY },
+      ) =>
+        readAdminOrders(tx, { ...NO_ORDER_FILTERS, ...filters }, days).then((r) =>
+          numbersOf(r.rows),
+        );
+
+      expect(await read({})).toEqual(
+        numbersOf(
+          [customerPickup, adminDelivery, electricianReady, confirmed, guestNew].map((o) => ({
+            number: o.orderNumber,
+          })),
+        ),
+      );
+      // The جديد chip holds the confirmed row too.
+      expect(await read({ status: "new" })).toEqual([
+        customerPickup.orderNumber,
+        adminDelivery.orderNumber,
+        confirmed.orderNumber,
+        guestNew.orderNumber,
+      ]);
+      expect(await read({ status: "ready" })).toEqual([electricianReady.orderNumber]);
+      expect(await read({ unseen: true })).toEqual([
+        adminDelivery.orderNumber,
+        guestNew.orderNumber,
+      ]);
+      // عميل is everyone but an electrician: a guest (null), a customer, and the shop's own order.
+      expect(await read({ type: "customer" })).toEqual([
+        customerPickup.orderNumber,
+        adminDelivery.orderNumber,
+        confirmed.orderNumber,
+        guestNew.orderNumber,
+      ]);
+      expect(await read({ type: "electrician" })).toEqual([electricianReady.orderNumber]);
+      expect(await read({ method: "delivery" })).toEqual([adminDelivery.orderNumber]);
+      expect(await read({ status: "new", unseen: true, method: "pickup" })).toEqual([
+        guestNew.orderNumber,
+      ]);
+      // Only a start, or only an end.
+      expect(await read({}, { from: "2094-06-02", to: null })).toHaveLength(1);
+      expect((await read({}, { from: null, to: DAY })).slice(0, 5)).toEqual(await read({}));
+    });
+  });
+
+  it("pages within the filters, 50 a page", async () => {
+    await withRollback(db, async (tx) => {
+      const { insertTestOrder } = await import("./testing");
+      const { variant } = await insertSimpleProduct(tx, "TEST-PGE");
+      for (let minute = 0; minute < 51; minute += 1) {
+        await insertTestOrder(tx, {
+          placedAt: new Date(on(10).getTime() + minute * 60_000),
+          variant,
+          status: "preparing",
+        });
+      }
+      await insertTestOrder(tx, { placedAt: on(12), variant });
+      const days = { from: DAY, to: DAY };
+      const first = await readAdminOrders(tx, { ...NO_ORDER_FILTERS, status: "preparing" }, days);
+      const second = await readAdminOrders(
+        tx,
+        { ...NO_ORDER_FILTERS, status: "preparing", page: 2 },
+        days,
+      );
+      expect([first.rows.length, first.hasNext]).toEqual([50, true]);
+      expect([second.rows.length, second.hasNext]).toEqual([1, false]);
+      expect(second.rows[0].status).toBe("preparing");
     });
   });
 });

@@ -64,6 +64,73 @@ export function shopYear(date: Date): number {
   return Number(onShopClock(date).year);
 }
 
+// Shop days as `YYYY-MM-DD` keys (spec 0014 AC-10): the dashboard's date filters count days on
+// the shop's clock, so "today" and "this month" follow Asia/Hebron, summer time included.
+
+const DATE_KEY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function keyParts(key: string): readonly [number, number, number] | null {
+  const match = DATE_KEY.exec(key);
+  if (!match) return null;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  // A real calendar day survives the round trip: 2026-02-30 and 2026-13-01 do not.
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const real =
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  return real ? [year, month, day] : null;
+}
+
+const keyOf = (date: Date): string =>
+  `${String(date.getUTCFullYear()).padStart(4, "0")}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+
+function partsOrThrow(key: string): readonly [number, number, number] {
+  const parts = keyParts(key);
+  if (!parts) throw new RangeError(`Not a calendar day key: ${key}`);
+  return parts;
+}
+
+/** True for a `YYYY-MM-DD` that names a real calendar day. */
+export function isDateKey(text: string): boolean {
+  return keyParts(text) !== null;
+}
+
+/** The shop's calendar day for an instant: `2026-10-28`. */
+export function shopDateKey(date: Date): string {
+  const clock = onShopClock(date);
+  return `${clock.year}-${clock.month}-${clock.day}`;
+}
+
+/** The key `days` calendar days after `key` (before, when negative). */
+export function addDaysToKey(key: string, days: number): string {
+  const [year, month, day] = partsOrThrow(key);
+  return keyOf(new Date(Date.UTC(year, month - 1, day + days)));
+}
+
+/** The shop's clock time of an instant, read back as if it were UTC, minus the instant. */
+function shopOffsetMs(instant: number): number {
+  const clock = onShopClock(new Date(instant));
+  const wall = Date.UTC(
+    Number(clock.year),
+    Number(clock.month) - 1,
+    Number(clock.day),
+    clock.hour,
+    Number(clock.minute),
+  );
+  return wall - Math.floor(instant / 60_000) * 60_000;
+}
+
+/** The first instant of a shop day: 00:00 in Asia/Hebron (01:00 on a day whose midnight is skipped). */
+export function shopDayStart(key: string): Date {
+  const [year, month, day] = partsOrThrow(key);
+  const midnight = Date.UTC(year, month - 1, day);
+  // The offset before and after the day starts; on a change day they differ. The earliest
+  // candidate still on this shop day is its start.
+  const candidates = [midnight - 12 * 3_600_000, midnight + 12 * 3_600_000]
+    .map((probe) => midnight - shopOffsetMs(probe))
+    .filter((instant) => shopDateKey(new Date(instant)) === key);
+  return new Date(Math.min(...candidates));
+}
+
 /** `1,250`, `-3`. Whole numbers only: quantities, counts, KPIs. Money goes through `formatPrice`. */
 export function formatNumber(n: number): string {
   if (!Number.isSafeInteger(n)) throw new RangeError(`formatNumber needs a safe integer, got ${n}`);

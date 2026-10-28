@@ -7,6 +7,10 @@ import {
   formatTime,
   SHOP_TIME_ZONE,
   shopYear,
+  addDaysToKey,
+  isDateKey,
+  shopDateKey,
+  shopDayStart,
 } from "./format";
 import { formatPrice } from "./money";
 
@@ -152,5 +156,53 @@ describe("no hidden marks and only Western digits (AC-1, AC-6)", () => {
   it.each(outputs)("%j has no invisible direction or format character", (text) => {
     expect(text).not.toMatch(HIDDEN);
     expect(text).toMatch(WESTERN_ONLY);
+  });
+});
+
+// covers: AC-10 (spec 0014). Asia/Hebron in 2026: UTC+2 in winter, UTC+3 from 28 March 02:00 to
+// 24 October 02:00 (back to 01:00).
+describe("shop day keys", () => {
+  it("names the shop's day, which can already be tomorrow in UTC", () => {
+    expect(shopDateKey(new Date("2026-10-27T21:59:00Z"))).toBe("2026-10-27");
+    expect(shopDateKey(new Date("2026-10-27T22:00:00Z"))).toBe("2026-10-28");
+    expect(shopDateKey(new Date("2026-07-14T20:59:00Z"))).toBe("2026-07-14");
+    expect(shopDateKey(new Date("2026-07-14T21:00:00Z"))).toBe("2026-07-15");
+  });
+
+  it("checks for a real calendar day", () => {
+    expect(isDateKey("2026-02-28")).toBe(true);
+    expect(isDateKey("2028-02-29")).toBe(true);
+    expect(isDateKey("2026-02-29")).toBe(false);
+    expect(isDateKey("2026-02-30")).toBe(false);
+    expect(isDateKey("2026-13-01")).toBe(false);
+    expect(isDateKey("2026-1-01")).toBe(false);
+    expect(isDateKey("26-10-28")).toBe(false);
+    expect(isDateKey("2026-10-28 ")).toBe(false);
+  });
+
+  it("adds days across month and year ends", () => {
+    expect(addDaysToKey("2026-10-28", 1)).toBe("2026-10-29");
+    expect(addDaysToKey("2026-10-31", 1)).toBe("2026-11-01");
+    expect(addDaysToKey("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDaysToKey("2026-03-01", -1)).toBe("2026-02-28");
+    expect(addDaysToKey("2026-01-03", -6)).toBe("2025-12-28");
+    expect(() => addDaysToKey("2026-02-30", 1)).toThrow(RangeError);
+  });
+
+  it("starts a winter and a summer day at the shop's midnight", () => {
+    expect(shopDayStart("2026-01-15").toISOString()).toBe("2026-01-14T22:00:00.000Z");
+    expect(shopDayStart("2026-07-15").toISOString()).toBe("2026-07-14T21:00:00.000Z");
+    expect(shopDayStart("2027-01-01").toISOString()).toBe("2026-12-31T22:00:00.000Z");
+  });
+
+  it("starts the change days at midnight, and the day after at its new offset", () => {
+    expect(shopDayStart("2026-03-28").toISOString()).toBe("2026-03-27T22:00:00.000Z");
+    expect(shopDayStart("2026-03-29").toISOString()).toBe("2026-03-28T21:00:00.000Z");
+    expect(shopDayStart("2026-10-24").toISOString()).toBe("2026-10-23T21:00:00.000Z");
+    expect(shopDayStart("2026-10-25").toISOString()).toBe("2026-10-24T22:00:00.000Z");
+  });
+
+  it("refuses a malformed key, a bug the filter parser prevents", () => {
+    expect(() => shopDayStart("2026-13-01")).toThrow(RangeError);
   });
 });

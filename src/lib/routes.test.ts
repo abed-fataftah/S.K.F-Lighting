@@ -1,11 +1,28 @@
 import { describe, expect, it } from "vitest";
+import { NO_ORDER_FILTERS } from "@/features/orders/admin-filters";
 import { routes } from "./routes";
 
-// covers: AC-13 (spec 0004); AC-1 (spec 0006)
-describe("routes.admin.ordersPage", () => {
-  it("leaves page 1 plain", () => {
-    expect(routes.admin.ordersPage(1)).toBe("/admin/orders");
-    expect(routes.admin.ordersPage(2)).toBe("/admin/orders?page=2");
+// covers: AC-13 (spec 0004); AC-1 (spec 0006); AC-12 (spec 0014)
+describe("routes.admin.ordersWith", () => {
+  it("leaves page 1 and an unfiltered list plain", () => {
+    expect(routes.admin.ordersWith(NO_ORDER_FILTERS)).toBe("/admin/orders");
+    expect(routes.admin.ordersWith(NO_ORDER_FILTERS, 2)).toBe("/admin/orders?page=2");
+  });
+
+  it("writes every filter in one fixed order", () => {
+    expect(
+      routes.admin.ordersWith(
+        {
+          ...NO_ORDER_FILTERS,
+          method: "pickup",
+          type: "electrician",
+          unseen: true,
+          status: "ready",
+          range: "7d",
+        },
+        3,
+      ),
+    ).toBe("/admin/orders?status=ready&unseen=1&range=7d&type=electrician&method=pickup&page=3");
   });
 });
 

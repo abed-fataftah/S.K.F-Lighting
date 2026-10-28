@@ -1,11 +1,27 @@
 import "server-only";
-import { and, asc, desc, eq, exists, inArray, isNull, ne, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  ne,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
+import { addDaysToKey, shopDayStart } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { requireAdminPage } from "@/server/auth/admin";
 import { getDb } from "@/server/db";
 import { orderEvents, orderLines, orders } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import { pageWindow, splitPage } from "@/lib/paging";
+import type { OrderDays, OrderFilters } from "../admin-filters";
 import type { OrderStatus } from "../status";
 
 // The dashboard's order reads (spec 0004 AC-13, spec 0014). Each public query runs
@@ -61,23 +77,68 @@ const rowColumns = {
   )}) is true`.mapWith(Boolean),
 };
 
+/** The filters as SQL, combined with AND (spec 0014 AC-9 to AC-12). */
+function filterConditions(filters: OrderFilters, days: OrderDays): SQL[] {
+  const conditions: (SQL | undefined)[] = [
+    // The جديد chip also holds a `confirmed` row, read like `new` everywhere (AC-1).
+    filters.status === "new"
+      ? inArray(orders.status, ["new", "confirmed"])
+      : filters.status
+        ? eq(orders.status, filters.status)
+        : undefined,
+    filters.unseen ? isUnseen(orders.id) : undefined,
+    days.from ? gte(orders.placedAt, shopDayStart(days.from)) : undefined,
+    days.to ? lt(orders.placedAt, shopDayStart(addDaysToKey(days.to, 1))) : undefined,
+    // كهربائي is an electrician's order; عميل is every other one, guests included (AC-11).
+    filters.type === "electrician"
+      ? eq(orders.placedByRole, "electrician")
+      : filters.type === "customer"
+        ? or(isNull(orders.placedByRole), ne(orders.placedByRole, "electrician"))
+        : undefined,
+    filters.method ? eq(orders.fulfilment, filters.method) : undefined,
+  ];
+  return conditions.filter((condition) => condition !== undefined);
+}
+
 export async function readAdminOrders(
   db: Db,
-  page: number,
+  filters: OrderFilters,
+  days: OrderDays,
 ): Promise<{ readonly rows: readonly AdminOrderRow[]; readonly hasNext: boolean }> {
-  const { limit, offset } = pageWindow(page, ADMIN_ORDERS_PAGE_SIZE);
+  const { limit, offset } = pageWindow(filters.page, ADMIN_ORDERS_PAGE_SIZE);
   const rows = await db
     .select(rowColumns)
     .from(orders)
+    .where(and(...filterConditions(filters, days)))
     .orderBy(desc(orders.placedAt), desc(orders.orderNumber))
     .limit(limit)
     .offset(offset);
   return splitPage(rows, ADMIN_ORDERS_PAGE_SIZE);
 }
 
-export async function listAdminOrders(page: number) {
-  await requireAdminPage(routes.admin.ordersPage(page));
-  return readAdminOrders(await getDb(), page);
+export async function listAdminOrders(filters: OrderFilters, days: OrderDays) {
+  await requireAdminPage(routes.admin.ordersWith(filters, filters.page));
+  return readAdminOrders(await getDb(), filters, days);
+}
+
+/** Every order placed with this phone, newest first, whatever the filters (spec 0014 AC-13). */
+export async function readOrdersByPhone(db: Db, phoneE164: string): Promise<AdminOrderRow[]> {
+  return db
+    .select(rowColumns)
+    .from(orders)
+    .where(eq(orders.customerPhoneE164, phoneE164))
+    .orderBy(desc(orders.placedAt), desc(orders.orderNumber))
+    .limit(ADMIN_ORDERS_PAGE_SIZE);
+}
+
+/** True when an order with this number exists. */
+export async function orderNumberExists(db: Db, orderNumber: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(eq(orders.orderNumber, orderNumber))
+    .limit(1);
+  return row !== undefined;
 }
 
 export type AdminOrderEvent = {

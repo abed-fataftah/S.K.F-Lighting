@@ -7,9 +7,9 @@ import {
   usePhoneWidth,
 } from "./a11y";
 import { localSql } from "./local-db";
-import { cancelAsCustomer, insertOrder, type InsertedOrder } from "./orders";
+import { cancelAsCustomer, insertOrder, uniquePhone, type InsertedOrder } from "./orders";
 
-// covers: AC-3 to AC-8, AC-14 to AC-16, AC-19 (spec 0014). The owner runs orders from the dashboard on a phone
+// covers: AC-3 to AC-17, AC-19 (spec 0014). The owner runs orders from the dashboard on a phone
 // sized (390) and a computer sized (1280) right to left screen, signed in with a code.
 
 const expect = baseExpect.configure({ timeout: 15_000 });
@@ -263,4 +263,181 @@ test("an order its customer cancelled shows the dot and ألغاه العميل"
   await page.goto("/admin/orders");
   await expect(row.getByTestId("order-unseen")).toHaveCount(0);
   await expect(row).toContainText("ألغاه العميل");
+});
+
+const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
+
+/** `DD/MM/YYYY` of a date key, as formatDate shows a shop day. */
+const shown = (key: string) => key.split("-").reverse().join("/");
+
+/** Today's shop date key, the way the server reads it. */
+const shopToday = async () =>
+  (
+    await sql<{ key: string }[]>`
+      select to_char(now() at time zone 'Asia/Hebron', 'YYYY-MM-DD') as key`
+  )[0].key;
+
+test("the status, unseen, date, type, and method filters narrow the list and survive reload and back", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(240_000);
+  const ready = await insertOrder(sql, {
+    role: "electrician",
+    status: "ready",
+    fulfilment: "delivery",
+  });
+  const fresh = await insertOrder(sql, { role: "electrician" });
+  const lastWeek = await insertOrder(sql, { role: "electrician", placedAt: daysAgo(3) });
+  const lastMonth = await insertOrder(sql, { role: "electrician", placedAt: daysAgo(40) });
+  const guest = await insertOrder(sql, { role: null });
+  const rowOf = (order: InsertedOrder) => page.getByTestId(`order-row-${order.number}`);
+  const chip = (name: string) =>
+    page.getByTestId("order-filters").getByRole("link", { name, exact: true });
+
+  await signInAdmin(page, accounts!, "/admin/orders?type=electrician");
+  await expect(rowOf(fresh)).toBeVisible();
+  await expect(rowOf(fresh)).toContainText("كهربائي");
+  await expect(rowOf(guest)).toHaveCount(0);
+
+  // A status chip, then reload and back.
+  await chip("جاهز").click();
+  await expect(page).toHaveURL(/\/admin\/orders\?status=ready&type=electrician$/);
+  await expect(rowOf(ready)).toBeVisible();
+  await expect(rowOf(fresh)).toHaveCount(0);
+  await page.reload();
+  await expect(rowOf(ready)).toBeVisible();
+  await expect(chip("جاهز")).toHaveAttribute("aria-current", "page");
+  await page.goBack();
+  await expect(page).toHaveURL(/\/admin\/orders\?type=electrician$/);
+  await expect(rowOf(fresh)).toBeVisible();
+
+  // The unseen toggle combines with the type.
+  await openOrder(page, fresh);
+  await page.goto("/admin/orders?type=electrician");
+  await chip("لم تُفتح").click();
+  await expect(page).toHaveURL(/unseen=1/);
+  await expect(rowOf(lastWeek)).toBeVisible();
+  await expect(rowOf(fresh)).toHaveCount(0);
+
+  // Date presets.
+  await page.goto("/admin/orders?type=electrician");
+  await chip("اليوم").click();
+  await expect(page).toHaveURL(/range=today/);
+  await expect(rowOf(ready)).toBeVisible();
+  await expect(rowOf(lastWeek)).toHaveCount(0);
+  await chip("آخر 7 أيام").click();
+  await expect(rowOf(lastWeek)).toBeVisible();
+  await expect(rowOf(lastMonth)).toHaveCount(0);
+  await page.reload();
+  await expect(rowOf(lastWeek)).toBeVisible();
+
+  // A custom range with only a start: "من <from>".
+  const start = new Date(`${await shopToday()}T12:00:00Z`);
+  start.setUTCDate(start.getUTCDate() - 5);
+  const from = start.toISOString().slice(0, 10);
+  await chip("كل الأيام").click();
+  await expect(page).toHaveURL(/\/admin\/orders\?type=electrician$/);
+  await expect(page.getByLabel("إلى", { exact: true })).toHaveValue("");
+  await page.getByLabel("من", { exact: true }).fill(from);
+  await page.getByTestId("orders-apply").click();
+  await expect(page).toHaveURL(new RegExp(`from=${from}`));
+  await expect(page.getByTestId("orders-range-line")).toHaveText(`من ${shown(from)}`);
+  await expect(rowOf(lastWeek)).toBeVisible();
+  await expect(rowOf(lastMonth)).toHaveCount(0);
+  await checkA11y(page, testInfo);
+
+  // The selects, through the one apply button.
+  await page.goto("/admin/orders");
+  await page.getByLabel("النوع").selectOption({ label: "كهربائي" });
+  await page.getByLabel("الاستلام").selectOption({ label: "توصيل" });
+  await page.getByTestId("orders-apply").click();
+  await expect(page).toHaveURL(/type=electrician&method=delivery/);
+  await expect(page).not.toHaveURL(/page=/);
+  await expect(rowOf(ready)).toBeVisible();
+  await expect(rowOf(fresh)).toHaveCount(0);
+  await page.getByLabel("النوع").selectOption({ label: "عميل" });
+  await page.getByLabel("الاستلام").selectOption({ label: "الكل" });
+  await page.getByTestId("orders-apply").click();
+  await expect(rowOf(guest)).toBeVisible();
+  await expect(rowOf(guest)).toContainText("عميل");
+  await expect(rowOf(ready)).toHaveCount(0);
+});
+
+test("filters that match nothing show the empty card, and a page past the last goes to page 1", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  await signInAdmin(page, accounts!, "/admin/orders?status=ready&type=electrician&to=2001-01-01");
+  const empty = page.getByTestId("orders-filtered-empty");
+  await expect(empty).toContainText("لا توجد طلبات تطابق هذه الفلاتر.");
+  await expect(page.getByTestId("orders-range-line")).toHaveText("حتى 01/01/2001");
+  await checkA11y(page, testInfo);
+  await empty.getByRole("link", { name: "مسح الفلاتر" }).click();
+  await expect(page).toHaveURL(/\/admin\/orders$/);
+  await expect(page.getByTestId("admin-orders")).toBeVisible();
+
+  await page.goto("/admin/orders?type=electrician&page=999");
+  await expect(page).toHaveURL(/\/admin\/orders\?type=electrician$/);
+  await expect(page.getByTestId("admin-orders")).toBeVisible();
+});
+
+test("search opens an order by number or short number, and lists a phone's orders by POST", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  const phone = uniquePhone();
+  const first = await insertOrder(sql, { national: phone.national, name: "ريم سعادة" });
+  const second = await insertOrder(sql, { national: phone.national, status: "preparing" });
+  const logged: string[] = [];
+  page.on("console", (message) => logged.push(message.text()));
+  const urls: string[] = [];
+  page.on("request", (request) => urls.push(request.url()));
+
+  await signInAdmin(page, accounts!, "/admin/orders");
+  await page.waitForLoadState("networkidle");
+  const field = page.getByRole("searchbox", { name: "بحث" });
+
+  await field.fill(first.number);
+  await page.getByTestId("order-search").getByRole("button", { name: "بحث" }).click();
+  await expect(page).toHaveURL(new RegExp(`/admin/orders/${first.number}$`));
+
+  await page.goto("/admin/orders");
+  // Typed before hydration, the form would submit natively instead of through the action.
+  await page.waitForLoadState("networkidle");
+  await field.fill(String(Number(second.number.split("-")[1])));
+  await field.press("Enter");
+  await expect(page).toHaveURL(new RegExp(`/admin/orders/${second.number}$`));
+
+  await page.goto("/admin/orders");
+  // Typed before hydration, the form would submit natively instead of through the action.
+  await page.waitForLoadState("networkidle");
+  await field.fill("26-99999");
+  await field.press("Enter");
+  await expect(page.getByText("لا يوجد طلب بهذا الرقم.")).toBeVisible();
+  await field.fill("مصباح");
+  await field.press("Enter");
+  await expect(page.getByText("اكتب رقم طلب أو رقم هاتف صحيحاً.")).toBeVisible();
+
+  await field.fill(phone.shown);
+  await field.press("Enter");
+  const results = page.getByTestId("order-search-results");
+  await expect(results.getByRole("heading", { name: "نتائج البحث عن هذا الرقم" })).toBeFocused();
+  await expect(results.getByTestId(`order-row-${second.number}`)).toBeVisible();
+  await expect(results.getByTestId(`order-row-${first.number}`)).toBeVisible();
+  await expect(results.locator("[data-testid^=order-row-]")).toHaveCount(2);
+  await expect(page.getByTestId("order-filters")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/admin\/orders$/);
+  await checkA11y(page, testInfo);
+
+  await results.getByRole("button", { name: "مسح البحث" }).click();
+  await expect(page.getByTestId("order-filters")).toBeVisible();
+  await field.fill(uniquePhone().local);
+  await field.press("Enter");
+  await expect(page.getByText("لا توجد طلبات لهذا الرقم.")).toBeVisible();
+
+  // The phone never reached an address, and nothing personal reached the console.
+  expect(urls.filter((url) => url.includes(phone.national))).toEqual([]);
+  expect(
+    logged.filter((text) => /ريم|سعادة|\+970/.test(text) || text.includes(phone.national)),
+  ).toEqual([]);
 });

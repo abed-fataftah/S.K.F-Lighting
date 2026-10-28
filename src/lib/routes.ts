@@ -5,6 +5,7 @@ import {
   serializeListFilters,
   type ListFilters,
 } from "@/features/catalog/list-filters";
+import { orderFiltersToParams, type OrderFilters } from "@/features/orders/admin-filters";
 
 const segment = (value: string) => encodeURIComponent(value);
 
@@ -83,8 +84,9 @@ export const routes = {
   admin: {
     home: "/admin",
     orders: "/admin/orders",
-    /** The orders list page `page` (1 based); page 1 is the plain list. */
-    ordersPage: (page: number) => (page > 1 ? `/admin/orders?page=${page}` : "/admin/orders"),
+    /** The orders list with its filters on page `page` (spec 0014 AC-12); page 1 is left out. */
+    ordersWith: (filters: OrderFilters, page = 1) =>
+      withQuery("/admin/orders", orderFiltersToParams(filters, page).toString()),
     order: (number: string) => `/admin/orders/${segment(number)}`,
     customers: "/admin/customers",
     reports: "/admin/reports",
