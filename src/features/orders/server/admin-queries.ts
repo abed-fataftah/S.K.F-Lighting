@@ -193,6 +193,20 @@ export async function markOrderSeen(db: Db, orderId: string) {
     .where(and(eq(orderEvents.orderId, orderId), isNull(orderEvents.seenAt)));
 }
 
+/** How many orders are flagged (spec 0014 AC-15): one per order, however many unseen events. */
+export async function readUnseenCount(db: Db): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(distinct ${orderEvents.orderId})`.mapWith(Number) })
+    .from(orderEvents)
+    .where(unseenFlag);
+  return row?.count ?? 0;
+}
+
+export async function countUnseenOrders(): Promise<number> {
+  await requireAdminPage();
+  return readUnseenCount(await getDb());
+}
+
 /** The order behind `/admin/orders/[number]`, then marked seen; null for the not found page. */
 export async function getAdminOrder(orderNumber: string): Promise<AdminOrder | null> {
   await requireAdminPage(routes.admin.order(orderNumber));

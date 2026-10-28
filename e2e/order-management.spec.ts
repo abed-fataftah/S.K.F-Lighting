@@ -7,9 +7,9 @@ import {
   usePhoneWidth,
 } from "./a11y";
 import { localSql } from "./local-db";
-import { insertOrder, type InsertedOrder } from "./orders";
+import { cancelAsCustomer, insertOrder, type InsertedOrder } from "./orders";
 
-// covers: AC-3 to AC-7, AC-19 (spec 0014). The owner runs orders from the dashboard on a phone
+// covers: AC-3 to AC-8, AC-14 to AC-16, AC-19 (spec 0014). The owner runs orders from the dashboard on a phone
 // sized (390) and a computer sized (1280) right to left screen, signed in with a code.
 
 const expect = baseExpect.configure({ timeout: 15_000 });
@@ -171,4 +171,96 @@ test("a second tab moving the same order first gives the stale message", async (
   // Only the first tab's move was written.
   await expect(history(page)).toHaveCount(2);
   await other.close();
+});
+
+const unseenInDb = async () =>
+  Number(
+    (
+      await sql<{ count: string }[]>`
+        select count(distinct order_id) as count from order_events
+        where type in ('created', 'cancelled') and seen_at is null`
+    )[0].count,
+  );
+
+/** The sidebar count, read from the الطلبات link's name (the badge itself stops at +99). */
+async function sidebarCount(page: Page) {
+  const link = page.getByRole("navigation", { name: "لوحة التحكم" }).getByRole("link", {
+    name: /^الطلبات/,
+  });
+  const name = (await link.getAttribute("aria-label")) ?? "";
+  return Number(/الطلبات، ([\d,]+) لم تُفتح/.exec(name)?.[1]?.replace(/,/g, "") ?? 0);
+}
+
+// Under `next dev` the 50 row list renders for about 2 seconds, past the count's 1.5 second limit,
+// so the sidebar shows no badge there by design (spec 0014 AC-15). The count is checked on workerd.
+const onWorkers = process.env.E2E_TARGET === "preview" || !!process.env.CI;
+
+/** The count the page shows lies between the database counts read around its render. */
+async function expectSidebarMatches(page: Page, render: () => Promise<void>) {
+  const low = await unseenInDb();
+  await render();
+  if (!onWorkers) return;
+  const high = await unseenInDb();
+  const shown = await sidebarCount(page);
+  expect(shown).toBeGreaterThanOrEqual(Math.min(low, high));
+  expect(shown).toBeLessThanOrEqual(Math.max(low, high));
+}
+
+test("a new order shows its dot and the count within a minute, and opening it clears both", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  await signInAdmin(page, accounts!, "/admin/orders");
+  await page.clock.install();
+  await expectSidebarMatches(page, async () => {
+    await page.goto("/admin/orders");
+    await expect(page.getByTestId("admin-orders")).toBeVisible();
+  });
+
+  const order = await insertOrder(sql);
+  const row = page.getByTestId(`order-row-${order.number}`);
+  await expect(row).toHaveCount(0);
+  // No reload: the minute passes and the list refreshes itself. The page may still be hydrating
+  // when the first minute passes, so the minute is passed again until the refresher has started.
+  await expect(async () => {
+    await page.clock.fastForward(61_000);
+    await expect(row.getByTestId("order-unseen")).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 45_000 });
+  await expect(row.getByTestId("order-unseen")).toHaveText("لم يُفتح");
+  if (onWorkers) {
+    await expect(page.getByTestId("orders-unseen-count")).toBeVisible();
+    expect(await sidebarCount(page)).toBeGreaterThan(0);
+  }
+  await expect(page.getByText("الطلبات التي لم تفتحها بعد مميّزة بنقطة صفراء.")).toBeVisible();
+  await checkA11y(page, testInfo);
+
+  await row.getByRole("link", { name: order.number }).click();
+  await expect(page.getByTestId("order-status-card")).toBeVisible();
+  // Back to the list by link, not a reload: the dot and the count update at once.
+  await expectSidebarMatches(page, async () => {
+    await page.getByRole("link", { name: "العودة للطلبات" }).click();
+    await expect(page).toHaveURL(/\/admin\/orders$/);
+    await expect(row.getByTestId("order-unseen")).toHaveCount(0);
+  });
+});
+
+test("an order its customer cancelled shows the dot and ألغاه العميل", async ({ page }) => {
+  test.setTimeout(180_000);
+  const order = await insertOrder(sql, { status: "preparing" });
+  await signInAdmin(page, accounts!, `/admin/orders/${order.number}`);
+  await expect(page.getByTestId("order-status-card")).toBeVisible();
+  await cancelAsCustomer(sql, order);
+
+  await page.goto("/admin/orders");
+  const row = page.getByTestId(`order-row-${order.number}`);
+  await expect(row.getByTestId("order-unseen")).toBeVisible();
+  await expect(row).toContainText("ملغي");
+  await expect(row).toContainText("ألغاه العميل");
+
+  await row.getByRole("link", { name: order.number }).click();
+  await expect(page.getByTestId("order-cancelled-info")).toContainText("بواسطة العميل");
+  await expect(history(page).last()).toContainText("أُلغي الطلب بواسطة العميل");
+  await page.goto("/admin/orders");
+  await expect(row.getByTestId("order-unseen")).toHaveCount(0);
+  await expect(row).toContainText("ألغاه العميل");
 });

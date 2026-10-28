@@ -5,6 +5,9 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { Ltr } from "@/components/ltr";
+import { Badge } from "@/components/ui/badge";
+import { formatNumber } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { activeAdminLink, adminLinks } from "../nav";
@@ -16,13 +19,16 @@ import { adminIcons } from "./nav-icons";
 // 4px yellow bar on the inline start edge, and aria-current="page". In the dashboard's
 // flex row it takes 220px up to 260px and wraps above the content below 780px.
 // `pathname` overrides the current path (the gallery); `children` sit under "عرض المتجر"
-// (the dashboard layout puts the sign out button there).
+// (the dashboard layout puts the sign out button there). `unseenOrders` puts the count badge on
+// الطلبات and in its name (spec 0014 AC-15); the gallery passes none.
 export function AdminSide({
   pathname: forced,
+  unseenOrders,
   className,
   children,
 }: {
   readonly pathname?: string;
+  readonly unseenOrders?: number;
   readonly className?: string;
   readonly children?: ReactNode;
 }) {
@@ -47,11 +53,13 @@ export function AdminSide({
           {adminLinks.map(({ id, href }) => {
             const Icon = adminIcons[id];
             const active = id === current;
+            const count = id === "orders" && unseenOrders ? unseenOrders : 0;
             return (
               <li key={id}>
                 <Link
                   href={href}
                   aria-current={active ? "page" : undefined}
+                  aria-label={count ? t("ordersUnseen", { count: formatNumber(count) }) : undefined}
                   className={cn(
                     "relative flex h-12 items-center gap-3 px-5 type-body",
                     active &&
@@ -60,6 +68,11 @@ export function AdminSide({
                 >
                   <Icon aria-hidden className="size-5.5 shrink-0" />
                   {t(`links.${id}`)}
+                  {count ? (
+                    <Badge variant="count" className="ms-auto" data-testid="orders-unseen-count">
+                      <Ltr>{count > 99 ? `+${formatNumber(99)}` : formatNumber(count)}</Ltr>
+                    </Badge>
+                  ) : null}
                 </Link>
               </li>
             );

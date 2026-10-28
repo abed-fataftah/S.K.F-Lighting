@@ -8,7 +8,8 @@ vi.mock("server-only", () => ({}));
 
 const { getDirectDb } = await import("@/server/db/direct");
 const { allocateOrderNumber } = await import("./order-number");
-const { markOrderSeen, readAdminOrder, readAdminOrders } = await import("./admin-queries");
+const { markOrderSeen, readAdminOrder, readAdminOrders, readUnseenCount } =
+  await import("./admin-queries");
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
 
@@ -92,5 +93,88 @@ describe.skipIf(!hasLocalDb)("dashboard order reads on the local database", () =
 
   it("returns null for an unknown number", async () => {
     expect(await readAdminOrder(db, "00-99999")).toBeNull();
+  });
+});
+
+// covers: AC-8, AC-14, AC-15 (spec 0014)
+describe.skipIf(!hasLocalDb)("unseen orders on the local database", () => {
+  it("counts each order once, never the owner's own events, and a customer cancel again", async () => {
+    await withRollback(db, async (tx) => {
+      const { insertAdminUser, insertTestOrder } = await import("./testing");
+      const { cancelOrderInDb, changeOrderStatusInDb } = await import("./admin-status");
+      const { variant } = await insertSimpleProduct(tx, "TEST-UNS");
+      const adminId = await insertAdminUser(tx);
+      const before = await readUnseenCount(tx);
+
+      const fresh = await insertTestOrder(tx, { placedAt: at(10), variant });
+      // A second unseen event on the same order still counts it once.
+      await tx.insert(orderEvents).values({
+        orderId: fresh.id,
+        type: "cancelled",
+        actorKind: "guest",
+        toStatus: "cancelled",
+      });
+      const opened = await insertTestOrder(tx, { placedAt: at(11), variant, unseen: false });
+      expect(await readUnseenCount(tx)).toBe(before + 1);
+
+      // The owner's move and cancel are written seen.
+      await changeOrderStatusInDb(tx, adminId, { orderId: opened.id, from: "new", to: "ready" });
+      await cancelOrderInDb(tx, adminId, { orderId: opened.id, from: "ready", reason: null });
+      expect(await readUnseenCount(tx)).toBe(before + 1);
+      const { rows } = await readAdminOrders(tx, 1);
+      expect(rows.find((row) => row.number === opened.orderNumber)).toMatchObject({
+        status: "cancelled",
+        isUnseen: false,
+        cancelledByCustomer: false,
+      });
+
+      // A customer cancelling after the owner opened it flags it again.
+      const later = await insertTestOrder(tx, { placedAt: at(12), variant, unseen: false });
+      await tx
+        .update(orders)
+        .set({ status: "cancelled", cancelledAt: new Date(), cancelledBy: "customer" })
+        .where(eq(orders.id, later.id));
+      await tx.insert(orderEvents).values({
+        orderId: later.id,
+        type: "cancelled",
+        actorKind: "customer",
+        fromStatus: "new",
+        toStatus: "cancelled",
+      });
+      expect(await readUnseenCount(tx)).toBe(before + 2);
+      const after = await readAdminOrders(tx, 1);
+      expect(after.rows.find((row) => row.number === later.orderNumber)).toMatchObject({
+        isUnseen: true,
+        cancelledByCustomer: true,
+      });
+
+      await markOrderSeen(tx, later.id);
+      await markOrderSeen(tx, fresh.id);
+      expect(await readUnseenCount(tx)).toBe(before);
+    });
+  });
+
+  it("reads the history oldest first and keeps other event types out", async () => {
+    await withRollback(db, async (tx) => {
+      const { insertTestOrder } = await import("./testing");
+      const { variant } = await insertSimpleProduct(tx, "TEST-HIS");
+      const order = await insertTestOrder(tx, { placedAt: at(20), variant });
+      await tx.insert(orderEvents).values([
+        { orderId: order.id, type: "note", actorKind: "admin", createdAt: at(21) },
+        {
+          orderId: order.id,
+          type: "status_changed",
+          actorKind: "admin",
+          fromStatus: "new",
+          toStatus: "preparing",
+          createdAt: at(22),
+        },
+      ]);
+      const read = await readAdminOrder(tx, order.orderNumber);
+      expect(read?.events.map((event) => [event.type, event.toStatus])).toEqual([
+        ["created", null],
+        ["status_changed", "preparing"],
+      ]);
+    });
   });
 });
