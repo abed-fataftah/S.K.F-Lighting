@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Ltr } from "@/components/ltr";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,15 @@ export function OrderLookupForm({ initialNumber }: { readonly initialNumber: str
   const t = useTranslations("OrderLookup");
   const [state, dispatch, pending] = useActionState(lookupOrder, null as LookupState);
   const formRef = useRef<HTMLFormElement>(null);
-  // React resets the form after its action, back to each field's `defaultValue`: a failure
-  // carries the typed values, so they stay (AC-5).
+  // React resets the form after its action, and its reset can land on a stale `defaultValue`. A
+  // failure carries the typed values (AC-5), and each new result remounts the fields with them.
   const values = state?.values ?? { number: initialNumber, phone: "" };
+  const [seenState, setSeenState] = useState(state);
+  const [round, setRound] = useState(0);
+  if (state !== seenState) {
+    setSeenState(state);
+    setRound(round + 1);
+  }
 
   const fieldErrors = state?.error === "invalid" ? (state.fieldErrors ?? {}) : {};
   const banner =
@@ -67,6 +73,7 @@ export function OrderLookupForm({ initialNumber }: { readonly initialNumber: str
           <Field>
             <FieldLabel htmlFor={fieldId("number")}>{t("number")}</FieldLabel>
             <Input
+              key={`number-${round}`}
               id={fieldId("number")}
               name="number"
               dir="ltr"
@@ -82,6 +89,7 @@ export function OrderLookupForm({ initialNumber }: { readonly initialNumber: str
           <Field>
             <FieldLabel htmlFor={fieldId("phone")}>{t("phone")}</FieldLabel>
             <Input
+              key={`phone-${round}`}
               id={fieldId("phone")}
               name="phone"
               type="tel"

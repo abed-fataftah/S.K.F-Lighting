@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { ADMIN_PATH_HEADER } from "@/features/admin-auth/next-path";
 import { routing } from "@/i18n/routing";
+import { routes } from "@/lib/routes";
 import { refreshSession } from "@/server/auth/proxy-session";
 
 const handleI18nRouting = createIntlMiddleware(routing);
@@ -27,7 +28,22 @@ function passThrough(request: NextRequest) {
   return NextResponse.next({ request: { headers } });
 }
 
+// A broken `%` under `/orders/` never reaches the order page (Next answers 404 first), so it goes
+// to the plain lookup here, never a 404 (spec 0015 AC-7).
+function isBrokenOrderPath(pathname: string) {
+  if (!pathname.startsWith(routes.order(""))) return false;
+  try {
+    decodeURIComponent(pathname);
+    return false;
+  } catch {
+    return true;
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  if (isBrokenOrderPath(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL(routes.orderTrack, request.url), 307);
+  }
   if (skipsSession(request.nextUrl.pathname)) return NextResponse.next();
   const applySession = await refreshSession(request);
 
