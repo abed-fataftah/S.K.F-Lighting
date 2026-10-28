@@ -7,6 +7,7 @@ import { routes } from "@/lib/routes";
 import { getDb } from "@/server/db";
 import { orderLookupSchema } from "../schemas";
 import { findLookupOrderId } from "./customer-order";
+import { lookupRateCheck } from "./lookup-rate-limit";
 import { rememberTrackedOrder } from "./tracked";
 
 export type LookupError = "invalid" | "not_found" | "limited";
@@ -27,8 +28,8 @@ const typed = (form: FormData, key: string) => {
 };
 
 /**
- * The guest lookup (spec 0015 AC-3 to AC-5): parse, match the number and E.164 phone in one
- * query, then remember the order in `skf_tracked` and open its page. A wrong number, a wrong
+ * The guest lookup (spec 0015 AC-3 to AC-6): parse, take a try from both limiters, match the
+ * number and E.164 phone in one query, then remember the order in `skf_tracked` and open its page. A wrong number, a wrong
  * phone, and an unknown number all get the same `not_found`. Nothing typed is ever logged.
  */
 export async function lookupOrder(_previous: LookupState, form: FormData): Promise<LookupState> {
@@ -39,6 +40,13 @@ export async function lookupOrder(_previous: LookupState, form: FormData): Promi
     return { ok: false, error: "invalid", fieldErrors: fieldErrorsOf(parsed.error), values };
   }
   const { number, phone } = parsed.data;
+
+  // Every try that parses counts, a match included (AC-6). The log names the limiter only.
+  const rate = await lookupRateCheck(number);
+  if (typeof rate === "object") {
+    console.warn(JSON.stringify({ event: "order_lookup_limited", by: rate.limited }));
+    return { ok: false, error: "limited", values };
+  }
 
   const id = await findLookupOrderId(await getDb(), number, phone.e164);
   if (!id) return { ok: false, error: "not_found", values };

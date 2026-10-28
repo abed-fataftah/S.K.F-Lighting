@@ -37,6 +37,18 @@
       "namespace_id": "1011",
       "simple": { "limit": 60, "period": 60 },
     },
+    {
+      // Guest order lookups (spec 0015 AC-6): 5 tries a minute per IP...
+      "name": "ORDER_LOOKUP_IP_LIMITER",
+      "namespace_id": "1015",
+      "simple": { "limit": 5, "period": 60 },
+    },
+    {
+      // ...and 5 a minute per order number, so guesses spread over many IPs stay slow.
+      "name": "ORDER_LOOKUP_NUMBER_LIMITER",
+      "namespace_id": "1016",
+      "simple": { "limit": 5, "period": 60 },
+    },
   ],
   "hyperdrive": [
     {
