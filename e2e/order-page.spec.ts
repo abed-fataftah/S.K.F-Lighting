@@ -153,7 +153,8 @@ test("a guest looks up a delivery order and follows it to cancelled", async ({
   const w7 = `مرحباً، بخصوص الطلب رقم ${order.number}.`;
   expect(await linkText(contact)).toBe(w7);
   expect(await linkText(fab(page))).toBe(w7);
-  await expect(page.getByRole("button", { name: /إلغاء/ })).toHaveCount(0);
+  // Spec 0016 AC-2: a new order offers the customer's own cancel.
+  await expect(page.getByTestId("customer-cancel")).toHaveText("إلغاء الطلب");
   await checkA11y(page, testInfo);
 
   // AC-16: a status the owner sets shows on the next load.
@@ -167,7 +168,8 @@ test("a guest looks up a delivery order and follows it to cancelled", async ({
   await cancelAsCustomer(sql, order);
   await page.reload();
   await expect(page.getByTestId("order-status")).toHaveText("ملغي");
-  await expect(page.getByTestId("timeline-cancelled")).toHaveText("تم إلغاء هذا الطلب");
+  // Spec 0016 AC-7: the customer's own cancel, with its time.
+  await expect(page.getByTestId("timeline-cancelled")).toContainText("ألغيت هذا الطلب في ");
   await expect(steps).toHaveCount(0);
   await expect(page.getByTestId("order-payment")).not.toContainText("لم يُسجَّل دفع");
   await checkA11y(page, testInfo);

@@ -75,16 +75,21 @@ export async function insertOrder(sql: Sql, order: TestOrder = {}): Promise<Inse
   });
 }
 
-/** What feature 17 will write: the customer cancels, and the event waits unseen (AC-14). */
+/** What the customer cancel writes (spec 0016 AC-4): a guest cancel whose event waits unseen. */
 export async function cancelAsCustomer(sql: Sql, order: InsertedOrder) {
   await sql.begin(async (tx) => {
     const [{ status }] = await tx<{ status: string }[]>`
       select status from orders where id = ${order.id} for update`;
     await tx`
-      update orders set status = 'cancelled', cancelled_at = now(), cancelled_by = 'customer'
+      update orders set status = 'cancelled', cancelled_at = now(), cancelled_by = 'guest'
       where id = ${order.id}`;
     await tx`
       insert into order_events (order_id, type, actor_kind, from_status, to_status)
-      values (${order.id}, 'cancelled', 'customer', ${status}, 'cancelled')`;
+      values (${order.id}, 'cancelled', 'guest', ${status}, 'cancelled')`;
   });
+}
+
+/** The amount the owner records as paid (spec 0016 AC-8: a paid order is cancelled on WhatsApp). */
+export async function recordPayment(sql: Sql, order: InsertedOrder, amountPaid: number) {
+  await sql`update orders set amount_paid = ${amountPaid} where id = ${order.id}`;
 }
