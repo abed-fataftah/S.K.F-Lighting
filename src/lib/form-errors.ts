@@ -18,6 +18,8 @@ export const fieldErrorKeys = {
   zone_required: "zoneRequired",
   email_invalid: "emailInvalid",
   totp_format: "totpFormat",
+  number_required: "orderNumberRequired",
+  number_format: "orderNumberFormat",
 } as const;
 
 export type FieldErrorCode = keyof typeof fieldErrorKeys;

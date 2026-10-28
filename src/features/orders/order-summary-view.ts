@@ -75,7 +75,11 @@ export function orderSummaryView(
     receive: delivery
       ? {
           line: t("delivery", { zone: order.deliveryZoneName ?? "" }),
-          where: t("deliveryWhere", { city: order.city ?? "", address: order.address ?? "" }),
+          // The customer's order page passes neither (spec 0015 AC-10): the zone line alone.
+          where:
+            order.city === null && order.address === null
+              ? null
+              : t("deliveryWhere", { city: order.city ?? "", address: order.address ?? "" }),
         }
       : { line: t("pickup"), where: order.pickupAddress },
     notes: order.notes,

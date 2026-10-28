@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatOrderNumber, isOrderNumber, orderYear } from "./order-number";
+import { formatOrderNumber, isOrderNumber, orderYear, parseOrderNumberInput } from "./order-number";
 
 // covers: AC-7 (spec 0002)
 describe("formatOrderNumber", () => {
@@ -48,4 +48,40 @@ describe("isOrderNumber", () => {
       expect(isOrderNumber(text)).toBe(false);
     },
   );
+});
+
+// covers: AC-2 (spec 0015)
+describe("parseOrderNumberInput", () => {
+  it.each([
+    ["26-00042", "26-00042"],
+    ["2600042", "26-00042"],
+    ["٢٦-٠٠٠٤٢", "26-00042"],
+    ["۲۶۰۰۰۴۲", "26-00042"],
+    ["26 00042", "26-00042"],
+    ["26–00042", "26-00042"],
+    ["26−00042", "26-00042"],
+    ["  26-00042‏ ", "26-00042"],
+    ["27-100000", "27-100000"],
+    ["123456789012", "12-3456789012"],
+  ])("reads %j as %s", (raw, expected) => {
+    expect(parseOrderNumberInput(raw)).toBe(expected);
+  });
+
+  it.each([
+    "",
+    "   ",
+    "2600",
+    "260004",
+    "abc",
+    "26/00042",
+    "#26-00042",
+    "1234567890123",
+    "26-0004a",
+  ])("refuses %j", (raw) => {
+    expect(parseOrderNumberInput(raw)).toBeNull();
+  });
+
+  it("always gives a number isOrderNumber accepts", () => {
+    expect(isOrderNumber(parseOrderNumberInput("2600042")!)).toBe(true);
+  });
 });

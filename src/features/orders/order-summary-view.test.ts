@@ -103,6 +103,14 @@ describe("orderSummaryView receive", () => {
       where: "رام الله، شارع الإرسال، عمارة 4",
     });
   });
+
+  // covers: AC-10 (spec 0015). The customer's order page passes no city or address.
+  it("shows only the zone for delivery when city and address are both null", () => {
+    expect(orderSummaryView({ ...delivery, city: null, address: null }, context).receive).toEqual({
+      line: "توصيل إلى الضفة الغربية",
+      where: null,
+    });
+  });
 });
 
 describe("orderSummaryView notes and totals", () => {

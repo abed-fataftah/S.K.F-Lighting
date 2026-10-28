@@ -73,6 +73,8 @@ export const routes = {
   checkoutDone: (number: string) => `/checkout/done/${segment(number)}`,
   order: (number: string) => `/orders/${segment(number)}`,
   orderTrack: "/orders/track",
+  /** The lookup with its number field filled (spec 0015 AC-7). */
+  orderTrackWith: (number: string) => `/orders/track?number=${encodeURIComponent(number)}`,
   signIn: "/account/sign-in",
   accountOrders: "/account/orders",
   quickOrder: "/account/quick-order",
