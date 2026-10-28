@@ -1199,7 +1199,6 @@
   },
   "OrderPage": {
     "heading": "طلب <ltr>{number}</ltr>",
-    "meta": "{date} · {receive}",
     "pickup": "استلام من المعرض",
     "delivery": "توصيل إلى {zone}",
     "statusTitle": "حالة الطلب",
@@ -1213,7 +1212,7 @@
       "delivered": "تم التسليم"
     },
     "cancelled": "ملغي",
-    "cancelledLine": "تم إلغاء هذا الطلب",
+    "cancelledNotice": "تم إلغاء هذا الطلب",
     "paymentTitle": "الدفع",
     "paymentMethod": "الدفع عند الاستلام",
     "payment": {

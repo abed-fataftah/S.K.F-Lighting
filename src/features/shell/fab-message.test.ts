@@ -23,9 +23,26 @@ describe("orderNumberInPath", () => {
     "/checkout",
     "/",
     "/cart",
-    "/orders/26-00042",
     "/x/checkout/done/26-00042",
   ])("gives null for %s", (path) => {
     expect(orderNumberInPath(path)).toBeNull();
   });
+});
+
+// covers: AC-12 (spec 0015). The order page sends W7 too; the lookup page stays on W1.
+describe("orderNumberInPath on order pages", () => {
+  it.each([
+    ["/orders/26-00042", "26-00042"],
+    ["/orders/26-00042/", "26-00042"],
+    ["/orders/26%2D00042", "26-00042"],
+  ])("finds the number in %s", (path, number) => {
+    expect(orderNumberInPath(path)).toBe(number);
+  });
+
+  it.each(["/orders/track", "/orders/track/", "/orders/", "/orders", "/orders/26-00042/x"])(
+    "gives null for %s",
+    (path) => {
+      expect(orderNumberInPath(path)).toBeNull();
+    },
+  );
 });

@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Ltr } from "@/components/ltr";
+import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { OrderSummary } from "@/features/orders/components/order-summary";
+import { OrderTimeline, stepKey } from "@/features/orders/components/order-timeline";
+import { PaymentCard } from "@/features/orders/components/payment-card";
+import { currentStep, customerTimeline } from "@/features/orders/customer-timeline";
 import { parseOrderNumberInput } from "@/features/orders/order-number";
 import { getCustomerOrder } from "@/features/orders/server/customer-order";
+import { statusBadgeVariant } from "@/features/orders/status";
 import { formatDate } from "@/lib/format";
+import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
+import { whatsappUrl } from "@/lib/whatsapp";
 import { getAdminAccess } from "@/server/auth/admin";
 import { getClaims } from "@/server/auth/session";
 
@@ -55,7 +64,15 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
   const order = number === null ? null : await getCustomerOrder(number);
   if (!order) return sendElsewhere(number);
 
-  const t = await getTranslations("OrderPage");
+  const [t, shell] = await Promise.all([getTranslations("OrderPage"), getTranslations("Shell")]);
+  const timeline = customerTimeline(order.fulfilment, order.status);
+  const current = timeline.kind === "path" ? currentStep(timeline.steps) : null;
+  // W7 with the plain order number (AC-12), as the float sends on this path.
+  const { whatsappNumber } = parsePublicEnv();
+  const contactUrl = whatsappUrl(
+    whatsappNumber,
+    shell("whatsappMessages.order", { number: order.orderNumber }),
+  );
   const receive =
     order.fulfilment === "pickup"
       ? t("pickup")
@@ -71,11 +88,22 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
               ltr: (chunks) => <Ltr>{chunks}</Ltr>,
             })}
           </h1>
+          {current === null ? (
+            <Badge variant="off" data-testid="order-status">
+              {t("cancelled")}
+            </Badge>
+          ) : (
+            <Badge variant={statusBadgeVariant(current)} data-testid="order-status">
+              {t(`steps.${stepKey(current, order.fulfilment)}`)}
+            </Badge>
+          )}
         </div>
         <p className="type-small text-muted" data-testid="order-meta">
-          {t("meta", { date: formatDate(order.placedAt), receive })}
+          {formatDate(order.placedAt)} · {receive}
         </p>
       </header>
+
+      <OrderTimeline timeline={timeline} fulfilment={order.fulfilment} />
 
       <OrderSummary
         lines={order.lines}
@@ -90,6 +118,24 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
         deliveryFee={order.deliveryFee}
         total={order.total}
       />
+
+      <PaymentCard
+        amountPaid={order.amountPaid}
+        total={order.total}
+        cancelled={timeline.kind === "cancelled"}
+      />
+
+      <ButtonLink
+        variant="whatsapp"
+        size="lg"
+        href={contactUrl}
+        target="_blank"
+        rel="noopener"
+        data-testid="order-contact"
+      >
+        <WhatsAppIcon />
+        {t("contact")}
+      </ButtonLink>
     </div>
   );
 }
