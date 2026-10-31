@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { readPlacedIds } from "@/features/checkout/server/placed";
 import { fail, ok, type Fail, type Ok } from "@/lib/result";
 import { routes } from "@/lib/routes";
-import { getClaims } from "@/server/auth/session";
+import { getVerifiedUser } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import type { CustomerCancelError } from "../customer-cancel";
 import { cancelOrderSchema } from "../schemas";
@@ -12,9 +12,10 @@ import { cancelOrderByCustomerInDb } from "./admin-status";
 import { isOwnedOrder } from "./customer-order";
 import { readTrackedIds } from "./tracked";
 
-// A guest (no `sub`) costs no database call.
+// A write, so the user comes from Supabase (a revoked session is refused at once). Called only when
+// neither cookie holds the id; a guest costs no database call.
 async function ownedBySession(orderId: string): Promise<boolean> {
-  const userId = (await getClaims())?.sub;
+  const userId = (await getVerifiedUser())?.id;
   return userId ? isOwnedOrder(await getDb(), orderId, userId) : false;
 }
 

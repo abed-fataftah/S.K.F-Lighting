@@ -25,6 +25,7 @@ const BANNER_ERRORS = [
   "invalid_credentials",
   "owner_needs_runbook",
   "not_signed_in",
+  "recovery_expired",
 ] as const;
 export type BannerError = (typeof BANNER_ERRORS)[number];
 const asBanner = (error: string): BannerError =>

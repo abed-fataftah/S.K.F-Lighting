@@ -19,7 +19,8 @@ import {
   setPasswordSchema,
   signInSchema,
 } from "../schemas";
-import { savePhoneAfterSignUp, updateProfileInDb } from "./profile";
+import { getAccountProfile, savePhoneAfterSignUp, updateProfileInDb } from "./profile";
+import { forgetRecovery, hasFreshRecovery, rememberRecovery } from "./recovery";
 
 // Customer accounts on Supabase Auth (spec 0017). Each action logs one line with the outcome
 // (AC-17): never the email, name, phone, or password; a user id at most.
@@ -95,10 +96,13 @@ export async function registerCustomer(
 const signUpError = (error: AccountAuthError): RegisterError =>
   error === "email_taken" || error === "weak_password" || error === "too_many" ? error : "failed";
 
-export type SignInError = "invalid" | "invalid_credentials" | "too_many";
+export type SignInError = "invalid" | "invalid_credentials" | "too_many" | "failed";
 export type SignInState = Fail<SignInError, WithFields> | null;
 
-/** AC-5: a wrong password and an unknown email get the same answer. */
+const signInError = (error: AccountAuthError): SignInError =>
+  error === "invalid_credentials" || error === "too_many" ? error : "failed";
+
+/** AC-5: a wrong password and an unknown email get the same answer; an outage does not. */
 export async function signInCustomer(_previous: SignInState, form: FormData): Promise<SignInState> {
   const parsed = signInSchema.safeParse(formValues(form));
   if (!parsed.success) {
@@ -110,7 +114,7 @@ export async function signInCustomer(_previous: SignInState, form: FormData): Pr
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
-    const code = accountAuthError(error) === "too_many" ? "too_many" : "invalid_credentials";
+    const code = signInError(accountAuthError(error));
     logOutcome("account_sign_in", code);
     return fail(code);
   }
@@ -157,13 +161,30 @@ export async function confirmRecovery(form: FormData): Promise<void> {
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.verifyOtp({ type: "recovery", token_hash: tokenHash });
-  if (error) {
-    logOutcome("account_recovery_confirmed", accountAuthError(error));
+  const { data, error } = await supabase.auth.verifyOtp({
+    type: "recovery",
+    token_hash: tokenHash,
+  });
+  const userId = data.user?.id;
+  if (error || !userId) {
+    logOutcome("account_recovery_confirmed", error ? accountAuthError(error) : "failed");
     redirect(expired);
   }
+  await rememberRecovery(userId);
   logOutcome("account_recovery_confirmed");
   redirect(routes.accountResetPassword);
+}
+
+type ServerSupabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
+/** AC-17: a failure here keeps the new password; it is logged with the user id and the code. */
+async function endOtherSessions(supabase: ServerSupabase, userId: string): Promise<void> {
+  const { error } = await supabase.auth.signOut({ scope: "others" });
+  if (error) {
+    console.warn(
+      JSON.stringify({ event: "other_sessions_kept", userId, code: error.code ?? "unknown" }),
+    );
+  }
 }
 
 export type PasswordError =
@@ -174,7 +195,8 @@ export type PasswordError =
   | "owner_needs_runbook"
   | "too_many"
   | "failed";
-export type SetPasswordState = Fail<PasswordError, WithFields> | null;
+export type SetPasswordError = PasswordError | "recovery_expired";
+export type SetPasswordState = Fail<SetPasswordError, WithFields> | null;
 
 const passwordError = (error: AccountAuthError): PasswordError =>
   error === "weak_password" ||
@@ -184,7 +206,10 @@ const passwordError = (error: AccountAuthError): PasswordError =>
     ? error
     : "failed";
 
-/** AC-8: the new password after a reset link; every other session of the account ends. */
+/**
+ * AC-8: the new password after a reset link, only within its 10 minutes (else the current password
+ * is needed, AC-10); every other session of the account ends.
+ */
 export async function setNewPassword(
   _previous: SetPasswordState,
   form: FormData,
@@ -193,6 +218,10 @@ export async function setNewPassword(
   if (!user) {
     logOutcome("account_password_set", "not_signed_in");
     return fail("not_signed_in");
+  }
+  if (!(await hasFreshRecovery(user.id))) {
+    logOutcome("account_password_set", "recovery_expired");
+    return fail("recovery_expired");
   }
   const parsed = setPasswordSchema.safeParse(formValues(form));
   if (!parsed.success) {
@@ -207,7 +236,8 @@ export async function setNewPassword(
     logOutcome("account_password_set", code);
     return fail(code);
   }
-  await supabase.auth.signOut({ scope: "others" });
+  await forgetRecovery();
+  await endOtherSessions(supabase, user.id);
   logOutcome("account_password_set");
   redirect(routes.accountWith("password_set"));
 }
@@ -225,6 +255,12 @@ export async function changePassword(
   if (!user?.email) {
     logOutcome("account_password_changed", "not_signed_in");
     return fail("not_signed_in");
+  }
+  // AC-4: Supabase would refuse the owner at the update anyway, and checking the current password
+  // first signs in again at aal1, which would end the owner's dashboard session for nothing.
+  if ((await getAccountProfile())?.profile?.role === "admin") {
+    logOutcome("account_password_changed", "owner_needs_runbook");
+    return fail("owner_needs_runbook");
   }
   const parsed = changePasswordSchema.safeParse(formValues(form));
   if (!parsed.success) {
@@ -249,7 +285,7 @@ export async function changePassword(
     logOutcome("account_password_changed", code);
     return fail(code);
   }
-  await supabase.auth.signOut({ scope: "others" });
+  await endOtherSessions(supabase, user.id);
   logOutcome("account_password_changed");
   return ok({ changed: true });
 }

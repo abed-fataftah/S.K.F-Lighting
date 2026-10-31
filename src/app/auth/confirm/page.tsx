@@ -6,7 +6,12 @@ import { confirmRecovery } from "@/features/accounts/server/actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
-  return { title: t("confirmRecovery"), robots: { index: false, follow: false } };
+  // The token sits in this page's address, so it must never leave in a Referer header.
+  return {
+    title: t("confirmRecovery"),
+    robots: { index: false, follow: false },
+    referrer: "no-referrer",
+  };
 }
 
 const firstParam = (value: string | string[] | undefined) =>

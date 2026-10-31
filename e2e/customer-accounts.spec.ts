@@ -232,6 +232,8 @@ test("a forgotten password is reset through the emailed link", async ({ page }, 
   await page.goto(link);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("استعادة كلمة المرور");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  // The token is in this address, so it never leaves in a Referer header.
+  await expect(page.locator('meta[name="referrer"]')).toHaveAttribute("content", "no-referrer");
   await checkA11y(page, testInfo);
   await page.reload();
   await page.getByTestId("confirm-recovery").click();
@@ -252,6 +254,9 @@ test("a forgotten password is reset through the emailed link", async ({ page }, 
   await page.getByTestId("set-password-submit").click();
   await expect(page).toHaveURL(/\/account\?notice=password_set$/, { timeout: 30_000 });
   await expect(page.getByTestId("password-set")).toHaveText("تم تعيين كلمة المرور الجديدة.");
+  // One link sets one password: the page now needs a new link.
+  await page.goto("/account/reset-password");
+  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
 
   // The link is used: opening it again lands on the expired message, until a new send.
   await page.goto(link);
@@ -286,6 +291,10 @@ test("a signed in customer changes their password", async ({ page }, testInfo) =
   await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
   // AC-9: no phone on the profile yet.
   await expect(page.getByTestId("phone-missing")).toContainText("أضف رقم هاتفك");
+
+  // AC-8: with no reset link, a new password needs the current one, so the page sends you here.
+  await page.goto("/account/reset-password");
+  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
 
   const current = page.getByLabel("كلمة المرور الحالية");
   const fresh = page.getByLabel("كلمة المرور الجديدة", { exact: true });

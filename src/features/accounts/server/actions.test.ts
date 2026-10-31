@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// covers: AC-2, AC-3, AC-5, AC-7, AC-8, AC-9, AC-10, AC-11, AC-17 (spec 0017). Supabase Auth, the
+// covers: AC-2, AC-3, AC-4, AC-5, AC-7, AC-8, AC-9, AC-10, AC-11, AC-17 (spec 0017). Supabase Auth, the
 // session, and the profile writes are stand ins, so these prove what each action checks, calls,
 // returns, and logs.
 
@@ -36,7 +36,13 @@ vi.mock("@/server/db", () => ({ getDb: async () => db }));
 
 const savePhoneAfterSignUp = vi.fn();
 const updateProfileInDb = vi.fn();
-vi.mock("./profile", () => ({ savePhoneAfterSignUp, updateProfileInDb }));
+const getAccountProfile = vi.fn();
+vi.mock("./profile", () => ({ getAccountProfile, savePhoneAfterSignUp, updateProfileInDb }));
+
+const rememberRecovery = vi.fn();
+const hasFreshRecovery = vi.fn();
+const forgetRecovery = vi.fn();
+vi.mock("./recovery", () => ({ rememberRecovery, hasFreshRecovery, forgetRecovery }));
 
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970599123456");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://shop.example");
@@ -76,12 +82,18 @@ beforeEach(() => {
   auth.signUp.mockResolvedValue({ data: { user: { id: USER_ID } }, error: null });
   auth.signInWithPassword.mockResolvedValue({ data: { user: { id: USER_ID } }, error: null });
   auth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
-  auth.verifyOtp.mockResolvedValue({ data: {}, error: null });
+  auth.verifyOtp.mockResolvedValue({ data: { user: { id: USER_ID } }, error: null });
   auth.updateUser.mockResolvedValue({ data: {}, error: null });
   auth.signOut.mockResolvedValue({ error: null });
   getVerifiedUser.mockResolvedValue({ id: USER_ID, email: EMAIL });
   savePhoneAfterSignUp.mockResolvedValue(undefined);
   updateProfileInDb.mockResolvedValue(undefined);
+  getAccountProfile.mockResolvedValue({
+    userId: USER_ID,
+    email: EMAIL,
+    profile: { role: "customer" },
+  });
+  hasFreshRecovery.mockResolvedValue(true);
 });
 
 afterEach(() => {
@@ -173,8 +185,11 @@ describe("signInCustomer", () => {
 
   it.each([
     [refused(400, "invalid_credentials"), "invalid_credentials"],
-    [refused(400, "email_not_confirmed"), "invalid_credentials"],
     [refused(429, "over_request_rate_limit"), "too_many"],
+    // An outage or a network fault never reads as a wrong password.
+    [refused(500, "unexpected_failure"), "failed"],
+    [refused(0, "unknown"), "failed"],
+    [refused(400, "email_not_confirmed"), "failed"],
   ])("refuses %j as %s", async (answer, error) => {
     auth.signInWithPassword.mockResolvedValue(answer);
     expect(await actions.signInCustomer(null, form({ email: EMAIL, password: "x" }))).toEqual({
@@ -233,6 +248,7 @@ describe("confirmRecovery", () => {
     );
     expect(url).toBe("/account/reset-password");
     expect(auth.verifyOtp).toHaveBeenCalledWith({ type: "recovery", token_hash: "abc123" });
+    expect(rememberRecovery).toHaveBeenCalledWith(USER_ID);
   });
 
   it.each([
@@ -250,6 +266,7 @@ describe("confirmRecovery", () => {
     expect(
       await redirectOf(actions.confirmRecovery(form({ token_hash: "abc", type: "recovery" }))),
     ).toBe(expired);
+    expect(rememberRecovery).not.toHaveBeenCalled();
   });
 });
 
@@ -262,6 +279,31 @@ describe("setNewPassword", () => {
     );
     expect(auth.updateUser).toHaveBeenCalledWith({ password: NEW_PASSWORD });
     expect(auth.signOut).toHaveBeenCalledWith({ scope: "others" });
+    expect(forgetRecovery).toHaveBeenCalled();
+  });
+
+  it("refuses without a reset link from the last 10 minutes", async () => {
+    hasFreshRecovery.mockResolvedValue(false);
+    expect(await actions.setNewPassword(null, form(valid))).toEqual({
+      ok: false,
+      error: "recovery_expired",
+    });
+    expect(hasFreshRecovery).toHaveBeenCalledWith(USER_ID);
+    expect(auth.updateUser).not.toHaveBeenCalled();
+    expect(lines()).toEqual([
+      { event: "account_password_set", ok: false, code: "recovery_expired" },
+    ]);
+  });
+
+  it("keeps the new password when ending other sessions fails, and logs it", async () => {
+    auth.signOut.mockResolvedValue({ error: { status: 500, code: "unexpected_failure" } });
+    expect(await redirectOf(actions.setNewPassword(null, form(valid)))).toBe(
+      "/account?notice=password_set",
+    );
+    expect(lines()).toEqual([
+      { event: "other_sessions_kept", userId: USER_ID, code: "unexpected_failure" },
+      { event: "account_password_set", ok: true },
+    ]);
   });
 
   it("refuses a signed out visitor before anything else", async () => {
@@ -314,6 +356,32 @@ describe("changePassword", () => {
       ok: false,
       error: "not_signed_in",
     });
+  });
+
+  it("sends the owner to the runbook before checking the current password", async () => {
+    getAccountProfile.mockResolvedValue({
+      userId: USER_ID,
+      email: EMAIL,
+      profile: { role: "admin" },
+    });
+    expect(await actions.changePassword(null, form(valid))).toEqual({
+      ok: false,
+      error: "owner_needs_runbook",
+    });
+    expect(auth.signInWithPassword).not.toHaveBeenCalled();
+    expect(auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("keeps the changed password when ending other sessions fails, and logs it", async () => {
+    auth.signOut.mockResolvedValue({ error: { status: 0, code: undefined } });
+    expect(await actions.changePassword(null, form(valid))).toEqual({
+      ok: true,
+      data: { changed: true },
+    });
+    expect(lines()).toEqual([
+      { event: "other_sessions_kept", userId: USER_ID, code: "unknown" },
+      { event: "account_password_changed", ok: true },
+    ]);
   });
 
   it("says the current password is wrong without touching the password", async () => {

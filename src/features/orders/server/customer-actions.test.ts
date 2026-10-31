@@ -19,8 +19,8 @@ vi.mock("@/server/db", () => ({ getDb }));
 const cancelOrderByCustomerInDb = vi.fn();
 vi.mock("./admin-status", () => ({ cancelOrderByCustomerInDb }));
 
-const getClaims = vi.fn(async (): Promise<{ sub?: string } | null> => null);
-vi.mock("@/server/auth/session", () => ({ getClaims }));
+const getVerifiedUser = vi.fn(async (): Promise<{ id: string } | null> => null);
+vi.mock("@/server/auth/session", () => ({ getVerifiedUser }));
 const isOwnedOrder = vi.fn(async () => false);
 vi.mock("./customer-order", () => ({ isOwnedOrder }));
 
@@ -36,7 +36,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   readPlacedIds.mockResolvedValue([]);
   readTrackedIds.mockResolvedValue([]);
-  getClaims.mockResolvedValue(null);
+  getVerifiedUser.mockResolvedValue(null);
   isOwnedOrder.mockResolvedValue(false);
   cancelOrderByCustomerInDb.mockResolvedValue({
     ok: true,
@@ -67,7 +67,7 @@ describe("who may cancel", () => {
   });
 
   it("reaches the write for the signed in account that placed the order, with no cookie", async () => {
-    getClaims.mockResolvedValue({ sub: USER_ID });
+    getVerifiedUser.mockResolvedValue({ id: USER_ID });
     isOwnedOrder.mockResolvedValue(true);
     expect((await cancelOrderByCustomer({ orderId: ORDER_ID, from: "new" })).ok).toBe(true);
     expect(isOwnedOrder).toHaveBeenCalledWith({}, ORDER_ID, USER_ID);
@@ -78,7 +78,7 @@ describe("who may cancel", () => {
   });
 
   it("gives not_found to another signed in account", async () => {
-    getClaims.mockResolvedValue({ sub: USER_ID });
+    getVerifiedUser.mockResolvedValue({ id: USER_ID });
     expect(await cancelOrderByCustomer({ orderId: ORDER_ID, from: "new" })).toEqual({
       ok: false,
       error: "not_found",
@@ -87,10 +87,11 @@ describe("who may cancel", () => {
   });
 
   it("skips the owner check when a cookie already holds the id", async () => {
-    getClaims.mockResolvedValue({ sub: USER_ID });
+    getVerifiedUser.mockResolvedValue({ id: USER_ID });
     readPlacedIds.mockResolvedValue([ORDER_ID]);
     expect((await cancelOrderByCustomer({ orderId: ORDER_ID, from: "new" })).ok).toBe(true);
     expect(isOwnedOrder).not.toHaveBeenCalled();
+    expect(getVerifiedUser).not.toHaveBeenCalled();
   });
 
   it("reaches the write for an id in skf_tracked, typed in upper case", async () => {

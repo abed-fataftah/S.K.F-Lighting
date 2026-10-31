@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { SetPasswordForm } from "@/features/accounts/components/set-password-form";
+import { hasFreshRecovery } from "@/features/accounts/server/recovery";
 import { routes } from "@/lib/routes";
 import { getClaims } from "@/server/auth/session";
 
@@ -12,11 +13,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The new password after a reset link (spec 0017 AC-8). `confirmRecovery` signed the visitor in;
-// without a session there is nothing to set, so it goes to sign in.
+// without a session there is nothing to set, so it goes to sign in. More than 10 minutes after the
+// link, the change needs the current password on /account (AC-10).
 export default async function ResetPasswordPage() {
-  if (!(await getClaims())?.sub) {
+  const userId = (await getClaims())?.sub;
+  if (!userId) {
     redirect(routes.signInWith({ next: routes.accountResetPassword }));
   }
+  if (!(await hasFreshRecovery(userId))) redirect(routes.account);
   const t = await getTranslations("Account");
   return (
     <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
