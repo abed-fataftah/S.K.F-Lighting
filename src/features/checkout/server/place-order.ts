@@ -4,6 +4,8 @@ import { buildCartView, checkoutTotal, type CartView } from "@/features/cart/car
 import type { CartLine } from "@/features/cart/cart-cookie";
 import { readCartRows } from "@/features/cart/server/cart-rows";
 import { allocateOrderNumber } from "@/features/orders/server/order-number";
+import type { UserRole } from "@/features/accounts/server/profile";
+import type { ActorKind } from "@/features/orders/status";
 import { computeOrderTotals } from "@/features/orders/totals";
 import { deliveryZones, orderEvents, orderLines, orders } from "@/server/db/schema";
 import type { Database } from "@/server/db/types";
@@ -15,6 +17,22 @@ import { readActiveZones, type DeliveryZoneOption } from "./checkout-options";
 // one transaction, and writes nothing until every check passes.
 
 export type PlacedOrderRef = { readonly orderId: string; readonly orderNumber: string };
+
+/** The signed in account placing the order (spec 0017 AC-13), or null for a guest. */
+export type PlacedBy = { readonly userId: string; readonly role: UserRole } | null;
+
+/**
+ * Who the `created` event names. A storefront order is a shopper's act, so the owner's own order
+ * is recorded as a customer's; `placed_by_role` still keeps `admin`.
+ */
+export function createdActor(placedBy: PlacedBy): {
+  actorKind: ActorKind;
+  actorUserId: string | null;
+} {
+  if (!placedBy) return { actorKind: "guest", actorUserId: null };
+  const actorKind = placedBy.role === "admin" ? "customer" : placedBy.role;
+  return { actorKind, actorUserId: placedBy.userId };
+}
 
 export type PlaceOrderOutcome =
   | ({
@@ -56,7 +74,17 @@ class KeyTaken extends Error {}
 
 export async function placeOrderInDb(
   db: Database,
-  { input, cart, placedAt }: { input: CheckoutInput; cart: readonly CartLine[]; placedAt: Date },
+  {
+    input,
+    cart,
+    placedAt,
+    placedBy = null,
+  }: {
+    input: CheckoutInput;
+    cart: readonly CartLine[];
+    placedAt: Date;
+    placedBy?: PlacedBy;
+  },
 ): Promise<PlaceOrderOutcome> {
   const existing = await findOrderByKey(db, input.idempotencyKey);
   if (existing) return { kind: "replayed", ...existing };
@@ -103,8 +131,8 @@ export async function placeOrderInDb(
         .values({
           orderNumber,
           idempotencyKey: input.idempotencyKey,
-          placedByUserId: null,
-          placedByRole: null,
+          placedByUserId: placedBy?.userId ?? null,
+          placedByRole: placedBy?.role ?? null,
           customerName: input.name,
           customerPhone: input.phone.typed,
           customerPhoneE164: input.phone.e164,
@@ -144,7 +172,7 @@ export async function placeOrderInDb(
       );
       await tx
         .insert(orderEvents)
-        .values({ orderId: order.id, type: "created", actorKind: "guest", data: {} });
+        .values({ orderId: order.id, type: "created", ...createdActor(placedBy), data: {} });
 
       return {
         kind: "placed",

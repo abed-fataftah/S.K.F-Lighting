@@ -4,8 +4,9 @@ import { hasLocalDb, insertSimpleProduct, withRollback } from "@/server/db/testi
 vi.mock("server-only", () => ({}));
 
 const { getDirectDb } = await import("@/server/db/direct");
-const { insertTestOrder } = await import("./testing");
-const { findLookupOrderId, readCustomerOrder } = await import("./customer-order");
+const { insertCustomerUser, insertTestOrder } = await import("./testing");
+const { findLookupOrderId, isOwnedOrder, readCustomerOrder, readOwnedOrderId } =
+  await import("./customer-order");
 const { cancelOrderByCustomerInDb } = await import("./admin-status");
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
@@ -103,6 +104,46 @@ describe.skipIf(!hasLocalDb)("a cancelled order on the customer's page", () => {
       expect(read?.cancelledAt).toBeInstanceOf(Date);
       expect(read).not.toHaveProperty("cancelReason");
       expect(JSON.stringify(read)).not.toContain("سبب خاص جداً");
+    });
+  });
+});
+
+// covers: AC-14, AC-15 (spec 0017)
+describe.skipIf(!hasLocalDb)("orders placed by an account, on the local database", () => {
+  it("finds the order only for the account that placed it", async () => {
+    await withRollback(db, async (tx) => {
+      const { variant } = await insertSimpleProduct(tx, "TEST-OWNER");
+      const owner = await insertCustomerUser(tx, "owner-read@example.test");
+      const other = await insertCustomerUser(tx, "other-read@example.test");
+      const order = await insertTestOrder(tx, { placedAt, variant, placedByUserId: owner });
+      const guest = await insertTestOrder(tx, { placedAt, variant });
+
+      expect(await readOwnedOrderId(tx, order.orderNumber, owner)).toBe(order.id);
+      expect(await readOwnedOrderId(tx, order.orderNumber, other)).toBeNull();
+      expect(await readOwnedOrderId(tx, guest.orderNumber, owner)).toBeNull();
+      expect(await isOwnedOrder(tx, order.id, owner)).toBe(true);
+      expect(await isOwnedOrder(tx, order.id, other)).toBe(false);
+      expect(await isOwnedOrder(tx, guest.id, owner)).toBe(false);
+
+      const read = await readCustomerOrder(tx, order.orderNumber, [order.id]);
+      expect(read).toMatchObject({ id: order.id, status: "new" });
+    });
+  });
+
+  it("lets the owner's cancel through the same guarded write, recorded as guest", async () => {
+    await withRollback(db, async (tx) => {
+      const { variant } = await insertSimpleProduct(tx, "TEST-OWNER");
+      const owner = await insertCustomerUser(tx, "owner-cancel@example.test");
+      const order = await insertTestOrder(tx, { placedAt, variant, placedByUserId: owner });
+
+      expect(await isOwnedOrder(tx, order.id, owner)).toBe(true);
+      expect(
+        await cancelOrderByCustomerInDb(tx, { orderId: order.id, from: "new", reason: null }),
+      ).toMatchObject({ ok: true });
+      expect(await readCustomerOrder(tx, order.orderNumber, [order.id])).toMatchObject({
+        status: "cancelled",
+        cancelledBy: "guest",
+      });
     });
   });
 });

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getAccountProfile } from "@/features/accounts/server/profile";
 import type { CartView } from "@/features/cart/cart-view";
 import { readCartCookie } from "@/features/cart/server/cookies";
 import { fieldErrorsOf, formValues, type FieldErrors } from "@/lib/form-errors";
@@ -9,7 +10,7 @@ import { routes } from "@/lib/routes";
 import { getDb } from "@/server/db";
 import { checkoutSchema, HONEYPOT_FIELD } from "../schemas";
 import type { DeliveryZoneOption } from "./checkout-options";
-import { placeOrderInDb } from "./place-order";
+import { placeOrderInDb, type PlacedBy } from "./place-order";
 import { rememberPlacedOrder } from "./placed";
 import { orderRateCheck } from "./rate-limit";
 
@@ -36,6 +37,20 @@ export type CheckoutState = Fail<
 // Logs carry the error code and field names only, never what the customer typed (AC-15).
 function logFailure(error: CheckoutError, fields: readonly string[] = []) {
   console.warn(JSON.stringify({ event: "order_refused", error, fields }));
+}
+
+/**
+ * The account behind this submit (spec 0017 AC-13), read from the session now, never from the
+ * form. Signed out, an expired session, or a user with no profile row places a guest order.
+ */
+async function readPlacedBy(): Promise<PlacedBy> {
+  const account = await getAccountProfile();
+  if (!account) return null;
+  if (!account.profile) {
+    console.warn(JSON.stringify({ event: "order_profile_missing", userId: account.userId }));
+    return null;
+  }
+  return { userId: account.userId, role: account.profile.role };
 }
 
 /** Place the order (spec 0004 AC-7 to AC-9): parse, check and save in one transaction, redirect. */
@@ -66,6 +81,7 @@ export async function placeOrder(_previous: CheckoutState, form: FormData): Prom
       input: parsed.data,
       cart: await readCartCookie(),
       placedAt: new Date(),
+      placedBy: await readPlacedBy(),
     });
   } catch (error) {
     console.error(

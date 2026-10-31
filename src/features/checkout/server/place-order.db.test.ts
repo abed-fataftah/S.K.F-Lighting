@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq, inArray, like } from "drizzle-orm";
+import { eq, inArray, like, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   categories,
@@ -19,7 +19,7 @@ vi.mock("server-only", () => ({}));
 const { getDirectDb } = await import("@/server/db/direct");
 const { placeOrderInDb } = await import("./place-order");
 
-// covers: AC-5, AC-7, AC-8, AC-9 (spec 0004); AC-7 (spec 0008)
+// covers: AC-5, AC-7, AC-8, AC-9 (spec 0004); AC-7 (spec 0008); AC-13 (spec 0017)
 
 const db = hasLocalDb ? getDirectDb() : (null as never);
 // A far future year keeps these committed orders away from real numbers.
@@ -54,6 +54,7 @@ async function cleanUp() {
     await db.delete(orders).where(inArray(orders.id, ids));
   }
   await db.delete(orderNumberCounters).where(eq(orderNumberCounters.year, YEAR));
+  await db.execute(sql`delete from auth.users where email like 'po-test-%@example.test'`);
   await db.delete(products).where(like(products.code, `${PREFIX}%`));
   await db.delete(categories).where(like(categories.slug, "po-test%"));
 }
@@ -335,5 +336,70 @@ describe.skipIf(!hasLocalDb)("placeOrderInDb on the local database", () => {
       await hide(true);
     }
     expect(await db.select({ id: orders.id }).from(orders)).toHaveLength(before.length);
+  });
+
+  describe("placed by a signed in account (spec 0017 AC-13)", () => {
+    const insertUser = async (email: string, role: "customer" | "admin") => {
+      const [user] = await db.execute<{ id: string }>(sql`
+        insert into auth.users (id, aud, role, email)
+        values (gen_random_uuid(), 'authenticated', 'authenticated', ${email})
+        returning id`);
+      if (role === "admin") {
+        await db.execute(sql`update public.profiles set role = 'admin' where id = ${user.id}`);
+      }
+      return user.id;
+    };
+
+    const placeAs = async (placedBy: { userId: string; role: "customer" | "admin" }) => {
+      const outcome = await placeOrderInDb(db, {
+        input: pickup({ expectedTotal: 1_990 }),
+        cart: [{ variantId: variantB, quantity: 1 }],
+        placedAt,
+        placedBy,
+      });
+      if (outcome.kind !== "placed") throw new Error(`not placed: ${outcome.kind}`);
+      const [order] = await db.select().from(orders).where(eq(orders.id, outcome.orderId));
+      const [event] = await db
+        .select()
+        .from(orderEvents)
+        .where(eq(orderEvents.orderId, outcome.orderId));
+      return { outcome, order, event };
+    };
+
+    it("links a customer's order and its created event to the account", async () => {
+      const userId = await insertUser("po-test-customer@example.test", "customer");
+      const { order, event } = await placeAs({ userId, role: "customer" });
+      expect(order).toMatchObject({ placedByUserId: userId, placedByRole: "customer" });
+      expect(event).toMatchObject({ type: "created", actorKind: "customer", actorUserId: userId });
+    });
+
+    it("records the owner's storefront order as a customer's act, keeping the admin role", async () => {
+      const userId = await insertUser("po-test-owner@example.test", "admin");
+      const { order, event } = await placeAs({ userId, role: "admin" });
+      expect(order).toMatchObject({ placedByUserId: userId, placedByRole: "admin" });
+      expect(event).toMatchObject({ actorKind: "customer", actorUserId: userId });
+    });
+
+    it("returns a replayed key's order unchanged, whoever sends it", async () => {
+      const userId = await insertUser("po-test-replay@example.test", "customer");
+      const input = pickup({ expectedTotal: 1_990 });
+      const cart = [{ variantId: variantB, quantity: 1 }];
+      const first = await placeOrderInDb(db, { input, cart, placedAt });
+      const again = await placeOrderInDb(db, {
+        input,
+        cart,
+        placedAt,
+        placedBy: { userId, role: "customer" },
+      });
+      expect(again).toMatchObject({
+        kind: "replayed",
+        orderNumber: (first as { orderNumber: string }).orderNumber,
+      });
+      const [order] = await db
+        .select()
+        .from(orders)
+        .where(eq(orders.idempotencyKey, input.idempotencyKey));
+      expect(order.placedByUserId).toBeNull();
+    });
   });
 });

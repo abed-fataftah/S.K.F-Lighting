@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { StateCard } from "@/components/state-card";
 import { ButtonLink } from "@/components/ui/button";
+import { getAccountProfile } from "@/features/accounts/server/profile";
 import { readCart } from "@/features/cart/server/queries";
 import { CheckoutForm } from "@/features/checkout/components/checkout-form";
 import { getCheckoutOptions } from "@/features/checkout/server/queries";
@@ -41,7 +42,11 @@ export default async function CheckoutPage() {
     );
   }
 
-  const { zones, pickupAddress } = await getCheckoutOptions();
+  // A signed in customer starts with their profile's name and phone (spec 0017 AC-13).
+  const [{ zones, pickupAddress }, account] = await Promise.all([
+    getCheckoutOptions(),
+    getAccountProfile(),
+  ]);
 
   return (
     <div className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
@@ -51,6 +56,8 @@ export default async function CheckoutPage() {
         zones={zones}
         pickupAddress={pickupAddress}
         idempotencyKey={crypto.randomUUID()}
+        initialName={account?.profile?.fullName ?? ""}
+        initialPhone={account?.profile?.phone ?? ""}
       />
     </div>
   );

@@ -18,6 +18,15 @@ export async function insertAdminUser(tx: Transaction, email = "owner-orders@exa
   return user.id;
 }
 
+/** A plain auth user; the trigger gives it a `customer` profile. */
+export async function insertCustomerUser(tx: Transaction, email: string) {
+  const [user] = await tx.execute<{ id: string }>(sql`
+    insert into auth.users (id, aud, role, email)
+    values (gen_random_uuid(), 'authenticated', 'authenticated', ${email})
+    returning id`);
+  return user.id;
+}
+
 export type TestOrder = {
   readonly placedAt: Date;
   readonly variant: { readonly id: string; readonly productId: string };
@@ -25,6 +34,8 @@ export type TestOrder = {
   readonly status?: typeof orders.$inferInsert.status;
   readonly phoneE164?: string;
   readonly placedByRole?: typeof orders.$inferInsert.placedByRole;
+  /** The account that placed it (spec 0017); null for a guest order. */
+  readonly placedByUserId?: string | null;
   /** False writes the `created` event already seen. */
   readonly unseen?: boolean;
 };
@@ -40,6 +51,7 @@ export async function insertTestOrder(tx: Transaction, order: TestOrder) {
       customerPhone: "0599123456",
       customerPhoneE164: order.phoneE164 ?? "+970599123456",
       placedByRole: order.placedByRole ?? null,
+      placedByUserId: order.placedByUserId ?? null,
       fulfilment: order.fulfilment ?? "pickup",
       ...(zone
         ? {

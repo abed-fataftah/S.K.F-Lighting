@@ -3,6 +3,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { firstProductImageKey } from "@/features/catalog/server/product-image-sql";
 import { readPickupAddress } from "@/features/checkout/server/checkout-options";
 import { readPlacedIds } from "@/features/checkout/server/placed";
+import { getClaims } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { orderLines, orders } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
@@ -47,11 +48,46 @@ export type CustomerOrder = {
   readonly lines: readonly OrderSummaryLine[];
 };
 
+/** The id of the order with this number placed by `userId` (spec 0017 AC-14), or null. */
+export async function readOwnedOrderId(
+  db: Database | Transaction,
+  orderNumber: string,
+  userId: string,
+): Promise<string | null> {
+  const [row] = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(and(eq(orders.orderNumber, orderNumber), eq(orders.placedByUserId, userId)))
+    .limit(1);
+  return row?.id ?? null;
+}
+
+/** True when `userId` placed the order with this id (spec 0017 AC-15). */
+export async function isOwnedOrder(
+  db: Database | Transaction,
+  orderId: string,
+  userId: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(and(eq(orders.id, orderId), eq(orders.placedByUserId, userId)))
+    .limit(1);
+  return row !== undefined;
+}
+
 /**
- * The order behind `/orders/<number>` (AC-7), only when this browser's `skf_placed` or
- * `skf_tracked` cookie holds its id. With neither cookie it returns null without a query.
+ * The order behind `/orders/<number>` (AC-7): for the signed in account that placed it (spec 0017
+ * AC-14, checked first), else only when this browser's `skf_placed` or `skf_tracked` cookie holds
+ * its id. A guest with neither cookie gets null without a query.
  */
 export async function getCustomerOrder(orderNumber: string): Promise<CustomerOrder | null> {
+  const userId = (await getClaims())?.sub;
+  if (userId) {
+    const db = await getDb();
+    const ownedId = await readOwnedOrderId(db, orderNumber, userId);
+    if (ownedId) return readCustomerOrder(db, orderNumber, [ownedId]);
+  }
   const [placed, tracked] = await Promise.all([readPlacedIds(), readTrackedIds()]);
   const ids = [...new Set([...placed, ...tracked])];
   if (ids.length === 0) return null;

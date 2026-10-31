@@ -55,11 +55,16 @@ export function CheckoutForm({
   zones: initialZones,
   pickupAddress,
   idempotencyKey,
+  initialName = "",
+  initialPhone = "",
 }: {
   readonly cart: CartView;
   readonly zones: readonly DeliveryZoneOption[];
   readonly pickupAddress: string | null;
   readonly idempotencyKey: string;
+  /** The signed in customer's profile values (spec 0017 AC-13); editing never changes it. */
+  readonly initialName?: string;
+  readonly initialPhone?: string;
 }) {
   const t = useTranslations("Checkout");
   const errorText = useFieldErrorText();
@@ -178,6 +183,7 @@ export function CheckoutForm({
               id={fieldId("name")}
               name="name"
               autoComplete="name"
+              defaultValue={initialName}
               maxLength={NAME_LIMITS.max * 2}
               required
               {...liveCheck("name")}
@@ -194,6 +200,7 @@ export function CheckoutForm({
               inputMode="tel"
               autoComplete="tel"
               dir="ltr"
+              defaultValue={initialPhone}
               required
               {...liveCheck("phone")}
               aria-describedby={errorOf("phone") ? errorId("phone") : "checkout-phone-help"}
