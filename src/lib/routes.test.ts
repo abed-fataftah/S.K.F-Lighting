@@ -116,3 +116,26 @@ describe("routes.product", () => {
     );
   });
 });
+
+// covers: AC-1, AC-6, AC-8 (spec 0017)
+describe("account routes", () => {
+  it("builds the sign in address with only tab, next, and error", () => {
+    expect(routes.signInWith({})).toBe("/account/sign-in");
+    expect(routes.signInWith({ tab: "login", next: "/account" })).toBe(
+      "/account/sign-in?next=%2Faccount",
+    );
+    expect(routes.signInWith({ tab: "reset", error: "link_expired" })).toBe(
+      "/account/sign-in?tab=reset&error=link_expired",
+    );
+    expect(routes.signInWith({ tab: "register", next: "/p/x?size=2" })).toBe(
+      "/account/sign-in?tab=register&next=%2Fp%2Fx%3Fsize%3D2",
+    );
+  });
+
+  it("has the account pages and the reset landing", () => {
+    expect(routes.account).toBe("/account");
+    expect(routes.accountWith("password_set")).toBe("/account?notice=password_set");
+    expect(routes.accountResetPassword).toBe("/account/reset-password");
+    expect(routes.auth.confirm).toBe("/auth/confirm");
+  });
+});

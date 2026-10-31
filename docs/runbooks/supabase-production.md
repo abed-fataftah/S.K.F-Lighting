@@ -10,13 +10,16 @@ From spec [0001](../specs/0001-stack-architecture/index.md). Local settings live
 
 ## Auth (Authentication → Settings)
 
-- [ ] Site URL: the production domain (bare domain, `https://...`).
-- [ ] Redirect URLs: `http://localhost:3000/**`, the production domain, and the Workers preview URL pattern.
-- [ ] Email + password sign in on. Email confirmations as decided by the accounts feature (18).
+- [ ] Site URL: the production domain (bare domain, `https://...`), the same value as `NEXT_PUBLIC_SITE_URL`.
+- [ ] Redirect URLs: `http://localhost:3000/**`, the production domain (`https://<domain>/**`), and the Workers preview URL pattern. The reset email links back to `NEXT_PUBLIC_SITE_URL` + `/auth/confirm` (spec 0017 AC-7), so a preview deploy's links come back to that preview only when its URL is in this list.
+- [ ] Email + password sign in on. **Confirm email off** (spec 0017 AC-2): a new customer is signed in at once.
+- [ ] Minimum password length **8**, no character requirements (spec 0017 AC-16). The account forms check the same rule.
+- [ ] **Leaked password protection on** (Authentication → Attack Protection). A leaked password is refused as weak on register and on every password change.
+- [ ] Email template **Reset password**: subject `استعادة كلمة المرور في S.K.F`, body copied from `supabase/templates/recovery.html`. Its link must stay `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery`; `/auth/confirm` needs the token hash, not the default `{{ .ConfirmationURL }}`.
 - [ ] Google provider on, with the client id and secret from Google Cloud. Google callbacks work on production and localhost only, not on preview deploys.
 - [ ] MFA: authenticator app (TOTP) enroll and verify on. Phone MFA off. The dashboard needs it (spec 0004): without it `/admin/mfa` cannot set up or check a code.
-- [ ] Custom SMTP: Resend, sending from the shop domain (SPF and DKIM verified in Cloudflare DNS first).
-- [ ] Raise the auth email rate limit after custom SMTP is on (it starts low).
+- [ ] Custom SMTP: Resend, sending from the shop domain (SPF and DKIM verified in Cloudflare DNS first). Without it resets reach only the project team's own addresses.
+- [ ] Raise the auth email rate limit after custom SMTP is on (it starts low, 2 an hour, which would stop reset emails for the whole shop). Reset requests that hit any limit still show "sent" to the customer and are only logged (`account_reset_requested` with `ok: false`).
 
 ## Storage
 

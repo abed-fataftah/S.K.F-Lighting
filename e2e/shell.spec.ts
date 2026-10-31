@@ -143,10 +143,7 @@ test.describe("storefront shell", () => {
       "page",
     );
     await expect(bar.locator("[aria-current]")).toHaveCount(1);
-    await expect(bar.getByRole("link", { name: "حسابي" })).toHaveAttribute(
-      "href",
-      "/account/orders",
-    );
+    await expect(bar.getByRole("link", { name: "حسابي" })).toHaveAttribute("href", "/account");
   });
 
   // covers: AC-17

@@ -20,6 +20,11 @@ export const fieldErrorKeys = {
   totp_format: "totpFormat",
   number_required: "orderNumberRequired",
   number_format: "orderNumberFormat",
+  password_too_long: "passwordTooLong",
+  password_mismatch: "passwordMismatch",
+  password_same: "passwordSame",
+  password_weak: "passwordWeak",
+  password_wrong_current: "passwordWrongCurrent",
 } as const;
 
 export type FieldErrorCode = keyof typeof fieldErrorKeys;

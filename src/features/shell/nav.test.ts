@@ -15,6 +15,8 @@ describe("activeTab", () => {
     ["/search", "search"],
     ["/account/orders", "account"],
     ["/account/sign-in", "account"],
+    ["/account", "account"],
+    ["/account/reset-password", "account"],
     ["/orders/26-00042", "account"],
     ["/orders/track", "account"],
     ["/policies/terms", "home"],
@@ -29,13 +31,13 @@ describe("activeTab", () => {
     expect(activeTab("/catalog")).toBe("home");
   });
 
-  it("lists the five tabs in the bar's order, with حسابي always going to the orders page", () => {
+  it("lists the five tabs in the bar's order, with حسابي always going to the account page", () => {
     expect(storefrontTabs.map((tab) => tab.href)).toEqual([
       "/",
       "/c",
       "/cart",
       "/search",
-      "/account/orders",
+      "/account",
     ]);
   });
 });

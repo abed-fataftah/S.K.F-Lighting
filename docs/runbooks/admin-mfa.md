@@ -29,6 +29,20 @@ Sign in with the other device. To set up a new second device, reset the factor (
 2. Sign in at `/admin/login` with email and password, then set up two devices again on `/admin/mfa`.
 3. Keep the service role key off shared machines. Anyone holding it can do this reset.
 
+## Change or reset the owner's password
+
+The storefront's "نسيت كلمة المرور؟" and "تغيير كلمة المرور" (spec 0017) cannot change this account's password: Supabase asks for the authenticator code before it changes the password of an account that has one, and the storefront never asks for codes. Both forms answer "لتغيير كلمة مرور حساب لوحة التحكم اتبع دليل الاستعادة." and point here.
+
+1. From a trusted machine, as in "Lost both devices", run:
+   ```
+   pnpm admin:mfa-reset <owner email>
+   ```
+   This removes the authenticator factors and signs the account out everywhere.
+2. On the storefront, open `/account/sign-in?tab=reset`, request the link for the owner email, open it, press "متابعة", and save the new password.
+3. Sign in at `/admin/login` with the new password and set up two devices again on `/admin/mfa`.
+
+Signing in on the storefront with the owner account is fine for shopping, but it replaces the browser's session, so the dashboard asks for a code again afterwards.
+
 ## Notes
 
 - Failed password attempts are limited by Supabase Auth (its sign in rate limits), not by the app.

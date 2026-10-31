@@ -76,6 +76,22 @@ export const routes = {
   /** The lookup with its number field filled (spec 0015 AC-7). */
   orderTrackWith: (number: string) => `/orders/track?number=${encodeURIComponent(number)}`,
   signIn: "/account/sign-in",
+  /** Sign in on a given form, carrying where to go afterwards; never an email (spec 0017 AC-1). */
+  signInWith: (opts: {
+    readonly tab?: "login" | "register" | "reset";
+    readonly next?: string | null;
+    readonly error?: "link_expired";
+  }) => {
+    const params = new URLSearchParams();
+    if (opts.tab && opts.tab !== "login") params.set("tab", opts.tab);
+    if (opts.next) params.set("next", opts.next);
+    if (opts.error) params.set("error", opts.error);
+    return withQuery("/account/sign-in", params.toString());
+  },
+  account: "/account",
+  /** The account page with a one time message (spec 0017 AC-8). */
+  accountWith: (notice: "password_set") => `/account?notice=${notice}`,
+  accountResetPassword: "/account/reset-password",
   accountOrders: "/account/orders",
   quickOrder: "/account/quick-order",
   drafts: "/account/drafts",
@@ -83,6 +99,8 @@ export const routes = {
   terms: "/policies/terms",
   returns: "/policies/returns",
   designSystem: "/design-system",
+  /** Outside locale routing, like the dashboard (spec 0017 AC-8). */
+  auth: { confirm: "/auth/confirm" },
   admin: {
     home: "/admin",
     orders: "/admin/orders",

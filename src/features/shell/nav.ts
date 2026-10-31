@@ -10,8 +10,9 @@ export const storefrontTabs: readonly { readonly id: TabId; readonly href: strin
   { id: "cats", href: routes.categories },
   { id: "cart", href: routes.cart },
   { id: "search", href: routes.search() },
-  // Always the orders page: the account area sends a signed out visitor to sign in.
-  { id: "account", href: routes.accountOrders },
+  // Always the account page (spec 0017 AC-12): the shared layout never reads the session, and
+  // /account sends a signed out visitor to sign in. Feature 19 moves it to the orders list.
+  { id: "account", href: routes.account },
 ];
 
 export type PolicyId = "privacy" | "terms" | "returns";
