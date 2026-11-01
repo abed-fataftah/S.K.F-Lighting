@@ -286,6 +286,7 @@ export async function changePassword(
     return fail(code);
   }
   await endOtherSessions(supabase, user.id);
+  await forgetRecovery();
   logOutcome("account_password_changed");
   return ok({ changed: true });
 }
@@ -319,9 +320,10 @@ export async function updateProfile(
   return ok({ saved: true });
 }
 
-/** AC-11: this browser only; the cart and order cookies stay. */
+/** AC-11: this browser only; the cart and order cookies stay, an open reset window ends. */
 export async function signOutCustomer(): Promise<void> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut({ scope: "local" });
+  await forgetRecovery();
   redirect(routes.home);
 }

@@ -281,6 +281,32 @@ test("a forgotten password is reset through the emailed link", async ({ page }, 
   await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
 });
 
+test("signing out ends an unused reset window", async ({ page, context }) => {
+  const email = uniqueEmail("reset-leave");
+  personal = new RegExp([email, PASSWORD].join("|"));
+  await createCustomer(sql, { email, password: PASSWORD, name: NAME });
+
+  await page.goto("/account/sign-in?tab=reset");
+  await page.getByLabel("البريد الإلكتروني").fill(email);
+  await page.getByTestId("reset-submit").click();
+  await expect(page.getByTestId("reset-sent")).toBeVisible();
+  await page.goto(await resetLinkFor(email));
+  await page.getByTestId("confirm-recovery").click();
+  await expect(page).toHaveURL(/\/account\/reset-password$/, { timeout: 30_000 });
+
+  // AC-8, AC-11: leave without saving; the window closes with the session.
+  await page.goto("/account");
+  await page.getByTestId("sign-out").click();
+  await expect(page).toHaveURL(/\/$/);
+  expect((await context.cookies()).map((cookie) => cookie.name)).not.toContain("skf_recovery");
+
+  await page.goto("/account/sign-in");
+  await signInCustomer(page, email, PASSWORD);
+  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
+  await page.goto("/account/reset-password");
+  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
+});
+
 test("a signed in customer changes their password", async ({ page }, testInfo) => {
   const email = uniqueEmail("change");
   personal = new RegExp([email, PASSWORD, NEW_PASSWORD].join("|"));

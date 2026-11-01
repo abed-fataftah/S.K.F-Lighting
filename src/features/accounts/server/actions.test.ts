@@ -350,6 +350,14 @@ describe("changePassword", () => {
     expect(lines()).toEqual([{ event: "account_password_changed", ok: true }]);
   });
 
+  it("ends an open reset window once the password is changed (AC-8)", async () => {
+    await actions.changePassword(null, form(valid));
+    expect(forgetRecovery).toHaveBeenCalled();
+    expect(auth.updateUser.mock.invocationCallOrder[0]).toBeLessThan(
+      forgetRecovery.mock.invocationCallOrder[0],
+    );
+  });
+
   it("refuses a signed out visitor", async () => {
     getVerifiedUser.mockResolvedValue(null);
     expect(await actions.changePassword(null, form(valid))).toEqual({
@@ -391,6 +399,7 @@ describe("changePassword", () => {
       error: "wrong_current",
     });
     expect(auth.updateUser).not.toHaveBeenCalled();
+    expect(forgetRecovery).not.toHaveBeenCalled();
   });
 
   it("refuses a new password equal to the current one before any call", async () => {
@@ -457,5 +466,11 @@ describe("signOutCustomer", () => {
   it("ends this browser's session only, then goes home", async () => {
     expect(await redirectOf(actions.signOutCustomer())).toBe("/");
     expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("ends an open reset window, even when the sign out call fails (AC-8, AC-11)", async () => {
+    auth.signOut.mockResolvedValue({ error: { status: 0, code: undefined } });
+    expect(await redirectOf(actions.signOutCustomer())).toBe("/");
+    expect(forgetRecovery).toHaveBeenCalled();
   });
 });
