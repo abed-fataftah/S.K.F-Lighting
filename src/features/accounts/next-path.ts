@@ -1,5 +1,6 @@
 // Where to go after signing in or registering (spec 0017 AC-6): a storefront path only, never
-// another site, the dashboard, an auth callback, or the sign in page itself.
+// another site, the dashboard, an auth callback, or the sign in page itself. With no safe target,
+// My Orders (spec 0018 AC-8).
 import { routes } from "@/lib/routes";
 
 const MAX_LENGTH = 512;
@@ -24,14 +25,14 @@ function resolvedPath(target: string): string {
 }
 
 export function safeStorefrontNext(next: string | null | undefined): string {
-  if (!next || next.length > MAX_LENGTH) return routes.account;
+  if (!next || next.length > MAX_LENGTH) return routes.accountOrders;
   const decoded = decodeOnce(next);
-  if (decoded === null) return routes.account;
+  if (decoded === null) return routes.accountOrders;
 
   const safe = [next, decoded].every(
     (form) => form.startsWith("/") && !UNSAFE.test(form) && !blocked(form),
   );
-  return safe ? next : routes.account;
+  return safe ? next : routes.accountOrders;
 }
 
 function blocked(target: string): boolean {

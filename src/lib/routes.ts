@@ -93,6 +93,9 @@ export const routes = {
   accountWith: (notice: "password_set") => `/account?notice=${notice}`,
   accountResetPassword: "/account/reset-password",
   accountOrders: "/account/orders",
+  /** "Load more" on My Orders (spec 0018 AC-5): page 1 is left out; jumps to card `o-<position>`. */
+  accountOrdersMore: (page: number, position: number) =>
+    `${withQuery("/account/orders", page > 1 ? `page=${page}` : "")}#o-${position}`,
   quickOrder: "/account/quick-order",
   drafts: "/account/drafts",
   privacy: "/policies/privacy",

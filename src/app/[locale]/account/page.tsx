@@ -3,11 +3,13 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChangePasswordForm } from "@/features/accounts/components/change-password-form";
 import { ProfileForm } from "@/features/accounts/components/profile-form";
 import { SignOutButton } from "@/features/accounts/components/sign-out-button";
 import { getAccountProfile } from "@/features/accounts/server/profile";
+import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,7 +32,16 @@ export default async function AccountPage({ searchParams }: PageProps<"/[locale]
 
   return (
     <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
-      <h1 className="type-title-l">{t("accountTitle")}</h1>
+      <div className="flex flex-col items-start gap-1">
+        <h1 className="type-title-l">{t("accountTitle")}</h1>
+        <ButtonLink
+          variant="outline"
+          render={<Link href={routes.accountOrders} />}
+          data-testid="orders-link"
+        >
+          {t("ordersLink")}
+        </ButtonLink>
+      </div>
       {passwordSet ? (
         <p role="status" className="flex items-center gap-2 font-bold" data-testid="password-set">
           <CircleCheck aria-hidden className="size-5.5 shrink-0" />

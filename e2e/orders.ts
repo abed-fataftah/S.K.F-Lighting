@@ -15,6 +15,8 @@ export type TestOrder = {
   /** Defaults to now. */
   readonly placedAt?: Date;
   readonly name?: string;
+  /** The account that placed it (spec 0017); a guest order when left out. */
+  readonly userId?: string;
 };
 
 export type InsertedOrder = { readonly id: string; readonly number: string };
@@ -54,12 +56,12 @@ export async function insertOrder(sql: Sql, order: TestOrder = {}): Promise<Inse
     const fee = zone?.fee ?? 0;
     const [{ id }] = await tx<{ id: string }[]>`
       insert into orders (
-        order_number, placed_by_role, customer_name, customer_phone, customer_phone_e164,
-        fulfilment, delivery_zone_id, delivery_zone_name, delivery_fee, city, address,
+        order_number, placed_by_role, placed_by_user_id, customer_name, customer_phone,
+        customer_phone_e164, fulfilment, delivery_zone_id, delivery_zone_name, delivery_fee, city, address,
         subtotal, total, status, placed_at
       ) values (
-        ${number}, ${order.role ?? null}, ${order.name ?? "زبون لوحة التحكم"}, ${`0${national}`},
-        ${`+970${national}`}, ${fulfilment}, ${zone?.id ?? null}, ${zone?.name ?? null}, ${fee},
+        ${number}, ${order.role ?? null}, ${order.userId ?? null},
+        ${order.name ?? "زبون لوحة التحكم"}, ${`0${national}`}, ${`+970${national}`}, ${fulfilment}, ${zone?.id ?? null}, ${zone?.name ?? null}, ${fee},
         ${zone ? "نابلس" : null}, ${zone ? "شارع فيصل، بناية 12" : null},
         ${variant.price}, ${variant.price + fee}, ${order.status ?? "new"}, ${placedAt}
       ) returning id`;

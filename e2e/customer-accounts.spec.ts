@@ -198,10 +198,10 @@ test("a taken email offers sign in and reset with the email carried over", async
   await expect(page.getByLabel("البريد الإلكتروني")).toHaveValue(email);
   expect(page.url()).not.toContain("skf.test");
 
-  // AC-6: an unsafe next lands on the account page.
+  // AC-6: an unsafe next lands on My Orders (spec 0018 AC-8).
   await page.goto(`/account/sign-in?next=${encodeURIComponent("//evil.example")}`);
   await signInCustomer(page, email, PASSWORD);
-  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
+  await expect(page).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
 });
 
 test("a forgotten password is reset through the emailed link", async ({ page }, testInfo) => {
@@ -278,7 +278,7 @@ test("a forgotten password is reset through the emailed link", async ({ page }, 
   await expect(page.getByTestId("login-banner")).toBeVisible();
   await page.getByLabel("كلمة المرور").fill(NEW_PASSWORD);
   await page.getByTestId("login-submit").click();
-  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
+  await expect(page).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
 });
 
 test("signing out ends an unused reset window", async ({ page, context }) => {
@@ -302,7 +302,7 @@ test("signing out ends an unused reset window", async ({ page, context }) => {
 
   await page.goto("/account/sign-in");
   await signInCustomer(page, email, PASSWORD);
-  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
+  await expect(page).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
   await page.goto("/account/reset-password");
   await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
 });
@@ -349,7 +349,7 @@ test("a signed in customer changes their password", async ({ page }, testInfo) =
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/account/sign-in");
   await signInCustomer(page, email, NEW_PASSWORD);
-  await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
+  await expect(page).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
 });
 
 test("a signed in order follows the account to its page and its cancel", async ({
@@ -407,7 +407,7 @@ test("a signed in order follows the account to its page and its cancel", async (
   await usePhoneWidth(same, testInfo);
   await same.goto("/account/sign-in");
   await signInCustomer(same, email, PASSWORD);
-  await expect(same).toHaveURL(/\/account$/, { timeout: 30_000 });
+  await expect(same).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
   await same.goto(`/orders/${number}`);
   await expect(same).toHaveURL(`${baseURL}/orders/${number}`);
   await expect(same.getByTestId("order-heading")).toHaveText(`طلب ${number}`);
@@ -427,7 +427,7 @@ test("a signed in order follows the account to its page and its cancel", async (
   const other = await otherContext.newPage();
   await other.goto("/account/sign-in");
   await signInCustomer(other, otherEmail, PASSWORD);
-  await expect(other).toHaveURL(/\/account$/, { timeout: 30_000 });
+  await expect(other).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
   await other.goto(`/orders/${number}`);
   await expect(other).toHaveURL(`${baseURL}/orders/track?number=${number}`);
   await otherContext.close();

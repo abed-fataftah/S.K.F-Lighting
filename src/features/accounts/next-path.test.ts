@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { safeStorefrontNext } from "./next-path";
 
-// covers: AC-6 (spec 0017)
+// covers: AC-6 (spec 0017), AC-8 (spec 0018)
 
 describe("safeStorefrontNext", () => {
   it.each([
@@ -43,8 +43,8 @@ describe("safeStorefrontNext", () => {
     ["/account/sign-in"],
     ["/account/sign-in?tab=register"],
     ["/" + "a".repeat(512)],
-  ])("sends %j to the account page", (next) => {
-    expect(safeStorefrontNext(next)).toBe("/account");
+  ])("sends %j to My Orders", (next) => {
+    expect(safeStorefrontNext(next)).toBe("/account/orders");
   });
 
   it("accepts exactly 512 characters", () => {

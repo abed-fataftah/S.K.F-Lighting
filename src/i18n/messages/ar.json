@@ -520,7 +520,8 @@
     "signIn": "تسجيل الدخول | S.K.F للإنارة",
     "account": "حسابي | S.K.F للإنارة",
     "resetPassword": "كلمة مرور جديدة | S.K.F للإنارة",
-    "confirmRecovery": "استعادة كلمة المرور | S.K.F للإنارة"
+    "confirmRecovery": "استعادة كلمة المرور | S.K.F للإنارة",
+    "myOrders": "طلباتي | S.K.F للإنارة"
   },
   "AdminAuth": {
     "loginTitle": "دخول لوحة التحكم",
@@ -1293,6 +1294,7 @@
     "passwordChanged": "تم تغيير كلمة المرور.",
     "passwordSet": "تم تعيين كلمة المرور الجديدة.",
     "signOut": "تسجيل الخروج",
+    "ordersLink": "طلباتي",
     "errors": {
       "email_taken": "هذا البريد مسجّل مسبقاً.",
       "too_many": "محاولات كثيرة. حاول مرة أخرى بعد قليل.",
@@ -1302,5 +1304,20 @@
       "not_signed_in": "انتهت الجلسة. سجّل الدخول من جديد.",
       "recovery_expired": "انتهت مهلة رابط الاستعادة. اطلب رابطاً جديداً أو غيّر كلمة المرور من حسابي."
     }
+  },
+  "MyOrders": {
+    "title": "طلباتي",
+    "profileLink": "بياناتي وكلمة المرور",
+    "count": "{count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {{shown} منتجات} many {{shown} منتجًا} other {{shown} منتج}}",
+    "view": "عرض الطلب",
+    "viewLabel": "عرض الطلب {number}",
+    "remaining": "المتبقي <ltr>{price}</ltr>",
+    "paid": "مدفوع",
+    "shownOf": "تم عرض {shown} من {total} طلب",
+    "more": "عرض المزيد",
+    "emptyTitle": "لا توجد طلبات بعد",
+    "emptyText": "عند إرسال أول طلب سيظهر هنا.",
+    "emptyCta": "تصفّح الأقسام",
+    "loading": "جارٍ التحميل..."
   }
 }

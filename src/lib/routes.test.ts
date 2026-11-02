@@ -138,4 +138,11 @@ describe("account routes", () => {
     expect(routes.accountResetPassword).toBe("/account/reset-password");
     expect(routes.auth.confirm).toBe("/auth/confirm");
   });
+
+  // covers: AC-5 (spec 0018)
+  it("has My Orders and its load more link", () => {
+    expect(routes.accountOrders).toBe("/account/orders");
+    expect(routes.accountOrdersMore(2, 21)).toBe("/account/orders?page=2#o-21");
+    expect(routes.accountOrdersMore(1, 1)).toBe("/account/orders#o-1");
+  });
 });

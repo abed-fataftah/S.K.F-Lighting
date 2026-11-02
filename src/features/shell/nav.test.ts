@@ -31,13 +31,14 @@ describe("activeTab", () => {
     expect(activeTab("/catalog")).toBe("home");
   });
 
-  it("lists the five tabs in the bar's order, with حسابي always going to the account page", () => {
+  // covers: AC-8 (spec 0018)
+  it("lists the five tabs in the bar's order, with حسابي always going to My Orders", () => {
     expect(storefrontTabs.map((tab) => tab.href)).toEqual([
       "/",
       "/c",
       "/cart",
       "/search",
-      "/account",
+      "/account/orders",
     ]);
   });
 });

@@ -124,15 +124,15 @@ describe("registerCustomer", () => {
     expect(lines()).toEqual([{ event: "account_sign_up", ok: true }]);
   });
 
-  it("sends an unsafe next to the account page", async () => {
+  it("sends an unsafe next to My Orders", async () => {
     expect(
       await redirectOf(actions.registerCustomer(null, form({ ...valid, next: "//x.y" }))),
-    ).toBe("/account");
+    ).toBe("/account/orders");
   });
 
   it("keeps the account when the phone write throws, and logs the user id only", async () => {
     savePhoneAfterSignUp.mockRejectedValue(new Error("connection lost"));
-    expect(await redirectOf(actions.registerCustomer(null, form(valid)))).toBe("/account");
+    expect(await redirectOf(actions.registerCustomer(null, form(valid)))).toBe("/account/orders");
     expect(lines()).toEqual([
       { event: "profile_phone_save_failed", userId: USER_ID },
       { event: "account_sign_up", ok: true },
