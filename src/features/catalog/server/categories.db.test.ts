@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { categories, products } from "@/server/db/schema";
+import { categories, products, shopSettings } from "@/server/db/schema";
 import { hasLocalDb, withRollback } from "@/server/db/testing";
 import type { Transaction } from "@/server/db/types";
 
@@ -346,6 +346,32 @@ describe.skipIf(!hasLocalDb)("the Home circle fields", () => {
       });
       if (outcome.kind !== "created") throw new Error(outcome.kind);
       expect(await deleteCategoryInDb(tx, outcome.id)).toMatchObject({ imageKey: KEY(4) });
+    });
+  });
+
+  it("never moves home_version on a create, edit, or delete with the circle fields", async () => {
+    await withRollback(db, async (tx) => {
+      const homeVersion = async () =>
+        (await tx.select({ v: shopSettings.homeVersion }).from(shopSettings))[0].v;
+      const before = await homeVersion();
+
+      const outcome = await createCategoryInDb(tx, {
+        name: `ثريات ${tag()}`,
+        homeSubtitle: "مودرن",
+        imageKey: KEY(5),
+        ...visible,
+      });
+      if (outcome.kind !== "created") throw new Error(outcome.kind);
+      await updateCategoryInDb(tx, {
+        id: outcome.id,
+        name: `ثريات ${tag()}`,
+        homeSubtitle: "كلاسيك",
+        imageKey: KEY(6),
+        ...visible,
+      });
+      await deleteCategoryInDb(tx, outcome.id);
+
+      expect(await homeVersion()).toBe(before);
     });
   });
 

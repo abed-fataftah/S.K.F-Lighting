@@ -392,4 +392,20 @@ describe.skipIf(!hasLocalDb)("Home's reads", () => {
       expect(shown[1]).toMatchObject({ id: notLive.banner.id, href: null });
     });
   });
+
+  it("skips an inactive banner even when it sorts first, and shows the rest by sort", async () => {
+    await withRollback(db, async (tx) => {
+      await clean(tx);
+      const [a, b, c] = [await addBanner(tx), await addBanner(tx), await addBanner(tx)];
+      await tx
+        .update(banners)
+        .set({ sort: -1, isActive: false })
+        .where(eq(banners.id, b.banner.id));
+      await tx.update(banners).set({ sort: 0 }).where(eq(banners.id, c.banner.id));
+      await tx.update(banners).set({ sort: 1 }).where(eq(banners.id, a.banner.id));
+
+      const shown = await readHomeBanners(tx);
+      expect(shown.map((banner) => banner.id)).toEqual([c.banner.id, a.banner.id]);
+    });
+  });
 });
