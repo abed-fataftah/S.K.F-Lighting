@@ -239,7 +239,7 @@ Tracer Bullet: first one guest order travels through every layer on seeded data,
 ## Follow-up
 
 - [ ] Feature 5 (Arabic language) may change `formatPrice`; that is a one function change plus snapshot updates.
-- [ ] Feature 13 revisits the checkout rules here (area field, Turnstile if spam appears, signed in prefill).
+- [x] Feature 13 revisits the checkout rules here (area field, Turnstile if spam appears, signed in prefill). (Spec 0012: no area field, Turnstile deferred, prefill left to feature 18.)
 - [ ] Feature 16 builds `/orders/[number]`; then show the "متابعة الطلب" button on the confirmation page.
 - [ ] Feature 7 replaces the four field form with the full editor; feature 25 replaces the temporary grid.
 - [ ] Add the TOTP setting and the rate limit binding to `docs/runbooks/supabase-production.md` and the deploy notes.

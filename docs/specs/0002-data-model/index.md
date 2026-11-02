@@ -420,5 +420,5 @@ Later tables are not built here; each feature in the coverage table adds its tab
 - [ ] With `profiles` in place, write `scripts/admin-promote.ts` (`pnpm admin:promote <email>`) from 0001 if the scaffold has not yet.
 - [ ] Feature 2 (`/audit`, CI): run `pnpm db:check-rls` and the `*.db.test.ts` suite in CI against a migrated database.
 - [ ] Feature 8: the import template should generate size by colour combinations rather than ask for one row per variant by hand.
-- [ ] Feature 13: confirm the `normalizePhone` rules and whether `area` is required.
+- [x] Feature 13: confirm the `normalizePhone` rules and whether `area` is required. (Spec 0012: rules confirmed, `area` stays null.)
 - [ ] Consider removing `public` from the Supabase Data API exposed schemas as a third lock, since nothing uses it (optional; grants and RLS already block it).

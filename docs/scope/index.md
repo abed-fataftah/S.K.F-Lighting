@@ -33,14 +33,14 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 10 | Product page | Slice 2 | in-progress |
 | 11 | Search & filters | Slice 2 | in-progress |
 | 12 | Cart | Slice 3 | done |
-| 13 | Checkout & delivery | Slice 3 | planned |
+| 13 | Checkout & delivery | Slice 3 | in-progress |
 | 14 | Order confirmation & WhatsApp | Slice 3 | done |
-| 15 | Order management | Slice 4 | planned |
-| 16 | Order page & guest lookup | Slice 4 | planned |
-| 17 | Cancel before delivery | Slice 4 | planned |
-| 18 | Customer accounts | Slice 5 | planned |
-| 19 | My Orders | Slice 5 | planned |
-| 20 | Customers & roles | Slice 5 | planned |
+| 15 | Order management | Slice 4 | in-progress |
+| 16 | Order page & guest lookup | Slice 4 | in-progress |
+| 17 | Cancel before delivery | Slice 4 | in-progress |
+| 18 | Customer accounts | Slice 5 | in-progress |
+| 19 | My Orders | Slice 5 | in-progress |
+| 20 | Customers & roles | Slice 5 | in-progress |
 | 21 | Electrician quick order & drafts | Slice 6 | planned |
 | 22 | Add to draft from the catalog | Slice 6 | planned |
 | 23 | Electrician price adjustments | Slice 6 | planned |
@@ -55,12 +55,13 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 32 | Loyalty rewards | Slice 9 | planned |
 | 33 | Return requests | Slice 10 | planned |
 | 34 | Returns & exchanges | Slice 10 | planned |
+| 35 | Dashboard home | Slice 4 | planned |
 
 ## Areas
 
 - [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 1 of 6 done.
 - [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 0 of 6 done.
-- [Ordering](ordering.md): features 12 to 17 (cart, checkout, confirmation, order management, lookup, cancel). 2 of 6 done.
+- [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
 - [Site & launch](site.md): features 26, 28 to 30 (settings and policies, search visibility, stats, go live). 0 of 4 done.
@@ -76,7 +77,14 @@ Out of scope for now, kept so the plan stays honest.
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
 - **JSON export of an order** · needs a decision
 - **Colour tagged product photos**: choosing a colour on the product page jumps to its photos (a `colour_id` on `product_media`, the editor, and the import) · needs a decision · from spec 0009
+- **Cloudflare Turnstile at checkout**: a stronger bot check, only if the honeypot and rate limit logs show real spam · needs a decision · from spec 0012
 - **Product page desktop layout and loading skeleton**: a designed wide screen layout (O-1) and a skeleton that keeps the real 404 · needs a decision · from spec 0009
+- **Edit customer details on an order**: fix a typo in the name, phone, city, or address after placing · needs a decision · from spec 0014
+- **Printable order slip**: a print friendly view for packing or the driver · needs a decision · from spec 0014
+- **Private owner notes on an order**: short notes saved as `note` events and shown in the history · needs a decision · from spec 0014
+- **Sound or browser notification for new orders**: beyond the dot, the sidebar count, and the 60 second refresh · needs a decision · from spec 0014
+- **Correct a customer's email from the dashboard**: change the login email through the Supabase Auth admin API, with a decision on confirming the new address · needs a decision · from spec 0019
+- **Role filter on the customers list**: All, Customers, Electricians chips, if the number of electricians grows · from spec 0019
 
 ## Open questions to settle in the specs
 

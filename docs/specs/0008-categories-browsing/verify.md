@@ -3,7 +3,7 @@ _Steps derived from spec 0008 acceptance criteria. `/check verify` runs these; `
 
 ## UI / manual
 
-- [ ] Sign in, open `/admin/categories` with no categories → the empty card with one "+ قسم رئيسي" button; the note "القسم له مستويان فقط: رئيسي وفرعي." at the bottom → AC-1
+- [x] Sign in, open `/admin/categories` with no categories → the empty card with one "+ قسم رئيسي" button; the note "القسم له مستويان فقط: رئيسي وفرعي." at the bottom → AC-1
 - [x] "+ قسم رئيسي", name "ثريات", save → a card "ثريات · 0 منتج"; "+ قسم فرعي" on it, name "كريستال" → listed under a line, last among its siblings → AC-1, AC-2
 - [x] Add a main named "LED", then another main named " led " → refused on the name field with "هذا الاسم مستخدم في نفس المستوى", focus on the field → AC-2
 - [x] Add a main named "★★" → saved; its address is `/c/qism` (or `qism-2` …) → AC-2
@@ -21,22 +21,22 @@ _Steps derived from spec 0008 acceptance criteria. `/check verify` runs these; `
 - [x] A sub with 30 listed products → 24 cards; "عرض المزيد" goes to `?page=2#p-25` with 30 cards and focus on card 25's name; `?page=9` shows all 30 with no button; page 2 has `noindex, follow` and no canonical → AC-11
 - [x] A card with photos, three specs, and two prices → first photo, up to three chips, "من ₪X"; "أضف للسلة" adds the cheapest sellable option and shows "تمت الإضافة" for 2 seconds → AC-12
 - [x] An out of stock card → photo at 45%, black "غير متوفر" label, disabled "غير متوفر" button, muted "₪X" with no "من", WhatsApp named "اسأل عن توفره عبر واتساب: <name>" opening W4 → AC-12
-- [ ] A shown category with no products → "لا توجد منتجات في هذا القسم بعد" and the WhatsApp W2 button, no count, chips stay; with the database stopped → the error card "تعذّر تحميل المنتجات" → AC-13
-- [ ] Throttle the network on a category page → the title area, then six skeleton cards announced as "جارٍ تحميل المنتجات" → AC-13
-- [ ] Open the menu → "الأقسام" heading with one link per main that has listed products; with the database stopped, every storefront page still renders with the menu minus the list → AC-14
+- [x] A shown category with no products → "لا توجد منتجات في هذا القسم بعد" and the WhatsApp W2 button, no count, chips stay; with the database stopped → the error card "تعذّر تحميل المنتجات" → AC-13
+- [x] Throttle the network on a category page → the title area, then six skeleton cards announced as "جارٍ تحميل المنتجات" → AC-13
+- [x] Open the menu → "الأقسام" heading with one link per main that has listed products; with the database stopped, every storefront page still renders with the menu minus the list → AC-14
 - [x] `/c` → one card per navigation main, its count, its navigation subs as links; bottom bar tab "الأقسام" active on `/c` and every category page → AC-15
 - [x] View source of a category page → title `<name> | S.K.F للإنارة`, its description (else the shop default), a canonical on page 1, BreadcrumbList JSON-LD with absolute URLs and `<` escaped → AC-16
-- [ ] Product editor → no "new category" field; the selects mark hidden ones "(مخفي)"; choosing a hidden one shows "هذا القسم مخفي، فلن يظهر المنتج في المتجر."; "إدارة الأقسام" asks before leaving with unsaved changes; with no categories, a note with the link → AC-17
+- [x] Product editor → no "new category" field; the selects mark hidden ones "(مخفي)"; choosing a hidden one shows "هذا القسم مخفي، فلن يظهر المنتج في المتجر."; "إدارة الأقسام" asks before leaving with unsaved changes; with no categories, a note with the link → AC-17
 - [x] As a customer account, open `/admin/categories` → the dashboard redirect; call `createCategory` directly → `forbidden`, no row written → AC-18
 
 ## Value sourcing
 
 - [x] Slug: add "LED" twice at different levels → `led`, then `led-2` → `createCategory` slug
 - [x] Sort: add three subs → sorts 0, 1, 2; add a main after imported mains at `sort` 0 → it goes last → `createCategory` sort
-- [ ] Parent: post `parentId` of a sub → `too_deep`; of a deleted main → `not_found` → `createCategory` parent
+- [x] Parent: post `parentId` of a sub → `too_deep`; of a deleted main → `not_found` → `createCategory` parent
 - [x] Description: save "   " → stored as null → name, description, visibility
 - [x] Reorder: after one move, every sibling has a distinct sort `0..n-1` → `moveCategory` sorts
-- [ ] Delete: a product saved into the category between the check and the delete → `not_empty` → `deleteCategory`
+- [x] Delete: a product saved into the category between the check and the delete → `not_empty` → `deleteCategory`
 - [x] Admin count: one active, one hidden, one archived product → "· 2 منتج" → `listAdminCategories` count
 - [x] Shown: hide only a sub → its main still shown, its page 404 → shown rule
 - [x] Navigation count: main with 1 own product and a shown sub with 2 → "3 منتج" on `/c`; hide the sub → "1 منتج" → `listNavigation` count

@@ -43,7 +43,7 @@ spec [0008](../specs/0008-categories-browsing/index.md) · code in `src/features
   - [x] The card: photo, spec chips, prices, out of stock look, add and WhatsApp buttons, on home too (AC-12)
   - [x] Dashboard: edit, reorder, delete when empty, states, and the product editor change (AC-1, AC-3, AC-4, AC-4a, AC-5, AC-17)
   - [x] Storefront: menu list, `/c`, paging, states, search engine tags, and the full phone flow (AC-9, AC-11, AC-13 to AC-16, AC-19)
-- [ ] Verify it: `/check verify categories & browsing`
+- [x] Verify it: `/check verify categories & browsing`
 - [ ] Test it: `/test categories & browsing`
 
 ### 10. Product page · in-progress
@@ -56,20 +56,20 @@ spec [0009](../specs/0009-product-page/index.md) · code in `src/features/catalo
   - [x] States: out of stock, stale add refresh, three level breadcrumb, real 404 with the shared cached read (AC-7, AC-8, AC-14, AC-16, AC-17)
   - [x] Gallery, video, full screen, and share (AC-10 to AC-13)
   - [x] Search engines and finish: description, canonical, Product and BreadcrumbList JSON-LD, full phone flow and axe (AC-15, AC-18, AC-19)
-- [ ] Verify it: `/check verify product page`
-- [ ] Test it: `/test product page`
+- [x] Verify it: `/check verify product page`
+- [x] Test it: `/test product page`
 
 ### 11. Search & filters · in-progress
 Search by product name or product code, and filter by price, size, and colour.
 **Done when:** a product code finds the exact product, Arabic product names match, filters combine and show in the page address so a filtered list can be shared, and no results shows a helpful empty state.
 spec [0010](../specs/0010-search-filters/index.md) · code in `src/features/catalog/` (search text, list filters, list query, toolbar and filters screen), `src/app/[locale]/search/`, `src/app/api/catalog/count/`
 - [x] Design it (spec): `/architect search & filters`
-- [ ] Build it: `/develop search & filters`
+- [x] Build it: `/develop search & filters`
   - [x] Thin thread: migration with `search_text` and `size_key`, Persian folds, `refreshSearchKeys` in the save, backfill script and CI step, `/search` with the prompt and every word matching (AC-1, AC-2, AC-3, AC-7)
   - [x] Search done properly: code first tiers, paging, query chip, no results, error and loading, header field, metadata (AC-4, AC-5, AC-6, AC-14)
   - [x] Filters in the address: parse, resolve, serialize, shared list query, toolbar, applied chips, filtered empty state (AC-8, AC-9, AC-13, AC-14)
   - [x] Filters screen and live count: choices, full screen dialog, count route with its rate limit and proxy changes (AC-10, AC-11, AC-12, AC-15)
-  - [ ] Finish: remaining database tests, full phone flow, axe (done); limiter on preview (written, not yet run) (AC-16)
+  - [x] Finish: remaining database tests, full phone flow, axe, and the count limiter on preview (AC-16)
 - [ ] Verify it: `/check verify search & filters`
 - [ ] Test it: `/test search & filters`
 
@@ -87,4 +87,4 @@ spec [0011](../specs/0011-homepage-banners-featured/index.md) · code in `src/fe
   - [x] Fees, trust cards, states, sweep: strip and cards from `delivery_zones`, address fallback, per section failures, editor states, weekly sweep (AC-6, AC-7, AC-8, AC-13)
   - [x] Finish: remaining tests, phone flow, axe (AC-16)
 - [x] Verify it: `/check verify homepage, banners & featured products`
-- [ ] Test it: `/test homepage, banners & featured products`
+- [x] Test it: `/test homepage, banners & featured products`
