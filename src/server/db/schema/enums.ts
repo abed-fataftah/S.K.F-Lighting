@@ -40,3 +40,10 @@ export const orderEventType = pgEnum("order_event_type", [
   "return_decided",
   "note",
 ]);
+
+// What the owner changed on an account (spec 0019): `account_events.type`.
+export const accountEventType = pgEnum("account_event_type", [
+  "role_changed",
+  "details_edited",
+  "removed",
+]);

@@ -7,3 +7,4 @@ export * from "./catalog";
 export * from "./settings";
 export * from "./orders";
 export * from "./content";
+export * from "./accounts";

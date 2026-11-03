@@ -37,7 +37,13 @@ vi.mock("@/server/db", () => ({ getDb: async () => db }));
 const savePhoneAfterSignUp = vi.fn();
 const updateProfileInDb = vi.fn();
 const getAccountProfile = vi.fn();
-vi.mock("./profile", () => ({ getAccountProfile, savePhoneAfterSignUp, updateProfileInDb }));
+const readAccountProfile = vi.fn();
+vi.mock("./profile", () => ({
+  getAccountProfile,
+  readAccountProfile,
+  savePhoneAfterSignUp,
+  updateProfileInDb,
+}));
 
 const rememberRecovery = vi.fn();
 const hasFreshRecovery = vi.fn();
@@ -88,6 +94,7 @@ beforeEach(() => {
   getVerifiedUser.mockResolvedValue({ id: USER_ID, email: EMAIL });
   savePhoneAfterSignUp.mockResolvedValue(undefined);
   updateProfileInDb.mockResolvedValue(undefined);
+  readAccountProfile.mockResolvedValue({ role: "customer", removalPending: false });
   getAccountProfile.mockResolvedValue({
     userId: USER_ID,
     email: EMAIL,
@@ -451,6 +458,19 @@ describe("updateProfile", () => {
       fieldErrors: { phone: { code: "phone_mobile" } },
     });
     expect(updateProfileInDb).not.toHaveBeenCalled();
+  });
+
+  // covers: AC-12 (spec 0019)
+  it("refuses an account the owner started removing, and writes nothing", async () => {
+    readAccountProfile.mockResolvedValueOnce({ role: "customer", removalPending: true });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(await actions.updateProfile(null, form({ name: NAME, phone: PHONE }))).toEqual({
+      ok: false,
+      error: "account_removed",
+    });
+    expect(updateProfileInDb).not.toHaveBeenCalled();
+    expect(warn.mock.calls.map(([line]) => String(line)).join()).not.toContain(PHONE);
+    warn.mockRestore();
   });
 
   it("answers failed when the write throws", async () => {

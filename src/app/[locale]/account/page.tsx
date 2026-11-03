@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChangePasswordForm } from "@/features/accounts/components/change-password-form";
@@ -18,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The account page (spec 0017 AC-9 to AC-11), built from the existing parts; the design package
-// does not draw it. A signed out visitor goes to sign in and comes back here.
+// does not draw it. An electrician sees a badge under the title (spec 0019 AC-9). A signed out visitor goes to sign in and comes back here.
 export default async function AccountPage({ searchParams }: PageProps<"/[locale]/account">) {
   const [account, query, t] = await Promise.all([
     getAccountProfile(),
@@ -30,10 +31,28 @@ export default async function AccountPage({ searchParams }: PageProps<"/[locale]
   const profile = account.profile;
   const passwordSet = query.notice === "password_set";
 
+  // The owner started removing this account (spec 0019 AC-12): only the message and sign out.
+  if (profile?.removalPending) {
+    return (
+      <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+        <h1 className="type-title-l">{t("accountTitle")}</h1>
+        <Alert data-testid="account-removed">
+          <AlertDescription>{t("accountRemoved")}</AlertDescription>
+        </Alert>
+        <SignOutButton />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <div className="flex flex-col items-start gap-1">
         <h1 className="type-title-l">{t("accountTitle")}</h1>
+        {profile?.role === "electrician" ? (
+          <Badge variant="new" data-testid="electrician-badge">
+            {t("electricianBadge")}
+          </Badge>
+        ) : null}
         <ButtonLink
           variant="outline"
           render={<Link href={routes.accountOrders} />}

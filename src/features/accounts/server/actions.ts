@@ -19,7 +19,12 @@ import {
   setPasswordSchema,
   signInSchema,
 } from "../schemas";
-import { getAccountProfile, savePhoneAfterSignUp, updateProfileInDb } from "./profile";
+import {
+  getAccountProfile,
+  readAccountProfile,
+  savePhoneAfterSignUp,
+  updateProfileInDb,
+} from "./profile";
 import { forgetRecovery, hasFreshRecovery, rememberRecovery } from "./recovery";
 
 // Customer accounts on Supabase Auth (spec 0017). Each action logs one line with the outcome
@@ -32,7 +37,8 @@ type AccountEvent =
   | "account_recovery_confirmed"
   | "account_password_set"
   | "account_password_changed"
-  | "account_profile_saved";
+  | "account_profile_saved"
+  | "account_removed";
 
 function logOutcome(event: AccountEvent, code?: string) {
   const line = code ? { event, ok: false, code } : { event, ok: true };
@@ -291,7 +297,7 @@ export async function changePassword(
   return ok({ changed: true });
 }
 
-export type ProfileError = "not_signed_in" | "invalid" | "failed";
+export type ProfileError = "not_signed_in" | "invalid" | "account_removed" | "failed";
 export type ProfileState = Ok<{ readonly saved: true }> | Fail<ProfileError, WithFields> | null;
 
 /** AC-9: the name and phone on the profile; saved orders keep what they were placed with. */
@@ -311,7 +317,13 @@ export async function updateProfile(
   }
 
   try {
-    await updateProfileInDb(await getDb(), user.id, parsed.data);
+    const db = await getDb();
+    // A removal the owner started (spec 0019 AC-12): no personal data is written back.
+    if ((await readAccountProfile(db, user.id))?.removalPending) {
+      logOutcome("account_removed", "account_removed");
+      return fail("account_removed");
+    }
+    await updateProfileInDb(db, user.id, parsed.data);
   } catch {
     logOutcome("account_profile_saved", "failed");
     return fail("failed");

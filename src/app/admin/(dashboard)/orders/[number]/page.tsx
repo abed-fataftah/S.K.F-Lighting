@@ -165,7 +165,22 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
             cancelReason={order.cancelReason}
           />
           <Card>
-            <h2 className="type-title-s">{t("customerCard")}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="type-title-s">{t("customerCard")}</h2>
+              {/* Only a linked account that is not the owner's own (spec 0019 AC-14). */}
+              {order.placedByUserId &&
+              order.placedByAccountRole &&
+              order.placedByAccountRole !== "admin" ? (
+                <ButtonLink
+                  variant="outline"
+                  size="sm"
+                  render={<Link href={routes.admin.customer(order.placedByUserId)} />}
+                  data-testid="order-view-customer"
+                >
+                  {t("viewCustomer")}
+                </ButtonLink>
+              ) : null}
+            </div>
             <dl className="flex flex-col gap-2">
               {details.map(([label, value]) => (
                 <div key={label} className="flex flex-col">

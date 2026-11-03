@@ -18,7 +18,7 @@ import { addDaysToKey, shopDayStart } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { requireAdminPage } from "@/server/auth/admin";
 import { getDb } from "@/server/db";
-import { orderEvents, orderLines, orders } from "@/server/db/schema";
+import { orderEvents, orderLines, orders, profiles } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import { pageWindow, splitPage } from "@/lib/paging";
 import type { OrderDays, OrderFilters } from "../admin-filters";
@@ -172,6 +172,10 @@ export type AdminOrder = {
   readonly cancelledAt: Date | null;
   readonly cancelledBy: ActorKind | null;
   readonly cancelReason: string | null;
+  /** The account that placed it; null for a guest, or after the account was removed. */
+  readonly placedByUserId: string | null;
+  /** That account's role now (spec 0019 AC-14); null when there is no account. */
+  readonly placedByAccountRole: "customer" | "electrician" | "admin" | null;
   readonly lines: readonly {
     readonly name: string;
     readonly code: string;
@@ -206,8 +210,11 @@ export async function readAdminOrder(db: Db, orderNumber: string): Promise<Admin
       cancelledAt: orders.cancelledAt,
       cancelledBy: orders.cancelledBy,
       cancelReason: orders.cancelReason,
+      placedByUserId: orders.placedByUserId,
+      placedByAccountRole: profiles.role,
     })
     .from(orders)
+    .leftJoin(profiles, eq(profiles.id, orders.placedByUserId))
     .where(eq(orders.orderNumber, orderNumber))
     .limit(1);
   if (!order) return null;

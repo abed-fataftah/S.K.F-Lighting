@@ -41,12 +41,12 @@ In the dashboard, view registered customers and their orders, and promote a regu
 **Done when:** only you can change roles, the change takes effect on the user's next page load, and each customer's details and order history are visible in one place.
 spec [0019](../specs/0019-customers-roles/index.md) · code in `src/features/customers/`, `src/app/admin/(dashboard)/customers/`
 - [x] Design it (spec): `/architect customers & roles`
-- [ ] Build it: `/develop customers & roles`
-  - [ ] Thin thread: the `account_events` migration, the list, the customer page, and promoting an account, with the role reaching the user's `/account` badge and next order (AC-1, AC-2, AC-4, AC-7, AC-8, AC-9, AC-17)
-  - [ ] Find and know a customer: search by name, phone, or email; totals; order history with load more; WhatsApp; the link from the order page (AC-3, AC-4, AC-5, AC-6, AC-14)
-  - [ ] Edit details and account history (AC-10, AC-13)
-  - [ ] Remove an account: the locked checks, the Supabase login delete, the pending state with retry, and the storefront guard (AC-11, AC-12)
-  - [ ] Finish: logs, loading states, Playwright on 390 and 1280 with axe (AC-15, AC-16, AC-18)
+- [x] Build it: `/develop customers & roles`
+  - [x] Thin thread: the `account_events` migration, the list, the customer page, and promoting an account, with the role reaching the user's `/account` badge and next order (AC-1, AC-2, AC-4, AC-7, AC-8, AC-9, AC-17)
+  - [x] Find and know a customer: search by name, phone, or email; totals; order history with load more; WhatsApp; the link from the order page (AC-3, AC-4, AC-5, AC-6, AC-14)
+  - [x] Edit details and account history (AC-10, AC-13)
+  - [x] Remove an account: the locked checks, the Supabase login delete, the pending state with retry, and the storefront guard (AC-11, AC-12)
+  - [x] Finish: logs, loading states, Playwright on 390 and 1280 with axe (AC-15, AC-16, AC-18)
 - [ ] Verify it: `/check verify customers & roles`
 - [ ] Test it: `/test customers & roles`
 - [ ] Review it (fresh model): `/check review customers & roles`

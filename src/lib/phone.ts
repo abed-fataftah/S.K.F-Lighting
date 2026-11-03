@@ -22,3 +22,19 @@ export function normalizePhone(raw: string): string | null {
   const country = PALESTINIAN_PREFIXES.includes(national.slice(0, 2)) ? "970" : "972";
   return `+${country}${national}`;
 }
+
+// A local mobile typed without its leading 0: nine digits.
+const NATIONAL_MOBILE = /^5\d{8}$/;
+
+/**
+ * A full mobile number typed into a dashboard search (spec 0014 AC-13, spec 0019 AC-3), as E.164,
+ * or null. Takes everything `normalizePhone` takes, plus the nine digits without the leading 0.
+ * Partial numbers are not a phone.
+ */
+export function parseSearchPhone(text: string): string | null {
+  const clean = toWesternDigits(tidyText(text));
+  const compact = clean.replace(SEPARATORS, "");
+  return (
+    normalizePhone(clean) ?? (NATIONAL_MOBILE.test(compact) ? normalizePhone(`0${compact}`) : null)
+  );
+}

@@ -64,6 +64,13 @@
       "when": 1793178179484,
       "tag": "0008_order_management",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793631337863,
+      "tag": "0009_customers_roles",
+      "breakpoints": true
     }
   ]
 }

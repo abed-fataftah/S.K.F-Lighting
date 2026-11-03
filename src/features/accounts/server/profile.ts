@@ -1,9 +1,9 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { cache } from "react";
 import { getClaims } from "@/server/auth/session";
 import { getDb } from "@/server/db";
-import { profiles } from "@/server/db/schema";
+import { accountEvents, profiles } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import type { ProfileInput } from "../schemas";
 
@@ -18,6 +18,8 @@ export type AccountProfile = {
   readonly phone: string | null;
   readonly phoneE164: string | null;
   readonly role: UserRole;
+  /** The owner started removing this account (spec 0019 AC-12): it takes no more writes or orders. */
+  readonly removalPending: boolean;
 };
 
 export type Account = {
@@ -46,6 +48,7 @@ export async function readAccountProfile(
       phone: profiles.phone,
       phoneE164: profiles.phoneE164,
       role: profiles.role,
+      removalPending: sql<boolean>`exists (select 1 from ${accountEvents} e where e.profile_id = ${sql.identifier("profiles")}.${sql.identifier("id")} and e.type = 'removed')`,
     })
     .from(profiles)
     .where(eq(profiles.id, userId))

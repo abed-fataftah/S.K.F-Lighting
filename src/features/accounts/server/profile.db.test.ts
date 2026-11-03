@@ -42,6 +42,7 @@ describe.skipIf(!hasLocalDb)("account profile on the local database", () => {
         phone: null,
         phoneE164: null,
         role: "customer",
+        removalPending: false,
       });
     });
   });
@@ -88,6 +89,7 @@ describe.skipIf(!hasLocalDb)("account profile on the local database", () => {
         phone: "+970 568 000 111",
         phoneE164: "+970568000111",
         role: "electrician",
+        removalPending: false,
       });
     });
   });

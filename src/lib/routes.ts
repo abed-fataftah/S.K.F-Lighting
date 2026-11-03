@@ -112,6 +112,15 @@ export const routes = {
       withQuery("/admin/orders", orderFiltersToParams(filters, page).toString()),
     order: (number: string) => `/admin/orders/${segment(number)}`,
     customers: "/admin/customers",
+    /** The customers list on page `page` (spec 0019 AC-2); page 1 is left out. */
+    customersPage: (page: number) => withQuery("/admin/customers", page > 1 ? `page=${page}` : ""),
+    /** The customers list with a one time notice (spec 0019 AC-11). */
+    customersWith: (opts: { readonly notice: "removed" }) =>
+      `/admin/customers?notice=${opts.notice}`,
+    customer: (id: string) => `/admin/customers/${segment(id)}`,
+    /** "Load more" on a customer's orders (spec 0019 AC-6): page 1 left out; jumps to `o-<position>`. */
+    customerOrdersMore: (id: string, page: number, position: number) =>
+      `${withQuery(`/admin/customers/${segment(id)}`, page > 1 ? `page=${page}` : "")}#o-${position}`,
     reports: "/admin/reports",
     products: "/admin/products",
     /** The products list with its filters (spec 0006 AC-1); empty values and page 1 stay out. */

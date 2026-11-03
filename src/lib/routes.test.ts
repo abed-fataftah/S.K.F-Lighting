@@ -26,6 +26,26 @@ describe("routes.admin.ordersWith", () => {
   });
 });
 
+// covers: AC-2, AC-6, AC-11 (spec 0019)
+describe("routes.admin customers", () => {
+  const id = "0b6f1c2e-3d4a-4b5c-8d9e-0f1a2b3c4d5e";
+
+  it("builds the list, its pages, and the notice", () => {
+    expect(routes.admin.customers).toBe("/admin/customers");
+    expect(routes.admin.customersPage(1)).toBe("/admin/customers");
+    expect(routes.admin.customersPage(3)).toBe("/admin/customers?page=3");
+    expect(routes.admin.customersWith({ notice: "removed" })).toBe(
+      "/admin/customers?notice=removed",
+    );
+  });
+
+  it("builds a customer page and its load more link", () => {
+    expect(routes.admin.customer(id)).toBe(`/admin/customers/${id}`);
+    expect(routes.admin.customerOrdersMore(id, 2, 21)).toBe(`/admin/customers/${id}?page=2#o-21`);
+    expect(routes.admin.customerOrdersMore(id, 1, 1)).toBe(`/admin/customers/${id}#o-1`);
+  });
+});
+
 describe("routes.admin.productsList", () => {
   it("keeps the plain list when nothing is filtered", () => {
     expect(routes.admin.productsList({})).toBe("/admin/products");

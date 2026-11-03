@@ -50,6 +50,11 @@ async function readPlacedBy(): Promise<PlacedBy> {
     console.warn(JSON.stringify({ event: "order_profile_missing", userId: account.userId }));
     return null;
   }
+  if (account.profile.removalPending) {
+    // The owner started removing this account (spec 0019 AC-12): nothing new links to it.
+    console.warn(JSON.stringify({ event: "order_profile_removed", userId: account.userId }));
+    return null;
+  }
   return { userId: account.userId, role: account.profile.role };
 }
 
