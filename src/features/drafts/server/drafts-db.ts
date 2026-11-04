@@ -2,7 +2,7 @@ import "server-only";
 import { and, count, eq, ne, sql } from "drizzle-orm";
 import { isForeignKeyViolation, isUniqueViolation } from "@/server/db/pg-error";
 import { draftLines, drafts, profiles } from "@/server/db/schema";
-import type { Database } from "@/server/db/types";
+import type { Database, Transaction } from "@/server/db/types";
 import { draftCustomerColumns, MAX_DRAFTS, type DraftCustomerInput } from "../schemas";
 
 // The draft level writes (spec 0020 AC-4, AC-5, AC-10, AC-15). Ownership is a
@@ -13,15 +13,45 @@ const NAME_INDEX = "drafts_owner_name_unique";
 /** Latin letters compare case insensitively, as the unique index does (AC-4). */
 const sameName = (name: string) => sql`lower(${drafts.name}) = lower(${name})`;
 
+/** The name unique index refused a write: a clash that slipped past the check. */
+export const isDraftNameClash = (error: unknown) => isUniqueViolation(error, NAME_INDEX);
+
 export type CreateDraftOutcome =
   | { readonly kind: "created"; readonly draftId: string }
   | { readonly kind: "name_taken" }
   | { readonly kind: "too_many_drafts" };
 
 /**
- * A new draft with one empty line. The profile row lock queues two creates by the same user, so
- * the 30 draft limit holds; the unique index is the final judge of the name.
+ * A new draft with no lines, inside the caller's transaction. The profile row lock queues two
+ * creates by the same user, so the 30 draft limit holds; the unique index is the final judge of
+ * the name, so the caller maps `isDraftNameClash` after the transaction.
  */
+export async function insertNamedDraft(
+  tx: Transaction,
+  userId: string,
+  name: string,
+): Promise<CreateDraftOutcome> {
+  await tx.select({ id: profiles.id }).from(profiles).where(eq(profiles.id, userId)).for("update");
+  const [{ total }] = await tx
+    .select({ total: count() })
+    .from(drafts)
+    .where(eq(drafts.ownerUserId, userId));
+  if (total >= MAX_DRAFTS) return { kind: "too_many_drafts" };
+  const [clash] = await tx
+    .select({ id: drafts.id })
+    .from(drafts)
+    .where(and(eq(drafts.ownerUserId, userId), sameName(name)))
+    .limit(1);
+  if (clash) return { kind: "name_taken" };
+
+  const [draft] = await tx
+    .insert(drafts)
+    .values({ ownerUserId: userId, name })
+    .returning({ id: drafts.id });
+  return { kind: "created", draftId: draft.id };
+}
+
+/** AC-4: a new draft with one empty line. */
 export async function createDraftInDb(
   db: Database,
   userId: string,
@@ -29,32 +59,14 @@ export async function createDraftInDb(
 ): Promise<CreateDraftOutcome> {
   try {
     return await db.transaction(async (tx): Promise<CreateDraftOutcome> => {
-      await tx
-        .select({ id: profiles.id })
-        .from(profiles)
-        .where(eq(profiles.id, userId))
-        .for("update");
-      const [{ total }] = await tx
-        .select({ total: count() })
-        .from(drafts)
-        .where(eq(drafts.ownerUserId, userId));
-      if (total >= MAX_DRAFTS) return { kind: "too_many_drafts" };
-      const [clash] = await tx
-        .select({ id: drafts.id })
-        .from(drafts)
-        .where(and(eq(drafts.ownerUserId, userId), sameName(name)))
-        .limit(1);
-      if (clash) return { kind: "name_taken" };
-
-      const [draft] = await tx
-        .insert(drafts)
-        .values({ ownerUserId: userId, name })
-        .returning({ id: drafts.id });
-      await tx.insert(draftLines).values({ draftId: draft.id, sort: 0 });
-      return { kind: "created", draftId: draft.id };
+      const outcome = await insertNamedDraft(tx, userId, name);
+      if (outcome.kind === "created") {
+        await tx.insert(draftLines).values({ draftId: outcome.draftId, sort: 0 });
+      }
+      return outcome;
     });
   } catch (error) {
-    if (isUniqueViolation(error, NAME_INDEX)) return { kind: "name_taken" };
+    if (isDraftNameClash(error)) return { kind: "name_taken" };
     throw error;
   }
 }

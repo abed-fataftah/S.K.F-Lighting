@@ -28,7 +28,7 @@ type Db = Database | Transaction;
 /** Lines always order by `sort`, then `created_at`, then `id` (Key invariants). */
 export const lineOrder = [asc(draftLines.sort), asc(draftLines.createdAt), asc(draftLines.id)];
 
-type ProductRule = {
+export type ProductRule = {
   readonly status: "active" | "hidden" | "archived";
   readonly isAvailable: boolean;
   readonly categoryShown: boolean;
@@ -45,7 +45,7 @@ type OptionRow = {
   readonly archivedAt: Date | null;
 };
 
-const toOption = (product: ProductRule, row: OptionRow): DraftOption => ({
+export const toOption = (product: ProductRule, row: OptionRow): DraftOption => ({
   id: row.id,
   code: row.code,
   sizeLabel: row.sizeLabel,
@@ -56,7 +56,7 @@ const toOption = (product: ProductRule, row: OptionRow): DraftOption => ({
 });
 
 /** The live, non archived options of these products in `sort` order. */
-async function readOptions(db: Db, productIds: readonly string[]) {
+export async function readOptions(db: Db, productIds: readonly string[]) {
   if (productIds.length === 0) return new Map<string, OptionRow[]>();
   const rows = await db
     .select({

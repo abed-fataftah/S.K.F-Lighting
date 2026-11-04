@@ -1515,5 +1515,50 @@
     "deleteCancel": "تراجع",
     "deleted": "تم حذف المسودة.",
     "deleteFailed": "تعذّر حذف المسودة. حاول مرة أخرى."
+  },
+  "DraftPicker": {
+    "trigger": "أضف إلى مسودة",
+    "cardLabel": "أضف إلى مسودة: {name}",
+    "title": "أضف إلى مسودة",
+    "productCode": "الكود: <ltr>{code}</ltr>",
+    "close": "إغلاق",
+    "loading": "جارٍ تحميل المسودات",
+    "loadFailed": "تعذّر تحميل المسودات.",
+    "retry": "إعادة المحاولة",
+    "productGone": "هذا المنتج لم يعد متوفرًا.",
+    "size": "الحجم",
+    "colour": "اللون",
+    "noSize": "بدون حجم",
+    "noColour": "بدون لون",
+    "optionMissing": "اختر الحجم واللون.",
+    "unitPriceLine": "سعر الوحدة: <ltr>{price}</ltr>",
+    "fromPriceLine": "من <ltr>{price}</ltr>",
+    "quantity": "الكمية",
+    "quantityError": "أدخل كمية من 1 إلى 999.",
+    "draft": "المسودة",
+    "lines": "{count, plural, zero {لا أسطر} one {سطر واحد} two {سطران} few {{shown} أسطر} many {{shown} سطرًا} other {{shown} سطر}}",
+    "newDraft": "+ مسودة جديدة",
+    "draftLimit": "وصلت إلى 30 مسودة",
+    "nameLabel": "اسم المسودة",
+    "nameErrors": {
+      "too_short": "اكتب اسماً من حرفين على الأقل.",
+      "too_long": "الاسم أطول من 40 حرفاً.",
+      "name_taken": "لديك مسودة بهذا الاسم.",
+      "too_many_drafts": "وصلت إلى 30 مسودة. أرسل مسودة أو احذفها لتبدأ أخرى."
+    },
+    "confirm": "أضف إلى المسودة",
+    "adding": "جارٍ الإضافة…",
+    "added": "أُضيف إلى «{draft}»",
+    "addedLine": "السطر {position} · الكمية {quantity}",
+    "mergedLine": "السطر {position} · الكمية الآن {quantity}",
+    "openDraft": "فتح المسودة",
+    "keepShopping": "متابعة التسوق",
+    "errors": {
+      "too_many_lines": "المسودة «{name}» ممتلئة (30 سطرًا). اختر مسودة أخرى أو أنشئ مسودة جديدة.",
+      "quantity_over": "هذا الخيار في السطر {position} بكمية {current}. لا يمكن أن تتجاوز الكمية 999.",
+      "not_sellable": "هذا الخيار لم يعد متوفرًا.",
+      "not_found": "لم تعد هذه المسودة موجودة.",
+      "failed": "تعذّر الإضافة. حاول مرة أخرى."
+    }
   }
 }

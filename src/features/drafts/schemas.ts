@@ -86,4 +86,28 @@ export function draftCustomerColumns(input: DraftCustomerInput) {
   return { ...fields, customerPhoneE164 };
 }
 
+/** `readDraftPicker` (spec 0021 API surface). */
+export const draftPickerSchema = z.object({ productId: z.guid() });
+
+/** `addToDraft` (spec 0021 AC-8, AC-9): into one of the user's drafts, or a new named one. */
+export const addToDraftSchema = z.object({
+  productId: z.guid(),
+  variantId: z.guid(),
+  quantity: z.number().int().min(1).max(DRAFT_MAX_QUANTITY),
+  target: z.union([
+    z.object({ draftId }).strict(),
+    z.object({ newDraftName: draftNameSchema }).strict(),
+  ]),
+});
+
+export type AddToDraftInput = z.output<typeof addToDraftSchema>;
+
+/** The name problem of a refused `addToDraft`, set only when a new draft name fails (AC-8). */
+export function addToDraftNameProblem(input: unknown): DraftNameProblem | undefined {
+  const target = (input as { target?: { newDraftName?: unknown } } | null)?.target;
+  if (!target || typeof target !== "object" || !("newDraftName" in target)) return undefined;
+  const parsed = draftNameSchema.safeParse(target.newDraftName);
+  return parsed.success ? undefined : draftNameProblem(parsed.error);
+}
+
 export const sendDraftSchema = z.object({ draftId, expectedTotal: z.number().int().min(0) });

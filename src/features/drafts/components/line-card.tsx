@@ -266,7 +266,7 @@ export function LineCard({
   );
 }
 
-function OptionSelect({
+export function OptionSelect({
   id,
   label,
   choices,

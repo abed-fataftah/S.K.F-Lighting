@@ -13,10 +13,13 @@ import { getDb } from "@/server/db";
 import { canUseDrafts } from "../access";
 import type { DraftLineView, LineProblem } from "../draft-view";
 import {
+  addToDraftNameProblem,
+  addToDraftSchema,
   createDraftSchema,
   draftCustomerSchema,
   draftIdSchema,
   draftNameProblem,
+  draftPickerSchema,
   lineIdSchema,
   renameDraftSchema,
   restoreDraftLineSchema,
@@ -24,6 +27,7 @@ import {
   updateDraftLineSchema,
   type DraftNameProblem,
 } from "../schemas";
+import { addToDraftInDb, readDraftPickerData, type DraftPickerData } from "./add-from-catalog";
 import {
   createDraftInDb,
   deleteDraftInDb,
@@ -218,6 +222,91 @@ export async function saveDraftCustomer(
     return outcome === "saved" ? ok({}) : refused(outcome);
   } catch (error) {
     return saveFailed("saveDraftCustomer", error);
+  }
+}
+
+/** Spec 0021 AC-4: the user's drafts and the product, when the sheet opens. */
+export async function readDraftPicker(input: {
+  productId: string;
+}): Promise<Result<DraftPickerData, "forbidden" | "invalid" | "save_failed">> {
+  const userId = await electricianId();
+  if (!userId) return fail("forbidden");
+  const parsed = draftPickerSchema.safeParse(input);
+  if (!parsed.success) {
+    console.warn(JSON.stringify({ event: "draft_picker_failed", error: "invalid" }));
+    return fail("invalid");
+  }
+  try {
+    return ok(await readDraftPickerData(await getDb(), userId, parsed.data.productId));
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "unknown";
+    console.error(JSON.stringify({ event: "draft_picker_failed", error: name }));
+    return fail("save_failed");
+  }
+}
+
+export type AddToDraftError =
+  | "forbidden"
+  | "invalid"
+  | "not_sellable"
+  | "not_found"
+  | "too_many_lines"
+  | "quantity_over"
+  | "name_taken"
+  | "too_many_drafts"
+  | "save_failed";
+
+export type AddToDraftAdded = {
+  readonly draftId: string;
+  readonly draftName: string;
+  readonly position: number;
+  readonly quantity: number;
+  readonly merged: boolean;
+};
+
+export type AddToDraftResult = Result<
+  AddToDraftAdded,
+  AddToDraftError,
+  {
+    readonly problem?: DraftNameProblem;
+    readonly position?: number;
+    readonly current?: number;
+  }
+>;
+
+/** Spec 0021 AC-8, AC-9: merge into the option's line, append a line, or start a named draft. */
+export async function addToDraft(
+  input: z.input<typeof addToDraftSchema>,
+): Promise<AddToDraftResult> {
+  const userId = await electricianId();
+  if (!userId) return fail("forbidden");
+  const parsed = addToDraftSchema.safeParse(input);
+  if (!parsed.success) {
+    const problem = addToDraftNameProblem(input);
+    return problem ? { ...refused("invalid", ["name"]), problem } : refused("invalid");
+  }
+  try {
+    const outcome = await addToDraftInDb(await getDb(), userId, parsed.data);
+    switch (outcome.kind) {
+      case "added": {
+        const { draftId, draftName, position, quantity, merged, newDraft } = outcome;
+        log("draft_item_added", { merged, newDraft });
+        return ok({ draftId, draftName, position, quantity, merged });
+      }
+      case "quantity_over":
+        return {
+          ...refused("quantity_over"),
+          position: outcome.position,
+          current: outcome.current,
+        };
+      case "name_taken":
+      case "too_many_drafts":
+        return refused(outcome.kind, ["name"]);
+      default:
+        return refused(outcome.kind);
+    }
+  } catch (error) {
+    return saveFailed("addToDraft", error);
   }
 }
 

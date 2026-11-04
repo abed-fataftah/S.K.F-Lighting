@@ -45,13 +45,13 @@ async function lockLine(tx: Transaction, userId: string, lineId: string) {
   return line;
 }
 
-const touch = (tx: Transaction, draftId: string) =>
+export const touch = (tx: Transaction, draftId: string) =>
   tx
     .update(drafts)
     .set({ updatedAt: sql`now()` })
     .where(eq(drafts.id, draftId));
 
-const lineCount = async (tx: Transaction, draftId: string) => {
+export const lineCount = async (tx: Transaction, draftId: string) => {
   const [{ total }] = await tx
     .select({ total: count() })
     .from(draftLines)
@@ -95,7 +95,7 @@ async function viewOf(tx: Transaction, draftId: string, lineId: string): Promise
 }
 
 /** A unique clash that slipped past the check (it cannot under the lock, but the index decides). */
-async function afterClash(
+export async function afterClash(
   db: Database,
   error: unknown,
   clash: { draftId: string; variantId: string | null; except: string | null } | null,

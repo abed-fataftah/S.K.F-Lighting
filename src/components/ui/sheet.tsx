@@ -7,9 +7,9 @@ import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// A side panel on Base UI Dialog (spec 0003, MenuSheet). Logical sides only: "start" is
-// the right edge in Arabic. White panel with a 1px border edge, ink overlay at 50%, no
-// shadow or blur. It slides over --dur-sheet, which is 0s under reduced motion.
+// A side panel on Base UI Dialog (spec 0003, MenuSheet), or a bottom sheet in the storefront
+// column (spec 0021). Logical sides only: "start" is the right edge in Arabic. White panel
+// with a 1px border edge, ink overlay at 50%, no shadow or blur. It slides over --dur-sheet, which is 0s under reduced motion.
 
 function Sheet(props: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -36,11 +36,14 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   );
 }
 
-// The offset the panel slides from: off the start edge, which flips with the direction.
+// The offset the panel slides from: off the start edge, which flips with the direction, or
+// down off the screen.
 const sides = {
   start:
-    "inset-y-0 start-0 border-e [--sheet-from:-100%] rtl:[--sheet-from:100%] data-ending-style:translate-x-(--sheet-from) data-starting-style:translate-x-(--sheet-from)",
-  end: "inset-y-0 end-0 border-s [--sheet-from:100%] rtl:[--sheet-from:-100%] data-ending-style:translate-x-(--sheet-from) data-starting-style:translate-x-(--sheet-from)",
+    "inset-y-0 start-0 h-full w-[min(var(--w-sheet),85vw)] border-e [--sheet-from:-100%] rtl:[--sheet-from:100%] data-ending-style:translate-x-(--sheet-from) data-starting-style:translate-x-(--sheet-from)",
+  end: "inset-y-0 end-0 h-full w-[min(var(--w-sheet),85vw)] border-s [--sheet-from:100%] rtl:[--sheet-from:-100%] data-ending-style:translate-x-(--sheet-from) data-starting-style:translate-x-(--sheet-from)",
+  bottom:
+    "start-0 end-0 bottom-0 mx-auto max-h-[90dvh] w-full max-w-(--page-max) rounded-t-card border-t pb-[env(safe-area-inset-bottom)] data-ending-style:translate-y-full data-starting-style:translate-y-full",
 } as const;
 
 function SheetContent({
@@ -64,7 +67,7 @@ function SheetContent({
         data-side={side}
         initialFocus={closeRef}
         className={cn(
-          "ease-out fixed z-(--z-sheet) flex h-full w-[min(var(--w-sheet),85vw)] flex-col overflow-y-auto border-border bg-white text-ink transition-transform duration-(--dur-sheet)",
+          "ease-out fixed z-(--z-sheet) flex flex-col overflow-y-auto border-border bg-white text-ink transition-transform duration-(--dur-sheet)",
           sides[side],
           className,
         )}

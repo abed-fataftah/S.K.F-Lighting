@@ -14,3 +14,9 @@ export async function requireElectricianPage(next: string): Promise<Account> {
   if (!canUseDrafts(account.profile)) redirect(routes.account);
   return account;
 }
+
+/** Spec 0021 AC-1: catalog pages offer "add to draft" to the same electricians, read per request. */
+export async function canAddToDraft(): Promise<boolean> {
+  const account = await getAccountProfile();
+  return canUseDrafts(account?.profile ?? null);
+}
