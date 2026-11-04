@@ -42,7 +42,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 19 | My Orders | Slice 5 | in-progress |
 | 20 | Customers & roles | Slice 5 | in-progress |
 | 21 | Electrician quick order & drafts | Slice 6 | in-progress |
-| 22 | Add to draft from the catalog | Slice 6 | planned |
+| 22 | Add to draft from the catalog | Slice 6 | in-progress |
 | 23 | Electrician price adjustments | Slice 6 | planned |
 | 24 | Payments & balances | Slice 7 | planned |
 | 25 | Homepage, banners & featured products | Slice 8 | in-progress |

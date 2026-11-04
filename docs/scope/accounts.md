@@ -68,10 +68,18 @@ spec [0020](../specs/0020-electrician-quick-order-drafts/index.md) · code in `s
 - [ ] Verify it: `/check verify electrician quick order & drafts`
 - [ ] Test it: `/test electrician quick order & drafts`
 
-### 22. Add to draft from the catalog
+### 22. Add to draft from the catalog · in-progress
 While browsing products, an electrician adds an item straight into one of their existing drafts.
 **Done when:** product pages and lists offer "add to draft" for electricians, they choose which draft, and the item appears there with its price.
-- [ ] Build it: `/develop add to draft from the catalog`
+spec [0021](../specs/0021-add-to-draft-catalog/index.md) · code in `src/features/drafts/`, `src/features/catalog/`, `src/app/[locale]/`
+- [x] Design it (spec): `/architect add to draft from the catalog`
+- [x] Build it: `/develop add to draft from the catalog`
+  - [x] Thin thread on the product page: role flag, `readDraftPicker`, `addToDraft` append and merge into an existing draft, the sheet, the success block (AC-1, AC-2, AC-4, AC-5, AC-6, AC-7, AC-8, AC-10)
+  - [x] Cards: `CardProduct.productId`, the photo corner button on home, category, and search (AC-1, AC-3)
+  - [x] New draft from the sheet: `insertNamedDraft`, zero and 30 draft states, name errors (AC-7, AC-9)
+  - [x] Refusals, edges, and finish: every refusal and reload, logs, layout at 390 and 1280, database tests, Playwright with axe (AC-4, AC-11, AC-12, AC-13, AC-14, AC-15)
+- [ ] Verify it: `/check verify add to draft from the catalog`
+- [ ] Test it: `/test add to draft from the catalog`
 
 ### 23. Electrician price adjustments · needs a decision · GA
 On an individual electrician order, you change line prices to give a better deal, without touching the public catalog price.
