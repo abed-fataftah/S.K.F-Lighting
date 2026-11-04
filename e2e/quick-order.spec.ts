@@ -73,7 +73,8 @@ async function signInAs(page: Page, role: "electrician" | "customer") {
   await page.goto("/account/sign-in?next=/account");
   await page.waitForLoadState("networkidle");
   await signInCustomer(page, email, PASSWORD);
-  await expect(page).toHaveURL(/\/account$/);
+  // The pathname: the sign in page's own `?next=/account` already ends in "/account".
+  await page.waitForURL((url) => url.pathname === "/account");
   return id;
 }
 
