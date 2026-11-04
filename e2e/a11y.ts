@@ -9,10 +9,11 @@ export async function usePhoneWidth(page: Page, testInfo: TestInfo) {
   if (testInfo.project.name === "phone") await page.setViewportSize({ width: 390, height: 844 });
 }
 
-export async function expectNoAxeViolations(page: Page) {
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .analyze();
+// `include` limits the check to those selectors, every rule still on (spec 0020 AC-21: an open
+// Base UI combobox hides the rest of the page from assistive tech, by design).
+export async function expectNoAxeViolations(page: Page, include: readonly string[] = []) {
+  const builder = new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]);
+  const results = await include.reduce((b, selector) => b.include(selector), builder).analyze();
   const summary = results.violations.map((v) => ({
     id: v.id,
     targets: v.nodes.slice(0, 5).map((n) => n.target.join(" ")),

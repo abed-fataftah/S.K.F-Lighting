@@ -32,7 +32,7 @@ _Steps derived from spec 0020 acceptance criteria. `/check verify` runs these; `
 ## Commands
 - [ ] `pnpm exec vitest run src/features/drafts src/features/checkout/server/placed.test.ts src/lib/routes.test.ts src/server/db/schema/schema.db.test.ts` → all pass → AC-4 to AC-15, AC-21
 - [ ] `pnpm db:check-rls` → no finding for `drafts` or `draft_lines` → AC-1
-- [ ] `pnpm exec playwright test e2e/quick-order.spec.ts` → all pass (open: axe `aria-hidden-focus` with the combobox open, owed to `/architect`) → AC-21
+- [ ] `pnpm exec playwright test e2e/quick-order.spec.ts` → all pass (add `--workers=1` on a dev server: the 30 line build times out when tests run side by side); with the combobox open, axe checks only the input and the list → AC-21
 - [ ] Watch the server log while using the pages → only `draft_*` and `quick_order_search_failed` events, never a name, phone, address, search text, or person id → AC-19
 
 ## Value sourcing

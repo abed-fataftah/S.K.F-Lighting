@@ -299,12 +299,20 @@ test("a line refuses a duplicate option, and a removed line comes back on undo",
   await page.getByTestId("add-line").click();
   await expect(page.getByTestId("quick-order-line")).toHaveCount(2);
 
-  // AC-7, AC-20: the open combobox passes axe.
+  // AC-7, AC-21: with the list open, axe checks the line's input and the list only (Base UI hides
+  // the page behind); the page itself is checked with the list closed.
   const field = lineAt(page, 1).getByLabel("الكود أو اسم المنتج");
   await expect(field).toBeEnabled();
   await field.fill(first.code);
   await expect(page.getByTestId("quick-order-suggestion").first()).toBeVisible();
+  const fieldId = await field.getAttribute("id");
+  await expectNoAxeViolations(page, [`[id="${fieldId}"]`, "[data-slot=combobox-content]"]);
+  await field.press("Escape");
+  await expect(page.getByTestId("quick-order-suggestion")).toHaveCount(0);
   await checkA11y(page, testInfo);
+  await field.fill("");
+  await field.fill(first.code);
+  await expect(page.getByTestId("quick-order-suggestion").first()).toBeVisible();
 
   // AC-8: the same option on a second line is refused, with a way to the first.
   await page.getByTestId("quick-order-suggestion").first().click();
