@@ -41,7 +41,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 18 | Customer accounts | Slice 5 | in-progress |
 | 19 | My Orders | Slice 5 | in-progress |
 | 20 | Customers & roles | Slice 5 | in-progress |
-| 21 | Electrician quick order & drafts | Slice 6 | planned |
+| 21 | Electrician quick order & drafts | Slice 6 | in-progress |
 | 22 | Add to draft from the catalog | Slice 6 | planned |
 | 23 | Electrician price adjustments | Slice 6 | planned |
 | 24 | Payments & balances | Slice 7 | planned |
@@ -75,6 +75,8 @@ Out of scope for now, kept so the plan stays honest.
 - **Automatic WhatsApp sending**: the site messages you from the shop number by itself, through a business messaging service · needs a decision
 - **PDF of a draft or order**: a clean quote electricians can share · needs a decision
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
+- **Quick order on computers**: a wide table layout for building drafts at a desk, once design O-1 is drawn · from spec 0020
+- **Copy an order into a new draft**: start a new draft from one of an electrician's past orders, for repeat jobs · from spec 0020
 - **JSON export of an order** · needs a decision
 - **Colour tagged product photos**: choosing a colour on the product page jumps to its photos (a `colour_id` on `product_media`, the editor, and the import) · needs a decision · from spec 0009
 - **Cloudflare Turnstile at checkout**: a stronger bot check, only if the honeypot and rate limit logs show real spam · needs a decision · from spec 0012
