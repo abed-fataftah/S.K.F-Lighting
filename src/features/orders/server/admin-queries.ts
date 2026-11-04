@@ -18,10 +18,11 @@ import { addDaysToKey, shopDayStart } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { requireAdminPage } from "@/server/auth/admin";
 import { getDb } from "@/server/db";
-import { orderEvents, orderLines, orders, profiles } from "@/server/db/schema";
+import { orderEvents, orderLines, orders, profiles, type OrderEventData } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import { pageWindow, splitPage } from "@/lib/paging";
 import type { OrderDays, OrderFilters } from "../admin-filters";
+import { FLAGGING_EVENTS } from "../admin-history";
 import type { ActorKind, OrderStatus } from "../status";
 
 // The dashboard's order reads (spec 0004 AC-13, spec 0014). Each public query runs
@@ -50,9 +51,6 @@ export type AdminOrderRow = {
   /** Cancelled by anyone but the shop (spec 0014 AC-8). */
   readonly cancelledByCustomer: boolean;
 };
-
-/** Events that flag an order until it is opened: a new order, and a cancel by someone else. */
-const FLAGGING_EVENTS = ["created", "cancelled"] as const;
 
 const unseenFlag = and(inArray(orderEvents.type, FLAGGING_EVENTS), isNull(orderEvents.seenAt));
 
@@ -143,14 +141,16 @@ export async function orderNumberExists(db: Db, orderNumber: string): Promise<bo
 
 export type AdminOrderEvent = {
   readonly id: string;
-  readonly type: "created" | "status_changed" | "cancelled";
+  readonly type: "created" | "status_changed" | "cancelled" | "line_price_changed";
   readonly actorKind: ActorKind;
   readonly toStatus: OrderStatus | null;
+  /** A price save's `lineCount`, `fromTotal`, `toTotal`, and `note` (spec 0022 AC-8). */
+  readonly data: OrderEventData;
   readonly at: Date;
 };
 
 /** The event types the history shows (spec 0014 AC-6); later features add their own. */
-const HISTORY_EVENTS = ["created", "status_changed", "cancelled"] as const;
+const HISTORY_EVENTS = ["created", "status_changed", "cancelled", "line_price_changed"] as const;
 
 export type AdminOrder = {
   readonly id: string;
@@ -165,9 +165,13 @@ export type AdminOrder = {
   readonly notes: string | null;
   readonly subtotal: number;
   readonly deliveryFee: number;
+  readonly discountTotal: number;
   readonly total: number;
+  readonly amountPaid: number;
   readonly placedAt: Date;
   readonly status: OrderStatus;
+  /** The role saved at placement (spec 0022 AC-1); null for a guest. */
+  readonly placedByRole: "customer" | "electrician" | "admin" | null;
   readonly deliveredAt: Date | null;
   readonly cancelledAt: Date | null;
   readonly cancelledBy: ActorKind | null;
@@ -177,11 +181,13 @@ export type AdminOrder = {
   /** That account's role now (spec 0019 AC-14); null when there is no account. */
   readonly placedByAccountRole: "customer" | "electrician" | "admin" | null;
   readonly lines: readonly {
+    readonly id: string;
     readonly name: string;
     readonly code: string;
     readonly sizeLabel: string | null;
     readonly colourName: string | null;
     readonly quantity: number;
+    readonly catalogUnitPrice: number;
     readonly unitPrice: number;
     readonly lineTotal: number;
   }[];
@@ -203,9 +209,12 @@ export async function readAdminOrder(db: Db, orderNumber: string): Promise<Admin
       notes: orders.notes,
       subtotal: orders.subtotal,
       deliveryFee: orders.deliveryFee,
+      discountTotal: orders.discountTotal,
       total: orders.total,
+      amountPaid: orders.amountPaid,
       placedAt: orders.placedAt,
       status: orders.status,
+      placedByRole: orders.placedByRole,
       deliveredAt: orders.deliveredAt,
       cancelledAt: orders.cancelledAt,
       cancelledBy: orders.cancelledBy,
@@ -226,17 +235,19 @@ export async function readAdminOrder(db: Db, orderNumber: string): Promise<Admin
 function readLines(db: Db, orderId: string) {
   return db
     .select({
+      id: orderLines.id,
       name: orderLines.productName,
       code: orderLines.productCode,
       sizeLabel: orderLines.sizeLabel,
       colourName: orderLines.colourName,
       quantity: orderLines.quantity,
+      catalogUnitPrice: orderLines.catalogUnitPrice,
       unitPrice: orderLines.unitPrice,
       lineTotal: orderLines.lineTotal,
     })
     .from(orderLines)
     .where(eq(orderLines.orderId, orderId))
-    .orderBy(asc(orderLines.sort));
+    .orderBy(asc(orderLines.sort), asc(orderLines.id));
 }
 
 function readEvents(db: Db, orderId: string): Promise<AdminOrderEvent[]> {
@@ -246,6 +257,7 @@ function readEvents(db: Db, orderId: string): Promise<AdminOrderEvent[]> {
       type: sql<AdminOrderEvent["type"]>`${orderEvents.type}`,
       actorKind: orderEvents.actorKind,
       toStatus: orderEvents.toStatus,
+      data: orderEvents.data,
       at: orderEvents.createdAt,
     })
     .from(orderEvents)

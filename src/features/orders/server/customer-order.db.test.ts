@@ -69,6 +69,8 @@ describe.skipIf(!hasLocalDb)("customer order reads on the local database", () =>
         cancelledAt: null,
         cancelledBy: null,
         pickupAddress: null,
+        catalogSubtotal: 25_000,
+        priceDiscount: 0,
       });
       expect(read?.lines).toEqual([
         {
@@ -77,6 +79,7 @@ describe.skipIf(!hasLocalDb)("customer order reads on the local database", () =>
           colourName: null,
           quantity: 2,
           lineTotal: 25_000,
+          catalogLineTotal: 25_000,
           imageKey: null,
         },
       ]);

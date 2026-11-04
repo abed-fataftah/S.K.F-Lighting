@@ -131,6 +131,8 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
         subtotal={order.subtotal}
         deliveryFee={order.deliveryFee}
         total={order.total}
+        catalogSubtotal={order.catalogSubtotal}
+        priceDiscount={order.priceDiscount}
       />
 
       <PaymentCard

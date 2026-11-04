@@ -5,21 +5,14 @@ import { getTranslations } from "next-intl/server";
 import { Ltr } from "@/components/ltr";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { adminContactMessage } from "@/features/orders/admin-contact-message";
 import { OrderHistory } from "@/features/orders/components/order-history";
+import { OrderLinesEditor } from "@/features/orders/components/order-lines-editor";
 import { OrderStatusCard } from "@/features/orders/components/order-status-card";
 import { OrderStatusBadge } from "@/features/orders/components/status-badge";
+import { canAdjustPrices, pricesLocked } from "@/features/orders/price-adjust";
 import { getAdminOrder } from "@/features/orders/server/admin-queries";
-import { formatDateTime, formatNumber, formatPhone } from "@/lib/format";
-import { formatPrice } from "@/lib/money";
+import { formatDateTime, formatPhone } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 
@@ -31,8 +24,9 @@ export async function generateMetadata({
   return { title: t("orderMeta", { number: decodeURIComponent(number) }) };
 }
 
-// One order (spec 0004 AC-13, spec 0014; docs/design/pages/admin-order-details.md without payments
-// and price edits, which come with features 23 and 24): its status card, customer, and history.
+// One order (spec 0004 AC-13, spec 0014; docs/design/pages/admin-order-details.md without payments,
+// which come with feature 24): its lines with the electrician price edit (spec 0022), status card,
+// customer, and history.
 // Opening it marks it seen (spec 0014 AC-14).
 export default async function AdminOrderPage({ params }: PageProps<"/admin/orders/[number]">) {
   const { number } = await params;
@@ -96,61 +90,17 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
       <div className="flex flex-wrap items-start gap-4">
         <section className="flex min-w-0 flex-[2_1_var(--admin-detail-main)] flex-col gap-3">
           <h2 className="type-title-s">{t("products")}</h2>
-          <Table aria-label={t("linesLabel")} data-testid="admin-order-lines">
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("product")}</TableHead>
-                <TableHead>{t("option")}</TableHead>
-                <TableHead>{t("quantity")}</TableHead>
-                <TableHead>{t("unitPrice")}</TableHead>
-                <TableHead>{t("lineTotal")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {order.lines.map((line, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <span className="flex flex-col">
-                      <span className="font-bold">{line.name}</span>
-                      <span className="type-small text-muted">
-                        {t("code")} <Ltr>{line.code}</Ltr>
-                      </span>
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {[line.sizeLabel, line.colourName].filter(Boolean).join(" · ")}
-                  </TableCell>
-                  <TableCell>{formatNumber(line.quantity)}</TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <Ltr>{formatPrice(line.unitPrice)}</Ltr>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <Ltr>{formatPrice(line.lineTotal)}</Ltr>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <Card>
-            <dl className="flex flex-col gap-2">
-              <div className="flex justify-between gap-3">
-                <dt>{t("subtotal")}</dt>
-                <dd>
-                  <Ltr>{formatPrice(order.subtotal)}</Ltr>
-                </dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt>{t("deliveryFee")}</dt>
-                <dd>{delivery ? <Ltr>{formatPrice(order.deliveryFee)}</Ltr> : t("pickupFee")}</dd>
-              </div>
-              <div className="flex justify-between gap-3 type-title-s">
-                <dt>{t("total")}</dt>
-                <dd data-testid="admin-order-total">
-                  <Ltr>{formatPrice(order.total)}</Ltr>
-                </dd>
-              </div>
-            </dl>
-          </Card>
+          <OrderLinesEditor
+            orderId={order.id}
+            lines={order.lines}
+            delivery={delivery}
+            deliveryFee={order.deliveryFee}
+            discountTotal={order.discountTotal}
+            subtotal={order.subtotal}
+            total={order.total}
+            canAdjust={canAdjustPrices(order.placedByRole, order.status)}
+            locked={pricesLocked(order.placedByRole, order.status)}
+          />
         </section>
 
         <div className="flex min-w-0 flex-[1_1_var(--admin-detail-side)] flex-col gap-4">

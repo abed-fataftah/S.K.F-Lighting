@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { firstProductImageKey } from "@/features/catalog/server/product-image-sql";
 import { readPickupAddress } from "@/features/checkout/server/checkout-options";
 import { readPlacedIds } from "@/features/checkout/server/placed";
@@ -46,6 +46,9 @@ export type CustomerOrder = {
   /** The shop's current address for a pickup order, `null` for delivery or when blank. */
   readonly pickupAddress: string | null;
   readonly lines: readonly OrderSummaryLine[];
+  /** Σ catalog line totals and the shop's price discount (spec 0022 AC-9); never stored. */
+  readonly catalogSubtotal: number;
+  readonly priceDiscount: number;
 };
 
 /** The id of the order with this number placed by `userId` (spec 0017 AC-14), or null. */
@@ -129,6 +132,8 @@ export async function readCustomerOrder(
         colourName: orderLines.colourName,
         quantity: orderLines.quantity,
         lineTotal: orderLines.lineTotal,
+        catalogLineTotal:
+          sql<number>`${orderLines.catalogUnitPrice} * ${orderLines.quantity}`.mapWith(Number),
         imageKey: firstProductImageKey(orderLines.productId),
       })
       .from(orderLines)
@@ -136,5 +141,13 @@ export async function readCustomerOrder(
       .orderBy(asc(orderLines.sort)),
     order.fulfilment === "pickup" ? readPickupAddress(db) : null,
   ]);
-  return { ...order, pickupAddress, lines };
+  const catalogSubtotal = lines.reduce((sum, line) => sum + line.catalogLineTotal, 0);
+  const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+  return {
+    ...order,
+    pickupAddress,
+    lines,
+    catalogSubtotal,
+    priceDiscount: catalogSubtotal - subtotal,
+  };
 }

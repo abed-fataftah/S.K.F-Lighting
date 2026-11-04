@@ -15,6 +15,8 @@ export type OrderSummaryLine = {
   readonly colourName: string | null;
   readonly quantity: number;
   readonly lineTotal: number;
+  /** `catalog_unit_price × quantity` (spec 0022 AC-9); struck through when above the line total. */
+  readonly catalogLineTotal?: number;
   readonly imageKey: string | null;
 };
 
@@ -30,6 +32,9 @@ export type OrderSummaryProps = {
   readonly subtotal: number;
   readonly deliveryFee: number;
   readonly total: number;
+  /** The order page's price deal (spec 0022 AC-9); the checkout confirmation passes neither. */
+  readonly catalogSubtotal?: number;
+  readonly priceDiscount?: number;
 };
 
 export type OrderSummaryContext = {
@@ -43,10 +48,14 @@ export type OrderSummaryView = {
     readonly name: string;
     readonly options: string;
     readonly total: string;
+    /** The catalog line total, struck through before `total`; null without a cut. */
+    readonly before: string | null;
   }[];
   readonly receive: { readonly line: string; readonly where: string | null };
   readonly notes: string | null;
   readonly totals: {
+    /** "قبل الخصم" and "خصم المتجر" (a minus amount), only when the discount is above 0. */
+    readonly deal: { readonly before: string; readonly discount: string } | null;
     readonly subtotal: string;
     /** "بدون رسوم" for pickup, else the saved fee. */
     readonly fee: string;
@@ -71,6 +80,10 @@ export function orderSummaryView(
         .filter((part): part is string => Boolean(part))
         .join(" · "),
       total: formatPrice(line.lineTotal),
+      before:
+        line.catalogLineTotal !== undefined && line.catalogLineTotal > line.lineTotal
+          ? formatPrice(line.catalogLineTotal)
+          : null,
     })),
     receive: delivery
       ? {
@@ -84,6 +97,13 @@ export function orderSummaryView(
       : { line: t("pickup"), where: order.pickupAddress },
     notes: order.notes,
     totals: {
+      deal:
+        order.priceDiscount && order.priceDiscount > 0
+          ? {
+              before: formatPrice(order.catalogSubtotal ?? order.subtotal + order.priceDiscount),
+              discount: formatPrice(-order.priceDiscount),
+            }
+          : null,
       subtotal: formatPrice(order.subtotal),
       fee: delivery ? formatPrice(order.deliveryFee) : t("free"),
       feeIsAmount: delivery,

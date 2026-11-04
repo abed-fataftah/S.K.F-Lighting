@@ -63,6 +63,7 @@ describe("orderSummaryView rows", () => {
         name: "ثريا كريستال",
         options: `80 سم · ذهبي · الكمية ${formatNumber(3)}`,
         total: formatPrice(125_000),
+        before: null,
       },
     ]);
   });
@@ -121,6 +122,7 @@ describe("orderSummaryView notes and totals", () => {
 
   it("shows the saved subtotal, fee, and total for delivery", () => {
     expect(orderSummaryView(delivery, context).totals).toEqual({
+      deal: null,
       subtotal: formatPrice(125_000),
       fee: formatPrice(2_000),
       feeIsAmount: true,
@@ -143,5 +145,40 @@ describe("orderSummaryView notes and totals", () => {
       fee: formatPrice(2),
       total: formatPrice(3),
     });
+  });
+});
+
+// covers: AC-9 (spec 0022)
+describe("orderSummaryView with a shop price deal", () => {
+  const cut = {
+    ...pickup,
+    lines: [
+      { ...line, quantity: 2, lineTotal: 200_000, catalogLineTotal: 250_000 },
+      { ...line, productName: "مصباح طاولة", lineTotal: 5_000, catalogLineTotal: 5_000 },
+    ],
+    subtotal: 205_000,
+    total: 205_000,
+    catalogSubtotal: 255_000,
+    priceDiscount: 50_000,
+  };
+
+  it("strikes the catalog line total only on a cut line", () => {
+    expect(orderSummaryView(cut, context).rows.map((row) => [row.total, row.before])).toEqual([
+      [formatPrice(200_000), formatPrice(250_000)],
+      [formatPrice(5_000), null],
+    ]);
+  });
+
+  it("adds before and the discount as a minus amount, which add up to the subtotal", () => {
+    expect(orderSummaryView(cut, context).totals).toMatchObject({
+      deal: { before: formatPrice(255_000), discount: formatPrice(-50_000) },
+      subtotal: formatPrice(205_000),
+    });
+  });
+
+  it("shows no deal at a zero discount or without the props (the checkout confirmation)", () => {
+    expect(orderSummaryView({ ...cut, priceDiscount: 0 }, context).totals.deal).toBeNull();
+    expect(orderSummaryView(pickup, context).totals.deal).toBeNull();
+    expect(orderSummaryView(pickup, context).rows[0].before).toBeNull();
   });
 });

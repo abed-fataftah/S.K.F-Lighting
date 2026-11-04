@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/money";
 import { orderSummaryView, type OrderSummaryProps } from "../order-summary-view";
 
 // The "ملخص الطلب" card (spec 0013 AC-5 to AC-8): what was ordered, where it goes, and what it
-// costs, all from the saved order. Plain props, no query, so the order page (feature 16) passes
+// costs, all from the saved order, with the shop's price deal when there is one (spec 0022 AC-9). Plain props, no query, so the order page (feature 16) passes
 // the same shape from its own read.
 export function OrderSummary(order: OrderSummaryProps) {
   const t = useTranslations("OrderSummary");
@@ -47,8 +47,16 @@ export function OrderSummary(order: OrderSummaryProps) {
                 <span className="font-bold">{row.name}</span>
                 <span className="type-small text-muted">{row.options}</span>
               </div>
-              <span className="shrink-0 font-bold">
-                <Ltr>{row.total}</Ltr>
+              <span className="flex shrink-0 flex-col items-end">
+                {row.before ? (
+                  <s className="type-small text-muted" data-testid="summary-line-before">
+                    <span className="sr-only">{t("before")}</span>
+                    <Ltr>{row.before}</Ltr>
+                  </s>
+                ) : null}
+                <span className="font-bold">
+                  <Ltr>{row.total}</Ltr>
+                </span>
               </span>
             </li>
           );
@@ -75,6 +83,22 @@ export function OrderSummary(order: OrderSummaryProps) {
       ) : null}
 
       <dl className="flex flex-col gap-2 border-t border-border pt-3">
+        {view.totals.deal ? (
+          <>
+            <div className="flex justify-between gap-3">
+              <dt>{t("before")}</dt>
+              <dd data-testid="summary-before">
+                <Ltr>{view.totals.deal.before}</Ltr>
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt>{t("shopDiscount")}</dt>
+              <dd data-testid="summary-discount">
+                <Ltr>{view.totals.deal.discount}</Ltr>
+              </dd>
+            </div>
+          </>
+        ) : null}
         <div className="flex justify-between gap-3">
           <dt>{t("subtotal")}</dt>
           <dd data-testid="summary-subtotal">
