@@ -42,6 +42,7 @@ import { AppliedChips } from "./applied-chips";
 import { FilterChipLink } from "./filter-chip-link";
 import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
+import { canAddToDraft } from "@/features/drafts/server/guard";
 import { GridSkeleton, ListMore, ProductGrid } from "./list-results";
 
 // The category page (spec 0008 AC-8 to AC-13, AC-16; spec 0010 AC-13, AC-14; docs/design/pages/
@@ -269,10 +270,11 @@ async function CategoryList({
   readonly query: string;
   readonly help: string;
 }) {
-  const [t, filtersText, result] = await Promise.all([
+  const [t, filtersText, result, draftButtons] = await Promise.all([
     getTranslations("Categories"),
     getTranslations("Filters"),
     loadCategoryList(address.main, address.sub, page, query),
+    canAddToDraft(),
   ]);
   const { whatsappNumber, siteUrl } = parsePublicEnv();
   if (!result?.ok) {
@@ -311,6 +313,7 @@ async function CategoryList({
             whatsappNumber={whatsappNumber}
             siteUrl={siteUrl}
             testId="category-products"
+            canAddToDraft={draftButtons}
           />
           <ListMore
             shownText={t("shownOf", {

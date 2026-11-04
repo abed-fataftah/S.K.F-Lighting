@@ -8,6 +8,8 @@ type ProductSpec = { readonly label: string; readonly value: string };
 export const MAX_CARD_CHIPS = 3;
 
 export type CardProduct = {
+  /** `products.id`, for "add to draft" (spec 0021 AC-3). */
+  readonly productId: string;
   readonly slug: string;
   readonly name: string;
   readonly code: string;
@@ -31,6 +33,7 @@ export type CardVariant = SellableVariant & {
 };
 
 export type CardSource = {
+  readonly productId: string;
   readonly slug: string;
   readonly name: string;
   readonly code: string;
@@ -78,6 +81,7 @@ export function buildCardProduct(source: CardSource): CardProduct {
   );
   const listPrice = lowest(prices);
   return {
+    productId: source.productId,
     slug: source.slug,
     name: source.name,
     code: source.code,

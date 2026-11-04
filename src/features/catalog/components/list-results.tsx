@@ -17,6 +17,7 @@ export function ProductGrid({
   whatsappNumber,
   siteUrl,
   testId,
+  canAddToDraft,
 }: {
   readonly products: readonly CardProduct[];
   /** The current page, so focus moves to the first new card after "load more". */
@@ -24,6 +25,8 @@ export function ProductGrid({
   readonly whatsappNumber: string;
   readonly siteUrl: string;
   readonly testId: string;
+  /** Electricians get "add to draft" on each card (spec 0021 AC-1). */
+  readonly canAddToDraft: boolean;
 }) {
   return (
     <>
@@ -37,6 +40,7 @@ export function ProductGrid({
               id={`p-${index + 1}`}
               whatsappNumber={whatsappNumber}
               siteUrl={siteUrl}
+              canAddToDraft={canAddToDraft}
             />
           </li>
         ))}

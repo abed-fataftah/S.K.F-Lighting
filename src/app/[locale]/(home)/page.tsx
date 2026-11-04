@@ -9,6 +9,7 @@ import {
 } from "@/features/home/components/home-sections";
 import { buildZoneLine } from "@/features/home/fees";
 import { shopNowTarget } from "@/features/home/home-rules";
+import { canAddToDraft } from "@/features/drafts/server/guard";
 import { getDeliveryFees, getHomeSections } from "@/features/home/server/home";
 import { parsePublicEnv } from "@/lib/public-env";
 
@@ -17,11 +18,12 @@ import { parsePublicEnv } from "@/lib/public-env";
 // together and stands alone: a part whose read failed is null and only that part is gone (AC-7).
 // The page has one `h1`: the hero's headline, else a hidden one with the shop's name.
 export default async function HomePage() {
-  const [t, sections, fees, address] = await Promise.all([
+  const [t, sections, fees, address, draftButtons] = await Promise.all([
     getTranslations("Home"),
     getHomeSections(),
     getDeliveryFees(),
     getShopAddress(),
+    canAddToDraft(),
   ]);
   const { whatsappNumber, siteUrl } = parsePublicEnv();
   const banners = sections.banners ?? [];
@@ -43,7 +45,12 @@ export default async function HomePage() {
       )}
       {circles.length ? <CategoriesSection circles={circles} /> : null}
       {featured.length ? (
-        <FeaturedSection products={featured} whatsappNumber={whatsappNumber} siteUrl={siteUrl} />
+        <FeaturedSection
+          products={featured}
+          whatsappNumber={whatsappNumber}
+          siteUrl={siteUrl}
+          canAddToDraft={draftButtons}
+        />
       ) : null}
       <TrustSection zoneLine={buildZoneLine(fees)} address={address} />
     </div>

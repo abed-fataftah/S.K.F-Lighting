@@ -25,6 +25,7 @@ import { CATEGORY_PAGE_SIZE, getSearchList } from "../server/queries";
 import { AppliedChips } from "./applied-chips";
 import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
+import { canAddToDraft } from "@/features/drafts/server/guard";
 import { ListMore, ProductGrid } from "./list-results";
 import { RemoveChipLink } from "./remove-chip-link";
 
@@ -91,9 +92,10 @@ async function SearchResults({
   readonly page: number;
   readonly help: string;
 }) {
-  const [t, result] = await Promise.all([
+  const [t, result, draftButtons] = await Promise.all([
     getTranslations("Search"),
     withTimeLimit(() => getSearchList(terms, parsed, page), SEARCH_READ_TIMEOUT_MS),
+    canAddToDraft(),
   ]);
   const { whatsappNumber, siteUrl } = parsePublicEnv();
 
@@ -153,6 +155,7 @@ async function SearchResults({
             whatsappNumber={whatsappNumber}
             siteUrl={siteUrl}
             testId="search-products"
+            canAddToDraft={draftButtons}
           />
           <ListMore
             shownText={t("shownOf", {

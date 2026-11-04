@@ -49,10 +49,13 @@ export function FeaturedSection({
   products,
   whatsappNumber,
   siteUrl,
+  canAddToDraft,
 }: {
   readonly products: readonly CardProduct[];
   readonly whatsappNumber: string;
   readonly siteUrl: string;
+  /** Electricians get "add to draft" on each card (spec 0021 AC-1). */
+  readonly canAddToDraft: boolean;
 }) {
   const t = useTranslations("Home");
   return (
@@ -79,6 +82,7 @@ export function FeaturedSection({
               whatsappNumber={whatsappNumber}
               siteUrl={siteUrl}
               heading="h3"
+              canAddToDraft={canAddToDraft}
             />
           </li>
         ))}

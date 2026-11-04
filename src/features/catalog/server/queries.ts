@@ -105,6 +105,7 @@ export async function readCards(db: Db, rows: readonly CardRow[]): Promise<reado
   const imageOf = new Map(images.map((image) => [image.productId, image.storageKey]));
   return rows.map((row) =>
     buildCardProduct({
+      productId: row.id,
       slug: row.slug,
       name: row.name,
       code: row.code,

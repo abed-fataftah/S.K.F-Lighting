@@ -26,6 +26,8 @@ import {
 } from "@/features/catalog/product-view";
 import { breadcrumbJsonLd, serializeJsonLd } from "@/features/catalog/seo";
 import { getProductPage } from "@/features/catalog/server/queries";
+import { ProductAddToDraft } from "@/features/drafts/components/product-add-to-draft";
+import { canAddToDraft } from "@/features/drafts/server/guard";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { mediaObjectUrl } from "@/lib/media-url";
@@ -96,7 +98,7 @@ export default async function ProductPage({
   searchParams,
 }: PageProps<"/[locale]/p/[slug]">) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
-  const product = await loadProduct(slug);
+  const [product, draftButton] = await Promise.all([loadProduct(slug), canAddToDraft()]);
   if (!product) notFound();
   const data = applyRequestedVariant(product, parseRequestedVariant(query.v));
 
@@ -175,6 +177,7 @@ export default async function ProductPage({
           <ProductOptions />
           <div className="flex flex-col gap-2.5">
             <ProductAddToCart />
+            {draftButton ? <ProductAddToDraft /> : null}
             <ProductWhatsApp place="buy" whatsappNumber={whatsappNumber} siteUrl={siteUrl} />
           </div>
         </div>

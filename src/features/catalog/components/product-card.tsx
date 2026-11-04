@@ -6,6 +6,7 @@ import { Ltr } from "@/components/ltr";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { CardAddToCart } from "@/features/cart/components/card-add-to-cart";
+import { CardAddToDraft } from "@/features/drafts/components/card-add-to-draft";
 import { Link } from "@/i18n/navigation";
 import { formatPrice } from "@/lib/money";
 import { routes } from "@/lib/routes";
@@ -18,7 +19,8 @@ const tones = [1, 2, 3, 4] as const;
 // The product card (design.md section 7, spec 0008 AC-12), the same on the home grid and the
 // category pages. The name link covers the photo and text; the add and WhatsApp buttons sit below
 // it. Out of stock: the photo at 45%, the black label, a disabled button, the price muted, and the
-// WhatsApp button asks about availability (W4) instead of the product (W3).
+// WhatsApp button asks about availability (W4) instead of the product (W3). Electricians also get
+// the "add to draft" button in the photo's end corner (spec 0021 AC-3).
 export function ProductCard({
   product,
   index,
@@ -26,6 +28,7 @@ export function ProductCard({
   whatsappNumber,
   siteUrl,
   heading: Heading = "h2",
+  canAddToDraft = false,
 }: {
   readonly product: CardProduct;
   readonly index: number;
@@ -35,6 +38,8 @@ export function ProductCard({
   readonly siteUrl: string;
   /** `h3` under a section heading (Home's featured products, spec 0011 AC-5). */
   readonly heading?: "h2" | "h3";
+  /** The visitor is an electrician (spec 0021 AC-1); read per request by the page. */
+  readonly canAddToDraft?: boolean;
 }) {
   const t = useTranslations("Catalog");
   const link = `${siteUrl}${routes.product(product.slug)}`;
@@ -121,6 +126,14 @@ export function ProductCard({
             </span>
           </p>
         </div>
+        {canAddToDraft ? (
+          <CardAddToDraft
+            productId={product.productId}
+            name={product.name}
+            code={product.code}
+            disabled={product.addVariantId === null}
+          />
+        ) : null}
       </div>
       <div className="flex items-start gap-1.5 p-3">
         {product.addVariantId ? (
