@@ -11,6 +11,7 @@ export const MAX_WHATSAPP_URL = 1800;
 
 export type OrderMessageKey =
   | "title"
+  | "electrician"
   | "name"
   | "phone"
   | "pickup"
@@ -28,6 +29,8 @@ export type OrderMessageTranslate = (
 
 export type MessageOrder = {
   readonly orderNumber: string;
+  /** The placing account's name when an electrician sent it (spec 0020 AC-16), else null. */
+  readonly electricianName: string | null;
   readonly customerName: string;
   readonly customerPhone: string;
   readonly fulfilment: "pickup" | "delivery";
@@ -72,6 +75,7 @@ function messageLines(
 
   return [
     t("title", { number: order.orderNumber }),
+    ...(order.electricianName ? [t("electrician", { name: order.electricianName })] : []),
     t("name", { name: order.customerName }),
     t("phone", { phone: order.customerPhone }),
     delivery

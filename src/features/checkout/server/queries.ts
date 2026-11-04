@@ -1,9 +1,9 @@
 import "server-only";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { firstProductImageKey } from "@/features/catalog/server/product-image-sql";
 import type { MessageOrder } from "@/features/orders/whatsapp-message";
 import { getDb } from "@/server/db";
-import { orderLines, orders } from "@/server/db/schema";
+import { orderLines, orders, profiles } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import { readActiveZones, readPickupAddress, type DeliveryZoneOption } from "./checkout-options";
 import { readPlacedIds } from "./placed";
@@ -58,8 +58,13 @@ export async function readPlacedOrder(
       deliveryFee: orders.deliveryFee,
       notes: orders.notes,
       total: orders.total,
+      // Spec 0020 AC-16: the electrician who sent it; gone or unnamed leaves the line out.
+      electricianName: sql<
+        string | null
+      >`case when ${orders.placedByRole} = 'electrician' then ${profiles.fullName} end`,
     })
     .from(orders)
+    .leftJoin(profiles, eq(profiles.id, orders.placedByUserId))
     .where(and(eq(orders.orderNumber, orderNumber), inArray(orders.id, [...placedIds])))
     .limit(1);
   if (!order) return null;

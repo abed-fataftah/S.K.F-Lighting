@@ -1,0 +1,16 @@
+import "server-only";
+import { redirect } from "next/navigation";
+import { getAccountProfile, type Account } from "@/features/accounts/server/profile";
+import { routes } from "@/lib/routes";
+import { canUseDrafts } from "../access";
+
+/**
+ * The page check of spec 0020 AC-1: signed out goes to sign in and comes back to `next`; signed
+ * in but not an electrician (no profile, another role, removal pending) goes to the account page.
+ */
+export async function requireElectricianPage(next: string): Promise<Account> {
+  const account = await getAccountProfile();
+  if (!account) redirect(routes.signInWith({ next }));
+  if (!canUseDrafts(account.profile)) redirect(routes.account);
+  return account;
+}

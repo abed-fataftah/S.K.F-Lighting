@@ -54,10 +54,19 @@ spec [0019](../specs/0019-customers-roles/index.md) · code in `src/features/cus
 
 ## Slice 6: Electricians
 
-### 21. Electrician quick order & drafts · needs a decision
+### 21. Electrician quick order & drafts · in-progress
 A fast order form: pick catalog products, prices fill in automatically, a quantity is required on every line, and the total updates. Keep several named drafts (for example "ali / mo"), with the end customer's name, phone, and address on the order.
 **Done when:** an electrician can build a 30 line order without opening product pages, save it as a named draft, edit it later, and send it; lines without a quantity block sending.
-- [ ] Design it (spec): `/architect electrician quick order & drafts`
+spec [0020](../specs/0020-electrician-quick-order-drafts/index.md) · code in `src/features/drafts/`, `src/app/[locale]/account/quick-order/`, `src/app/[locale]/account/drafts/`, `src/app/api/quick-order/`
+- [x] Design it (spec): `/architect electrician quick order & drafts`
+- [ ] Build it: `/develop electrician quick order & drafts`
+  - [x] Thin thread: the drafts migration, a named draft, one searched line, pickup, send through the shared order insert to the WhatsApp page (AC-1, AC-4, AC-6, AC-7, AC-8, AC-10, AC-13)
+  - [ ] Lines and send at full strength: add, remove with undo, 30 line cap, duplicates, unavailable lines, totals, delivery, "الطلب لي", every send refusal (AC-6, AC-8, AC-9, AC-10, AC-11, AC-13, AC-14)
+  - [ ] Autosave you can trust: the save queue, status line, retry, leave warning, catching up across devices (AC-12)
+  - [ ] Drafts list and the way in: list, rename, delete, 30 draft limit, the `/account` card (AC-2, AC-3, AC-5, AC-15)
+  - [ ] Edges and finish: WhatsApp electrician line, product delete archives, role changes, logs, Playwright on 390 and 1280 with axe (AC-16, AC-17, AC-18, AC-19, AC-20, AC-21)
+- [ ] Verify it: `/check verify electrician quick order & drafts`
+- [ ] Test it: `/test electrician quick order & drafts`
 
 ### 22. Add to draft from the catalog
 While browsing products, an electrician adds an item straight into one of their existing drafts.

@@ -9,7 +9,7 @@ import {
   type OrderMessageContext,
 } from "./whatsapp-message";
 
-// covers: AC-12, AC-14 (spec 0004); AC-6 (spec 0005)
+// covers: AC-12, AC-14 (spec 0004); AC-6 (spec 0005); AC-16 (spec 0020)
 
 const translate = createTranslator({ locale: "ar", messages: ar, namespace: "OrderMessage" });
 const context: OrderMessageContext = {
@@ -28,6 +28,7 @@ const line = {
 
 const pickup: MessageOrder = {
   orderNumber: "26-00042",
+  electricianName: null,
   customerName: "أحمد خليل",
   customerPhone: "0599 123 456",
   fulfilment: "pickup",
@@ -133,5 +134,18 @@ describe("buildNewOrderMessage", () => {
   it("treats ICU syntax in customer text as plain text", () => {
     const text = buildNewOrderMessage({ ...pickup, customerName: "{name} أحمد" }, context);
     expect(text).toContain("الاسم: {name} أحمد");
+  });
+
+  it("names the electrician right after the title when one sent it", () => {
+    const text = buildNewOrderMessage({ ...pickup, electricianName: "سامي حداد" }, context);
+    expect(text.split("\n").slice(0, 3)).toEqual([
+      "طلب جديد رقم 26-00042",
+      "الكهربائي: سامي حداد",
+      "الاسم: أحمد خليل",
+    ]);
+  });
+
+  it("leaves the electrician line out when there is no name", () => {
+    expect(buildNewOrderMessage(pickup, context)).not.toContain("الكهربائي");
   });
 });

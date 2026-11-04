@@ -97,11 +97,20 @@ export const routes = {
   accountOrdersMore: (page: number, position: number) =>
     `${withQuery("/account/orders", page > 1 ? `page=${page}` : "")}#o-${position}`,
   quickOrder: "/account/quick-order",
+  /** A saved draft open on the quick order page (spec 0020 AC-4). */
+  quickOrderDraft: (id: string) => `/account/quick-order?draft=${encodeURIComponent(id)}`,
   drafts: "/account/drafts",
+  /** The drafts list with a one time message (spec 0020 AC-15). */
+  draftsWith: (notice: "deleted") => `/account/drafts?notice=${notice}`,
   privacy: "/policies/privacy",
   terms: "/policies/terms",
   returns: "/policies/returns",
   designSystem: "/design-system",
+  /** Route handlers outside the catalog's public reads. */
+  api: {
+    /** The quick order product search (spec 0020 AC-7). */
+    quickOrderProducts: (q: string) => `/api/quick-order/products?q=${encodeURIComponent(q)}`,
+  },
   /** Outside locale routing, like the dashboard (spec 0017 AC-8). */
   auth: { confirm: "/auth/confirm" },
   admin: {

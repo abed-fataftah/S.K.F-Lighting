@@ -1,6 +1,6 @@
 import "server-only";
 import { and, eq, sql } from "drizzle-orm";
-import { orderLines, products } from "@/server/db/schema";
+import { draftLines, orderLines, products } from "@/server/db/schema";
 import { isForeignKeyViolation } from "@/server/db/pg-error";
 import type { Database, Transaction } from "@/server/db/types";
 
@@ -14,14 +14,12 @@ export type DeleteOutcome =
   | { readonly kind: "not_found" }
   | { readonly kind: "already_archived" };
 
-/** True when an order line (and, from feature 21, a draft line) points at the product. */
+/** True when an order line or a draft line (spec 0020 AC-17) points at the product. */
 async function isReferenced(tx: Transaction, productId: string): Promise<boolean> {
-  const [row] = await tx
-    .select({ one: sql`1` })
-    .from(orderLines)
-    .where(eq(orderLines.productId, productId))
-    .limit(1);
-  return !!row;
+  const [row] = await tx.execute<{ used: boolean }>(sql`select
+    exists (select 1 from ${orderLines} where ${orderLines.productId} = ${productId})
+    or exists (select 1 from ${draftLines} where ${draftLines.productId} = ${productId}) as used`);
+  return !!row?.used;
 }
 
 async function deleteOrArchive(

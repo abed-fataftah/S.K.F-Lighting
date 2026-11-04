@@ -71,6 +71,13 @@
       "when": 1793631337863,
       "tag": "0009_customers_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793789205386,
+      "tag": "0010_electrician_drafts",
+      "breakpoints": true
     }
   ]
 }

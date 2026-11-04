@@ -19,7 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The account page (spec 0017 AC-9 to AC-11), built from the existing parts; the design package
-// does not draw it. An electrician sees a badge under the title (spec 0019 AC-9). A signed out visitor goes to sign in and comes back here.
+// does not draw it. An electrician sees a badge under the title (spec 0019 AC-9) and the tools card
+// with quick order and drafts (spec 0020 AC-2). A signed out visitor goes to sign in and comes back here.
 export default async function AccountPage({ searchParams }: PageProps<"/[locale]/account">) {
   const [account, query, t] = await Promise.all([
     getAccountProfile(),
@@ -61,6 +62,27 @@ export default async function AccountPage({ searchParams }: PageProps<"/[locale]
           {t("ordersLink")}
         </ButtonLink>
       </div>
+      {profile?.role === "electrician" ? (
+        <Card data-testid="electrician-tools">
+          <h2 className="type-lead">{t("electricianTools")}</h2>
+          <div className="flex gap-2">
+            <ButtonLink
+              className="flex-1"
+              render={<Link href={routes.quickOrder} />}
+              data-testid="quick-order-link"
+            >
+              {t("quickOrderLink")}
+            </ButtonLink>
+            <ButtonLink
+              className="flex-1"
+              render={<Link href={routes.drafts} />}
+              data-testid="drafts-link"
+            >
+              {t("draftsLink")}
+            </ButtonLink>
+          </div>
+        </Card>
+      ) : null}
       {passwordSet ? (
         <p role="status" className="flex items-center gap-2 font-bold" data-testid="password-set">
           <CircleCheck aria-hidden className="size-5.5 shrink-0" />

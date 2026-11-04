@@ -374,7 +374,8 @@
     "fee": "التوصيل: {fee}",
     "notes": "ملاحظات: {notes}",
     "total": "الإجمالي: {total}",
-    "link": "رابط الطلب: {url}"
+    "link": "رابط الطلب: {url}",
+    "electrician": "الكهربائي: {name}"
   },
   "Catalog": {
     "codeLabel": "الكود:",
@@ -521,7 +522,9 @@
     "account": "حسابي | S.K.F للإنارة",
     "resetPassword": "كلمة مرور جديدة | S.K.F للإنارة",
     "confirmRecovery": "استعادة كلمة المرور | S.K.F للإنارة",
-    "myOrders": "طلباتي | S.K.F للإنارة"
+    "myOrders": "طلباتي | S.K.F للإنارة",
+    "quickOrder": "طلب سريع | S.K.F للإنارة",
+    "drafts": "مسوداتي | S.K.F للإنارة"
   },
   "AdminAuth": {
     "loginTitle": "دخول لوحة التحكم",
@@ -1307,7 +1310,10 @@
       "account_removed": "هذا الحساب قيد الحذف."
     },
     "electricianBadge": "حساب كهربائي",
-    "accountRemoved": "هذا الحساب قيد الحذف."
+    "accountRemoved": "هذا الحساب قيد الحذف.",
+    "electricianTools": "أدوات الكهربائي",
+    "quickOrderLink": "طلب سريع",
+    "draftsLink": "مسوداتي"
   },
   "MyOrders": {
     "title": "طلباتي",
@@ -1420,5 +1426,94 @@
     "removal_unfinished": "حُذف الاسم والهاتف لكن لم يكتمل حذف تسجيل الدخول. حاول مرة أخرى.",
     "pendingAlert": "لم يكتمل حذف هذا الحساب. تسجيل الدخول والبريد ما زالا موجودين.",
     "finishRemoval": "إكمال الحذف"
+  },
+  "QuickOrder": {
+    "title": "طلب سريع",
+    "intro": "للكهربائيين: أضف حتى 30 سطراً في طلب واحد.",
+    "loading": "جارٍ تحميل الطلب السريع",
+    "nameLabel": "اسم المسودة",
+    "nameHint": "اكتب اسم المسودة للبدء",
+    "openDraft": "فتح مسودة",
+    "newDraft": "مسودة جديدة",
+    "deleteDraft": "حذف المسودة",
+    "nameErrors": {
+      "too_short": "اكتب اسماً من حرفين على الأقل.",
+      "too_long": "الاسم أطول من 40 حرفاً.",
+      "name_taken": "لديك مسودة بهذا الاسم.",
+      "too_many_drafts": "وصلت إلى 30 مسودة. أرسل مسودة أو احذفها لتبدأ أخرى.",
+      "save_failed": "تعذّر الحفظ"
+    },
+    "lines": "الأسطر",
+    "lineLegend": "السطر {position}",
+    "product": "الكود أو اسم المنتج",
+    "size": "الحجم",
+    "colour": "اللون",
+    "quantity": "الكمية",
+    "choose": "اختر",
+    "noSize": "بدون حجم",
+    "noColour": "بدون لون",
+    "optionUnavailable": "{value} (غير متوفر)",
+    "linePrice": "سعر الوحدة: <ltr>{price}</ltr>",
+    "linePriceFrom": "من <ltr>{price}</ltr>",
+    "noTotal": "لا مجموع بعد",
+    "lineTotal": "مجموع السطر",
+    "removeLine": "حذف السطر {position}",
+    "unavailable": "غير متوفر",
+    "duplicate": "هذا الخيار موجود في السطر {position}",
+    "goToLine": "انتقل إلى السطر {position}",
+    "addLine": "+ إضافة سطر",
+    "lineRemoved": "تم حذف السطر {position}",
+    "undo": "تراجع",
+    "restoreFailed": "تعذّر إرجاع السطر.",
+    "noResults": "لا توجد نتائج",
+    "searchFailed": "تعذّر البحث. حاول مرة أخرى.",
+    "searching": "جارٍ البحث…",
+    "customer": "بيانات الزبون",
+    "forMe": "الطلب لي",
+    "chooseZone": "اختر المنطقة",
+    "zoneInactive": "{zone} (غير متاحة)",
+    "subtotal": "المجموع",
+    "delivery": "التوصيل",
+    "total": "الإجمالي",
+    "excluded": "{lines} لا تدخل في الإجمالي",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم الحفظ",
+    "saveFailed": "تعذّر الحفظ",
+    "retry": "إعادة المحاولة",
+    "send": "إرسال الطلب عبر واتساب",
+    "sending": "جارٍ إرسال الطلب",
+    "saveFirst": "احفظ التغييرات أولاً.",
+    "problems": {
+      "no_product": "اختر منتجاً لهذا السطر.",
+      "no_option": "اختر الخيار لهذا السطر.",
+      "no_quantity": "أدخل الكمية لهذا السطر."
+    },
+    "sendErrors": {
+      "price_changed": "تغيّرت بعض الأسعار. راجع الإجمالي ثم أرسل مرة أخرى.",
+      "not_sellable": "بعض الأسطر غير متوفرة. احذفها أو استبدلها ثم أرسل.",
+      "zone_invalid": "منطقة التوصيل لم تعد متاحة. اختر منطقة أخرى.",
+      "empty": "أضف سطراً واحداً على الأقل.",
+      "rate_limited": "أرسلت طلبات كثيرة خلال دقيقة. حاول مرة أخرى بعد دقيقة.",
+      "invalid": "راجع الحقول المشار إليها ثم أرسل الطلب.",
+      "incomplete": "أكمل الأسطر المشار إليها ثم أرسل.",
+      "failed": "تعذّر إرسال الطلب. حاول مرة أخرى."
+    }
+  },
+  "Drafts": {
+    "title": "مسوداتي",
+    "newDraft": "+ مسودة جديدة",
+    "intro": "احفظ طلباتك لكل زبون باسم خاص، وعُد إليها في أي وقت.",
+    "loading": "جارٍ تحميل المسودات",
+    "lines": "{count, plural, zero {لا أسطر} one {سطر واحد} two {سطران} few {{shown} أسطر} many {{shown} سطرًا} other {{shown} سطر}}",
+    "meta": "{lines} · آخر تعديل {date}",
+    "open": "فتح",
+    "deleteLabel": "حذف المسودة {name}",
+    "emptyTitle": "لا توجد مسودات",
+    "deleteTitle": "حذف المسودة «{name}»؟",
+    "deleteText": "ستُحذف أسطرها وبيانات الزبون. لا يمكن التراجع.",
+    "deleteConfirm": "حذف",
+    "deleteCancel": "تراجع",
+    "deleted": "تم حذف المسودة.",
+    "deleteFailed": "تعذّر حذف المسودة. حاول مرة أخرى."
   }
 }

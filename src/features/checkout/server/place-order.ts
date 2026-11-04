@@ -1,6 +1,11 @@
 import "server-only";
 import { and, eq } from "drizzle-orm";
-import { buildCartView, checkoutTotal, type CartView } from "@/features/cart/cart-view";
+import {
+  buildCartView,
+  checkoutTotal,
+  type CartRow,
+  type CartView,
+} from "@/features/cart/cart-view";
 import type { CartLine } from "@/features/cart/cart-cookie";
 import { readCartRows } from "@/features/cart/server/cart-rows";
 import { allocateOrderNumber } from "@/features/orders/server/order-number";
@@ -8,7 +13,7 @@ import type { UserRole } from "@/features/accounts/server/profile";
 import type { ActorKind } from "@/features/orders/status";
 import { computeOrderTotals } from "@/features/orders/totals";
 import { deliveryZones, orderEvents, orderLines, orders } from "@/server/db/schema";
-import type { Database } from "@/server/db/types";
+import type { Database, Transaction } from "@/server/db/types";
 import type { CheckoutInput } from "../schemas";
 import { readActiveZones, type DeliveryZoneOption } from "./checkout-options";
 
@@ -70,7 +75,111 @@ export async function findOrderByKey(db: Database, key: string): Promise<PlacedO
 
 // Thrown inside the transaction when a concurrent submit with the same key won (step 6),
 // so everything this attempt wrote, including its order number, rolls back.
-class KeyTaken extends Error {}
+export class KeyTaken extends Error {}
+
+/** One resolved, sellable line of a new order, in order. */
+export type OrderLineInput = {
+  readonly row: Pick<
+    CartRow,
+    | "productId"
+    | "variantId"
+    | "productName"
+    | "productCode"
+    | "variantCode"
+    | "sizeLabel"
+    | "colourName"
+    | "price"
+  >;
+  readonly quantity: number;
+};
+
+export type WrittenOrder = PlacedOrderRef & {
+  readonly lineCount: number;
+  readonly total: number;
+};
+
+/**
+ * The one place an order is inserted (spec 0004 placeOrder steps 6 and 7, spec 0020): totals from
+ * live prices, the number, the order, its lines with copied names and prices, and the `created`
+ * event. The caller has already run its checks inside the same transaction. A key another
+ * attempt already holds throws `KeyTaken`, so the caller's transaction rolls back.
+ */
+export async function writeOrder(
+  tx: Transaction,
+  {
+    lines,
+    input,
+    zone,
+    placedBy,
+    placedAt,
+  }: {
+    lines: readonly OrderLineInput[];
+    input: CheckoutInput;
+    zone: { readonly id: string; readonly name: string; readonly fee: number } | null;
+    placedBy: PlacedBy;
+    placedAt: Date;
+  },
+): Promise<WrittenOrder> {
+  const delivery = input.fulfilment === "delivery";
+  const deliveryFee = zone?.fee ?? 0;
+  const totals = computeOrderTotals({
+    lines: lines.map(({ row, quantity }) => ({ unitPrice: row.price, quantity })),
+    deliveryFee,
+    discountTotal: 0,
+  });
+
+  // The counter row lock queues concurrent orders, so the inserts below stay last.
+  const orderNumber = await allocateOrderNumber(tx, placedAt);
+  const [order] = await tx
+    .insert(orders)
+    .values({
+      orderNumber,
+      idempotencyKey: input.idempotencyKey,
+      placedByUserId: placedBy?.userId ?? null,
+      placedByRole: placedBy?.role ?? null,
+      customerName: input.name,
+      customerPhone: input.phone.typed,
+      customerPhoneE164: input.phone.e164,
+      city: delivery ? input.city : null,
+      area: null,
+      address: delivery ? input.address : null,
+      notes: input.notes ?? null,
+      fulfilment: input.fulfilment,
+      deliveryZoneId: delivery ? (zone?.id ?? null) : null,
+      deliveryZoneName: delivery ? (zone?.name ?? null) : null,
+      deliveryFee: delivery ? deliveryFee : 0,
+      subtotal: totals.subtotal,
+      discountTotal: 0,
+      total: totals.total,
+      placedAt,
+    })
+    .onConflictDoNothing({ target: orders.idempotencyKey })
+    .returning({ id: orders.id });
+  if (!order) throw new KeyTaken();
+
+  await tx.insert(orderLines).values(
+    lines.map(({ row, quantity }, sort) => ({
+      orderId: order.id,
+      productId: row.productId,
+      variantId: row.variantId,
+      productName: row.productName,
+      productCode: row.productCode,
+      variantCode: row.variantCode,
+      sizeLabel: row.sizeLabel,
+      colourName: row.colourName,
+      quantity,
+      catalogUnitPrice: row.price,
+      unitPrice: row.price,
+      lineTotal: row.price * quantity,
+      sort,
+    })),
+  );
+  await tx
+    .insert(orderEvents)
+    .values({ orderId: order.id, type: "created", ...createdActor(placedBy), data: {} });
+
+  return { orderId: order.id, orderNumber, lineCount: lines.length, total: totals.total };
+}
 
 export async function placeOrderInDb(
   db: Database,
@@ -114,73 +223,18 @@ export async function placeOrderInDb(
       }
 
       const byVariant = new Map(rows.map((row) => [row.variantId, row]));
-      const lines = cart.map((line, sort) => {
-        const row = byVariant.get(line.variantId)!;
-        return { row, quantity: line.quantity, sort };
+      const lines = cart.map((line) => ({
+        row: byVariant.get(line.variantId)!,
+        quantity: line.quantity,
+      }));
+      const written = await writeOrder(tx, {
+        lines,
+        input,
+        zone: zone ?? null,
+        placedBy,
+        placedAt,
       });
-      const totals = computeOrderTotals({
-        lines: lines.map(({ row, quantity }) => ({ unitPrice: row.price, quantity })),
-        deliveryFee,
-        discountTotal: 0,
-      });
-
-      // The counter row lock queues concurrent orders, so the inserts below stay last.
-      const orderNumber = await allocateOrderNumber(tx, placedAt);
-      const [order] = await tx
-        .insert(orders)
-        .values({
-          orderNumber,
-          idempotencyKey: input.idempotencyKey,
-          placedByUserId: placedBy?.userId ?? null,
-          placedByRole: placedBy?.role ?? null,
-          customerName: input.name,
-          customerPhone: input.phone.typed,
-          customerPhoneE164: input.phone.e164,
-          city: delivery ? input.city : null,
-          area: null,
-          address: delivery ? input.address : null,
-          notes: input.notes ?? null,
-          fulfilment: input.fulfilment,
-          deliveryZoneId: zone?.id ?? null,
-          deliveryZoneName: zone?.name ?? null,
-          deliveryFee,
-          subtotal: totals.subtotal,
-          discountTotal: 0,
-          total: totals.total,
-          placedAt,
-        })
-        .onConflictDoNothing({ target: orders.idempotencyKey })
-        .returning({ id: orders.id });
-      if (!order) throw new KeyTaken();
-
-      await tx.insert(orderLines).values(
-        lines.map(({ row, quantity, sort }) => ({
-          orderId: order.id,
-          productId: row.productId,
-          variantId: row.variantId,
-          productName: row.productName,
-          productCode: row.productCode,
-          variantCode: row.variantCode,
-          sizeLabel: row.sizeLabel,
-          colourName: row.colourName,
-          quantity,
-          catalogUnitPrice: row.price,
-          unitPrice: row.price,
-          lineTotal: row.price * quantity,
-          sort,
-        })),
-      );
-      await tx
-        .insert(orderEvents)
-        .values({ orderId: order.id, type: "created", ...createdActor(placedBy), data: {} });
-
-      return {
-        kind: "placed",
-        orderId: order.id,
-        orderNumber,
-        lineCount: lines.length,
-        total: totals.total,
-      };
+      return { kind: "placed", ...written };
     });
   } catch (error) {
     if (!(error instanceof KeyTaken)) throw error;
