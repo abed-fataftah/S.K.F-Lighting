@@ -425,6 +425,37 @@ describe.skipIf(!hasLocalDb)("drafts on the local database", () => {
       });
       expect(found.map((p) => p.id)).not.toContain(productB);
     });
+
+    it("returns 8 at most, in stock first, then newest", async () => {
+      const [{ categoryId }] = await db
+        .select({ categoryId: products.categoryId })
+        .from(products)
+        .where(eq(products.id, productA));
+      // One at a time, so each gets its own created_at; the newest is out of stock.
+      const made: string[] = [];
+      for (let i = 0; i < 10; i += 1) {
+        const [product] = await db
+          .insert(products)
+          .values({
+            categoryId,
+            code: `${PREFIX}-S${i}`,
+            name: `مصباح بحث ${i}`,
+            slug: `drf-test-s${i}`,
+            isAvailable: i !== 9,
+          })
+          .returning({ id: products.id });
+        await db.insert(productVariants).values({ productId: product.id, price: 500 });
+        await refreshSearchKeys(db as never, product.id);
+        made.push(product.id);
+      }
+      const found = await searchQuickOrderProducts(db, {
+        words: ["مصباح"],
+        folded: "مصباح",
+        code: "مصباح",
+      });
+      expect(found.map((p) => p.id)).toEqual(made.slice(1, 9).reverse());
+      await db.delete(products).where(inArray(products.id, made));
+    });
   });
 
   describe("sendDraftInDb", () => {
@@ -475,6 +506,56 @@ describe.skipIf(!hasLocalDb)("drafts on the local database", () => {
       expect(
         await sendDraftInDb(db, { userId: other, draftId, expectedTotal: 3_000, placedAt }),
       ).toEqual({ kind: "not_found" });
+    });
+
+    it("writes every line in draft order, with the delivery fee", async () => {
+      const { draftId, lineId } = await newDraft("two lines");
+      const second = okLine(await addDraftLineInDb(db, owner, draftId));
+      await updateDraftLineInDb(db, owner, { lineId, productId: productA, variantId: null });
+      await updateDraftLineInDb(db, owner, { lineId, variantId: optionsA[2].id });
+      await updateDraftLineInDb(db, owner, { lineId, quantity: 1 });
+      await updateDraftLineInDb(db, owner, {
+        lineId: second.id,
+        productId: productB,
+        variantId: optionB,
+      });
+      await updateDraftLineInDb(db, owner, { lineId: second.id, quantity: 2 });
+      await saveDraftCustomerInDb(db, owner, {
+        draftId,
+        customerName: "  محمد   علي ",
+        customerPhone: "0599123456",
+        fulfilment: "delivery",
+        deliveryZoneId: zone.id,
+        city: "رام الله",
+        address: "شارع الإرسال، عمارة 4",
+      });
+      const total = 8_000 + 2 * 1_500 + zone.fee;
+
+      const outcome = await sendDraftInDb(db, {
+        userId: owner,
+        draftId,
+        expectedTotal: total,
+        placedAt,
+      });
+      expect(outcome).toMatchObject({ kind: "placed", lineCount: 2, total });
+      if (outcome.kind !== "placed") return;
+      const [order] = await db.select().from(orders).where(eq(orders.id, outcome.orderId));
+      // The order row takes the schema's tidied output, not the stored text.
+      expect(order).toMatchObject({
+        customerName: "محمد علي",
+        fulfilment: "delivery",
+        deliveryZoneId: zone.id,
+        deliveryFee: zone.fee,
+      });
+      const written = await db
+        .select({ variantId: orderLines.variantId, quantity: orderLines.quantity })
+        .from(orderLines)
+        .where(eq(orderLines.orderId, order.id))
+        .orderBy(orderLines.sort);
+      expect(written).toEqual([
+        { variantId: optionsA[2].id, quantity: 1 },
+        { variantId: optionB, quantity: 2 },
+      ]);
     });
 
     it("makes one order from two concurrent sends", async () => {

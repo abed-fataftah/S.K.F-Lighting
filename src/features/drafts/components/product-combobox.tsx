@@ -35,10 +35,16 @@ export function ProductCombobox({
   disabled,
   onChoose,
   onForbidden,
+  labelId,
   describedBy,
   invalid,
 }: {
   readonly id: string;
+  /**
+   * The visible label's id. While the list is open Base UI hides everything outside the field and
+   * the list from screen readers, the label too, and only a reference by id still names the field.
+   */
+  readonly labelId: string;
   readonly product: DraftProduct | null;
   readonly disabled?: boolean;
   readonly onChoose: (product: QuickOrderProduct) => void;
@@ -76,6 +82,8 @@ export function ProductCombobox({
       setState("idle");
       return;
     }
+    // The rows of an older query must not stay choosable while this one runs (Enter would pick one).
+    setResults([]);
     setState("loading");
     request.current.timer = setTimeout(async () => {
       const abort = new AbortController();
@@ -120,6 +128,7 @@ export function ProductCombobox({
       <ComboboxInput
         id={id}
         autoComplete="off"
+        aria-labelledby={labelId}
         aria-describedby={describedBy}
         aria-invalid={invalid || undefined}
       />

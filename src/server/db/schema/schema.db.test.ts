@@ -6,6 +6,8 @@ import type { Transaction } from "../types";
 import {
   colours,
   deliveryZones,
+  draftLines,
+  drafts,
   orderLines,
   orders,
   productMedia,
@@ -679,6 +681,112 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
         await tx.delete(productVariants).where(eq(productVariants.id, extra.id));
         const [kept] = await tx.select().from(productMedia).where(eq(productMedia.id, photo.id));
         expect(kept).toMatchObject({ productId: first.product.id, variantId: null });
+      });
+    });
+  });
+
+  // covers: AC-4, AC-6, AC-8, AC-10, AC-18 (spec 0020)
+  describe("drafts migration", () => {
+    async function newOwner(tx: Transaction) {
+      const [user] = rows(
+        await tx.execute<{ id: string }>(sql`
+          insert into auth.users (id, aud, role, email)
+          values (gen_random_uuid(), 'authenticated', 'authenticated', 'drafts-schema@example.test')
+          returning id`),
+      );
+      return user.id;
+    }
+
+    it("has both tables with RLS on and nothing granted to anon or authenticated", async () => {
+      const secured = rows(
+        await db.execute<{ relname: string; relrowsecurity: boolean }>(sql`
+          select relname, relrowsecurity from pg_class
+          where relname in ('drafts', 'draft_lines') and relkind = 'r'`),
+      );
+      expect(secured).toHaveLength(2);
+      expect(secured.every((t) => t.relrowsecurity)).toBe(true);
+      const grants = rows(
+        await db.execute(sql`
+          select 1 from information_schema.role_table_grants
+          where table_name in ('drafts', 'draft_lines') and grantee in ('anon', 'authenticated')`),
+      );
+      expect(grants).toEqual([]);
+    });
+
+    it("keeps names 2 to 40 characters, unique per owner whatever the Latin case", async () => {
+      await withRollback(db, async (tx) => {
+        const owner = await newOwner(tx);
+        await expectViolation(tx, "drafts_name_check", (sp) =>
+          sp.insert(drafts).values({ ownerUserId: owner, name: "a" }),
+        );
+        await expectViolation(tx, "drafts_name_check", (sp) =>
+          sp.insert(drafts).values({ ownerUserId: owner, name: "x".repeat(41) }),
+        );
+        await tx.insert(drafts).values({ ownerUserId: owner, name: "Ali / Mo" });
+        await expectViolation(tx, "drafts_owner_name_unique", (sp) =>
+          sp.insert(drafts).values({ ownerUserId: owner, name: "ALI / MO" }),
+        );
+      });
+    });
+
+    it("checks quantity, option with product, the option's product, and one line per option", async () => {
+      await withRollback(db, async (tx) => {
+        const owner = await newOwner(tx);
+        const [draft] = await tx
+          .insert(drafts)
+          .values({ ownerUserId: owner, name: "schema" })
+          .returning();
+        const first = await insertSimpleProduct(tx, "DRAFT-S1");
+        const second = await insertSimpleProduct(tx, "DRAFT-S2");
+        const line = { draftId: draft.id, sort: 0 };
+
+        for (const quantity of [0, 1000]) {
+          await expectViolation(tx, "draft_lines_quantity_check", (sp) =>
+            sp.insert(draftLines).values({ ...line, quantity }),
+          );
+        }
+        await expectViolation(tx, "draft_lines_variant_needs_product_check", (sp) =>
+          sp.insert(draftLines).values({ ...line, variantId: first.variant.id }),
+        );
+        await expectViolation(tx, "draft_lines_variant_product_fk", (sp) =>
+          sp.insert(draftLines).values({
+            ...line,
+            productId: second.product.id,
+            variantId: first.variant.id,
+          }),
+        );
+        const chosen = { productId: first.product.id, variantId: first.variant.id };
+        await tx.insert(draftLines).values({ ...line, ...chosen, quantity: 999 });
+        await expectViolation(tx, "draft_lines_draft_variant_unique", (sp) =>
+          sp.insert(draftLines).values({ ...line, ...chosen, sort: 1 }),
+        );
+        // Empty and product only lines may repeat.
+        await tx.insert(draftLines).values([line, line, { ...line, productId: first.product.id }]);
+      });
+    });
+
+    it("empties a deleted zone and goes with its owner", async () => {
+      await withRollback(db, async (tx) => {
+        const owner = await newOwner(tx);
+        const [zone] = await tx
+          .insert(deliveryZones)
+          .values({ name: "منطقة مؤقتة", shortName: "tmp", fee: 1_000 })
+          .returning();
+        const [draft] = await tx
+          .insert(drafts)
+          .values({ ownerUserId: owner, name: "zone", deliveryZoneId: zone.id })
+          .returning();
+        await tx.insert(draftLines).values({ draftId: draft.id, sort: 0 });
+
+        await tx.delete(deliveryZones).where(eq(deliveryZones.id, zone.id));
+        const [kept] = await tx.select().from(drafts).where(eq(drafts.id, draft.id));
+        expect(kept.deliveryZoneId).toBeNull();
+
+        await tx.delete(profiles).where(eq(profiles.id, owner));
+        expect(await tx.select().from(drafts).where(eq(drafts.id, draft.id))).toEqual([]);
+        expect(await tx.select().from(draftLines).where(eq(draftLines.draftId, draft.id))).toEqual(
+          [],
+        );
       });
     });
   });

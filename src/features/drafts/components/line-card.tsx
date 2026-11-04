@@ -169,9 +169,15 @@ export function LineCard({
       </Button>
 
       <Field>
-        <FieldLabel htmlFor={lineFieldId(line.id, "product")}>{t("product")}</FieldLabel>
+        <FieldLabel
+          id={`${lineFieldId(line.id, "product")}-label`}
+          htmlFor={lineFieldId(line.id, "product")}
+        >
+          {t("product")}
+        </FieldLabel>
         <ProductCombobox
           id={lineFieldId(line.id, "product")}
+          labelId={`${lineFieldId(line.id, "product")}-label`}
           product={product}
           disabled={pending}
           onChoose={chooseProduct}

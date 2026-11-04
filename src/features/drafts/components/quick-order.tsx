@@ -21,7 +21,12 @@ import {
   type LineProblemReason,
 } from "../draft-view";
 import { MAX_DRAFT_LINES } from "../schemas";
-import { parseDraftCustomer, type DraftCustomerFields } from "../send-check";
+import {
+  parseDraftCustomer,
+  sendNoticeKey,
+  type DraftCustomerFields,
+  type SendNotice,
+} from "../send-check";
 import {
   addDraftLine,
   removeDraftLine,
@@ -30,7 +35,6 @@ import {
   sendDraft,
   updateDraftLine,
   type LineResult,
-  type SendError,
 } from "../server/actions";
 import type { QuickOrderProduct } from "../server/search";
 import {
@@ -84,7 +88,7 @@ function omit<T>(record: Readonly<Record<string, T>>, key: string): Readonly<Rec
   return Object.fromEntries(Object.entries(record).filter(([other]) => other !== key));
 }
 
-type Notice = SendError | "save_first" | "restore_failed" | null;
+type Notice = SendNotice | null;
 
 export function QuickOrder({
   draft,
@@ -383,26 +387,7 @@ export function QuickOrder({
     });
   };
 
-  const noticeText = (() => {
-    switch (notice) {
-      case null:
-        return null;
-      case "save_first":
-        return t("saveFirst");
-      case "restore_failed":
-        return t("restoreFailed");
-      case "price_changed":
-      case "not_sellable":
-      case "zone_invalid":
-      case "empty":
-      case "rate_limited":
-      case "invalid":
-      case "incomplete":
-        return t(`sendErrors.${notice}`);
-      default:
-        return t("sendErrors.failed");
-    }
-  })();
+  const noticeText = notice ? t(sendNoticeKey(notice)) : null;
 
   const statusText =
     queue.status === "saving"

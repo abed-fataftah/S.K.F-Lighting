@@ -61,10 +61,10 @@ spec [0020](../specs/0020-electrician-quick-order-drafts/index.md) · code in `s
 - [x] Design it (spec): `/architect electrician quick order & drafts`
 - [ ] Build it: `/develop electrician quick order & drafts`
   - [x] Thin thread: the drafts migration, a named draft, one searched line, pickup, send through the shared order insert to the WhatsApp page (AC-1, AC-4, AC-6, AC-7, AC-8, AC-10, AC-13)
-  - [ ] Lines and send at full strength: add, remove with undo, 30 line cap, duplicates, unavailable lines, totals, delivery, "الطلب لي", every send refusal (AC-6, AC-8, AC-9, AC-10, AC-11, AC-13, AC-14)
-  - [ ] Autosave you can trust: the save queue, status line, retry, leave warning, catching up across devices (AC-12)
-  - [ ] Drafts list and the way in: list, rename, delete, 30 draft limit, the `/account` card (AC-2, AC-3, AC-5, AC-15)
-  - [ ] Edges and finish: WhatsApp electrician line, product delete archives, role changes, logs, Playwright on 390 and 1280 with axe (AC-16, AC-17, AC-18, AC-19, AC-20, AC-21)
+  - [x] Lines and send at full strength: add, remove with undo, 30 line cap, duplicates, unavailable lines, totals, delivery, "الطلب لي", every send refusal (AC-6, AC-8, AC-9, AC-10, AC-11, AC-13, AC-14)
+  - [x] Autosave you can trust: the save queue, status line, retry, leave warning, catching up across devices (AC-12)
+  - [x] Drafts list and the way in: list, rename, delete, 30 draft limit, the `/account` card (AC-2, AC-3, AC-5, AC-15)
+  - [ ] Edges and finish: WhatsApp electrician line, product delete archives, role changes, logs, Playwright on 390 and 1280 with axe (AC-16, AC-17, AC-18, AC-19, AC-20, AC-21) · open: axe `aria-hidden-focus` with the combobox open (Base UI hides the page by design), owed to `/architect`
 - [ ] Verify it: `/check verify electrician quick order & drafts`
 - [ ] Test it: `/test electrician quick order & drafts`
 

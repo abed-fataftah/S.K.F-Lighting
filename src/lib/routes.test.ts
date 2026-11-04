@@ -159,6 +159,19 @@ describe("account routes", () => {
     expect(routes.auth.confirm).toBe("/auth/confirm");
   });
 
+  // covers: AC-1, AC-3, AC-4, AC-7, AC-15 (spec 0020)
+  it("has quick order, a draft, the drafts list, and the product search", () => {
+    expect(routes.quickOrder).toBe("/account/quick-order");
+    expect(routes.quickOrderDraft("6f1c2e1a-0b7d-4a55-9a3e-2f4a8f0c9d11")).toBe(
+      "/account/quick-order?draft=6f1c2e1a-0b7d-4a55-9a3e-2f4a8f0c9d11",
+    );
+    expect(routes.drafts).toBe("/account/drafts");
+    expect(routes.draftsWith("deleted")).toBe("/account/drafts?notice=deleted");
+    expect(routes.api.quickOrderProducts("سبوت 10/20")).toBe(
+      "/api/quick-order/products?q=%D8%B3%D8%A8%D9%88%D8%AA%2010%2F20",
+    );
+  });
+
   // covers: AC-5 (spec 0018)
   it("has My Orders and its load more link", () => {
     expect(routes.accountOrders).toBe("/account/orders");
