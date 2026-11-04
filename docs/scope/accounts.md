@@ -81,7 +81,17 @@ spec [0021](../specs/0021-add-to-draft-catalog/index.md) · code in `src/feature
 - [ ] Verify it: `/check verify add to draft from the catalog`
 - [ ] Test it: `/test add to draft from the catalog`
 
-### 23. Electrician price adjustments · needs a decision · GA
+### 23. Electrician price adjustments · GA · in-progress
 On an individual electrician order, you change line prices to give a better deal, without touching the public catalog price.
 **Done when:** you can adjust any line on that order, the order total and remaining balance update, the original price stays on record, and the electrician sees the adjusted price.
-- [ ] Design it (spec): `/architect electrician price adjustments`
+spec [0022](../specs/0022-electrician-price-adjustments/index.md) · code in `src/features/orders/`, `src/app/admin/(dashboard)/orders/[number]/`, `src/server/db/schema/orders.ts`
+- [x] Design it (spec): `/architect electrician price adjustments`
+- [x] Build it: `/develop electrician price adjustments`
+  - [x] Thin thread: the change table and triggers, the edit mode, one batch save through `adjustOrderPrices` with lines, totals, event, and change rows (AC-1, AC-2, AC-3, AC-4, AC-5)
+  - [x] Every refusal and edit detail: stale, locked, below paid, not electrician, no change, inline price errors, reset link, live preview (AC-1, AC-2, AC-3, AC-6)
+  - [x] Showing the deal: struck prices and discount rows in the dashboard and on the electrician's order page, the history line with the note (AC-7, AC-8, AC-9)
+  - [x] Finish: append only and RLS tests, the concurrency test, logs, 390 and 1280 layout, Playwright with axe (AC-10, AC-11, AC-12, AC-13)
+- [ ] Verify it: `/check verify electrician price adjustments`
+- [ ] Test it: `/test electrician price adjustments`
+- [ ] Review it (fresh model): `/check review electrician price adjustments`
+- [ ] Document it: `/document electrician price adjustments`
