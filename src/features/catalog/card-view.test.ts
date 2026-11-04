@@ -23,6 +23,7 @@ const variant = (over: Partial<CardVariant> = {}): CardVariant => ({
 });
 
 const source = (over: Partial<CardSource> = {}): CardSource => ({
+  productId: "p-1",
   slug: "ثريا-CH-1",
   name: "ثريا",
   code: "CH-1",
@@ -80,6 +81,10 @@ describe("pickCardVariant", () => {
 });
 
 describe("buildCardProduct", () => {
+  it("carries the product id for add to draft (spec 0021 AC-3)", () => {
+    expect(buildCardProduct(source()).productId).toBe("p-1");
+  });
+
   it("shows one price for an in stock product with one price", () => {
     expect(buildCardProduct(source())).toMatchObject({
       listPrice: 10_000,

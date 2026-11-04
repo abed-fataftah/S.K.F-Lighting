@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { canUseDrafts } from "./access";
 import { commitDraftQuantity } from "./quantity";
 import {
+  addToDraftNameProblem,
+  addToDraftSchema,
   createDraftSchema,
   draftCustomerColumns,
   draftCustomerSchema,
@@ -131,5 +133,39 @@ describe("canUseDrafts", () => {
     expect(canUseDrafts({ ...profile, role: "admin" })).toBe(false);
     expect(canUseDrafts({ ...profile, role: "electrician", removalPending: true })).toBe(false);
     expect(canUseDrafts(null)).toBe(false);
+  });
+});
+
+describe("addToDraftSchema (spec 0021 AC-8, AC-9)", () => {
+  const base = { productId: ID, variantId: ID, quantity: 5 };
+
+  it("takes an existing draft or a tidied new draft name", () => {
+    expect(addToDraftSchema.parse({ ...base, target: { draftId: ID } }).target).toEqual({
+      draftId: ID,
+    });
+    expect(
+      addToDraftSchema.parse({ ...base, target: { newDraftName: "  ali   mo " } }).target,
+    ).toEqual({ newDraftName: "ali mo" });
+  });
+
+  it("refuses a quantity outside 1 to 999, a bad id, or both targets", () => {
+    const target = { draftId: ID };
+    expect(addToDraftSchema.safeParse({ ...base, quantity: 0, target }).success).toBe(false);
+    expect(addToDraftSchema.safeParse({ ...base, quantity: 1000, target }).success).toBe(false);
+    expect(addToDraftSchema.safeParse({ ...base, quantity: 999, target }).success).toBe(true);
+    expect(addToDraftSchema.safeParse({ ...base, variantId: "x", target }).success).toBe(false);
+    expect(
+      addToDraftSchema.safeParse({ ...base, target: { draftId: ID, newDraftName: "ali" } }).success,
+    ).toBe(false);
+  });
+
+  it("names the problem only when a new draft name fails", () => {
+    expect(addToDraftNameProblem({ ...base, target: { newDraftName: "a" } })).toBe("too_short");
+    expect(addToDraftNameProblem({ ...base, target: { newDraftName: "x".repeat(41) } })).toBe(
+      "too_long",
+    );
+    expect(addToDraftNameProblem({ ...base, target: { newDraftName: "ali" } })).toBeUndefined();
+    expect(addToDraftNameProblem({ ...base, target: { draftId: "x" } })).toBeUndefined();
+    expect(addToDraftNameProblem(null)).toBeUndefined();
   });
 });

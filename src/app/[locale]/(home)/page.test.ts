@@ -19,7 +19,9 @@ const getHomeSections = vi.fn<() => Promise<HomeSections>>();
 const getDeliveryFees = vi.fn<() => Promise<readonly ZoneFee[] | null>>();
 const getShopAddress = vi.fn<() => Promise<string | null>>();
 vi.mock("@/features/home/server/home", () => ({ getHomeSections, getDeliveryFees }));
+const canAddToDraft = vi.fn<() => Promise<boolean>>(async () => false);
 vi.mock("@/features/shell/server/shop-contact", () => ({ getShopAddress }));
+vi.mock("@/features/drafts/server/guard", () => ({ canAddToDraft }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 
@@ -38,6 +40,7 @@ type Props = {
   banners?: unknown;
   circles?: unknown;
   products?: unknown;
+  canAddToDraft?: boolean;
   zoneLine?: string | null;
   address?: string | null;
 };
@@ -53,6 +56,7 @@ function findAll(node: ReactNode, match: (el: Element) => boolean): Element[] {
 const find = (node: ReactNode, type: unknown) => findAll(node, (el) => el.type === type)[0] ?? null;
 
 const card = (n: number): CardProduct => ({
+  productId: `product-${n}`,
   slug: `lamp-${n}`,
   name: `أباجورة ${n}`,
   code: `DEMO-${n}`,
@@ -122,6 +126,13 @@ describe("home page", () => {
 
     expect(find(page, FeaturedSection)).toBeNull();
     expect(find(page, HeroCard)?.props.jumpTo).toBeNull();
+  });
+
+  it("offers add to draft on the cards only to electricians (spec 0021 AC-1)", async () => {
+    answer({ featured: [card(1)] });
+    expect(find(await HomePage(), FeaturedSection)?.props.canAddToDraft).toBe(false);
+    canAddToDraft.mockResolvedValueOnce(true);
+    expect(find(await HomePage(), FeaturedSection)?.props.canAddToDraft).toBe(true);
   });
 
   it("gives the delivery card the zone line and the pickup card the address", async () => {
