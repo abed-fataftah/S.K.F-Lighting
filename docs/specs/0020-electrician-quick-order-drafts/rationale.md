@@ -104,3 +104,12 @@ The smaller calls follow the same grain. Half filled lines are saved (nullable p
 | Delete draft dialog | Names the draft, says it cannot be undone |
 | Desktop | The design's interim 480 px column |
 | Owner view of drafts | None; only sent orders |
+
+## Amendments (2026-11-04)
+
+Two questions came up while testing the build. Both were settled with the engineer and written into AC-21.
+
+| Question | Decision | Why |
+|---|---|---|
+| axe `aria-hidden-focus` with the combobox open | Keep Base UI. With the list open, axe checks only the input and the list; the page is checked with the list closed. | Base UI 1.9 `FloatingFocusManager` calls `markOthers` with `ariaHidden` on for any typeable combobox, whatever `modal` says, so screen readers stay on the input and list. Focus that leaves closes the list and lifts the hiding, so the flagged state only lasts while the list is open. Runner up: a `pnpm patch` of Base UI, rejected because it breaks on upgrades and removes the screen reader focus Base UI gives on purpose. A hand built combobox was rejected as too much work for one field. |
+| "typed كهربائي in My Orders" | The order appears in My Orders; the type is checked in the dashboard orders list. | The type exists only in the dashboard (`Orders.typeElectrician`, spec 0014). The user story asks for it on the owner's side. A badge in My Orders would sit on every one of an electrician's own orders and say little. |
