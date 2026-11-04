@@ -78,6 +78,20 @@
       "when": 1793789205386,
       "tag": "0010_electrician_drafts",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793814752037,
+      "tag": "0011_electrician_price_adjustments",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793814754082,
+      "tag": "0012_price_change_append_only",
+      "breakpoints": true
     }
   ]
 }

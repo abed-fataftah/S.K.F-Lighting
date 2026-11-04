@@ -79,6 +79,25 @@ describe("parseShekels", () => {
   it("round trips with formatPrice", () => {
     expect(formatPrice(parseShekels("1,234.5") ?? 0)).toBe("₪1,234.50");
   });
+
+  // covers: AC-3 (spec 0022)
+  it.each(["0", "0.00", "00", "0.0"])("takes %j as 0 with allowZero", (text) => {
+    expect(parseShekels(text, { allowZero: true })).toBe(0);
+  });
+
+  it.each([
+    ["19.9", 1990],
+    ["1,250", 125_000],
+  ])("parses %j the same with allowZero", (text, agorot) => {
+    expect(parseShekels(text, { allowZero: true })).toBe(agorot);
+  });
+
+  it.each(["", "-5", "-0", "19.999", "1000001", "abc"])(
+    "still refuses %j with allowZero",
+    (text) => {
+      expect(parseShekels(text, { allowZero: true })).toBeNull();
+    },
+  );
 });
 
 // covers: AC-3, AC-4 (spec 0006)

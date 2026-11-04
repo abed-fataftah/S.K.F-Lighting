@@ -25,15 +25,20 @@ const SHEKELS = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?$/;
  * Typed shekels to integer agorot by string arithmetic, never floats: `"19.9"` is 1990,
  * `"1,250"` is 125000. Expects a cleaned number field (Western digits, see `digitsField`).
  * `null` for anything else, more than two decimals, 0 or below, or above `MAX_PRICE_AGOROT`.
+ * `allowZero` takes 0 too (`"0"`, `"0.00"`, `"00"`), for an adjusted order line (spec 0022 AC-3).
  */
-export function parseShekels(text: string): number | null {
+export function parseShekels(
+  text: string,
+  options: { readonly allowZero?: boolean } = {},
+): number | null {
   const match = SHEKELS.exec(text.trim());
   if (!match) return null;
   const whole = match[1].replaceAll(",", "").replace(/^0+(?=\d)/, "");
   // Ten digits of shekels is already far above the limit; stop before Number loses precision.
   if (whole.length > 9) return null;
   const agorot = Number(whole) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
-  return agorot > 0 && agorot <= MAX_PRICE_AGOROT ? agorot : null;
+  const lowest = options.allowZero ? 0 : 1;
+  return agorot >= lowest && agorot <= MAX_PRICE_AGOROT ? agorot : null;
 }
 
 /** Agorot back to what an owner would type in a price field: `1250`, `19.90`. No thousands commas. */

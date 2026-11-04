@@ -166,3 +166,29 @@ export const orderEvents = pgTable(
       .where(sql`${t.seenAt} is null`),
   ],
 ).enableRLS();
+
+// One row per line a price save changed (spec 0022): old and new unit price, tied to that save's
+// `line_price_changed` event, which holds who, when, and the note. Append only: triggers in
+// migration 0012 refuse update, delete, and truncate, so these rows (and their orders) stay.
+export const orderLinePriceChanges = pgTable(
+  "order_line_price_changes",
+  {
+    id: id(),
+    orderEventId: uuid("order_event_id")
+      .notNull()
+      .references(() => orderEvents.id, { onDelete: "restrict" }),
+    orderLineId: uuid("order_line_id")
+      .notNull()
+      .references(() => orderLines.id, { onDelete: "restrict" }),
+    oldUnitPrice: integer("old_unit_price").notNull(),
+    newUnitPrice: integer("new_unit_price").notNull(),
+    ...timestamps(),
+  },
+  (t) => [
+    index("order_line_price_changes_order_event_id_idx").on(t.orderEventId),
+    index("order_line_price_changes_order_line_id_idx").on(t.orderLineId),
+    check("order_line_price_changes_old_unit_price_check", sql`${t.oldUnitPrice} >= 0`),
+    check("order_line_price_changes_new_unit_price_check", sql`${t.newUnitPrice} >= 0`),
+    check("order_line_price_changes_changed_check", sql`${t.newUnitPrice} <> ${t.oldUnitPrice}`),
+  ],
+).enableRLS();
