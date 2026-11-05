@@ -1,7 +1,7 @@
 # 0023. Payments and balances
 
 **Date**: 2026-11-05
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
