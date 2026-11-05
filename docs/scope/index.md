@@ -44,7 +44,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 21 | Electrician quick order & drafts | Slice 6 | in-progress |
 | 22 | Add to draft from the catalog | Slice 6 | in-progress |
 | 23 | Electrician price adjustments | Slice 6 | in-progress |
-| 24 | Payments & balances | Slice 7 | planned |
+| 24 | Payments & balances | Slice 7 | in-progress |
 | 25 | Homepage, banners & featured products | Slice 8 | in-progress |
 | 26 | Shop settings & policy pages | Slice 8 | planned |
 | 27 | Sales reports | Slice 8 | planned |
@@ -78,6 +78,7 @@ Out of scope for now, kept so the plan stays honest.
 - **Quick order on computers**: a wide table layout for building drafts at a desk, once design O-1 is drawn · from spec 0020
 - **Copy an order into a new draft**: start a new draft from one of an electrician's past orders, for repeat jobs · from spec 0020
 - **JSON export of an order** · needs a decision
+- **Cheques list**: a dashboard page of live cheques sorted by due date, optionally with a "cleared" mark; the data is already stored · from spec 0023
 - **Colour tagged product photos**: choosing a colour on the product page jumps to its photos (a `colour_id` on `product_media`, the editor, and the import) · needs a decision · from spec 0009
 - **Cloudflare Turnstile at checkout**: a stronger bot check, only if the honeypot and rate limit logs show real spam · needs a decision · from spec 0012
 - **Product page desktop layout and loading skeleton**: a designed wide screen layout (O-1) and a skeleton that keeps the real 404 · needs a decision · from spec 0009

@@ -4,10 +4,21 @@ Part of the [S.K.F Lighting scope](index.md). Cash and cheque balances per websi
 
 ## Slice 7: Payments
 
-### 24. Payments & balances · needs a decision · GA
+### 24. Payments & balances · in-progress · GA
 Record cash and cheque payments with notes on each website order. A cheque reduces the balance when you record receiving it. The order is marked paid once fully settled.
 **Done when:** each order shows total, paid, and remaining; every payment keeps its date, method, amount, and note; a fully settled order is marked paid; and the customer's My Orders shows the same balance.
-- [ ] Design it (spec): `/architect payments & balances`
+Spec: [0023](../specs/0023-payments-balances/index.md)
+- [x] Design it (spec): `/architect payments & balances`
+- [ ] Build it: `/develop payments & balances`
+  - [ ] Thin thread: ledger table and triggers, record a cash payment, balances on the dashboard, order page, and My Orders (AC-1, AC-2, AC-4, AC-12, AC-13)
+  - [ ] Cheques and form rules: cheque fields, dates, every refusal, duplicate and two tab safety (AC-3, AC-4, AC-7, AC-8)
+  - [ ] Refunds and corrections: refunds on cancelled orders, reversals with a reason, cancel warning, history lines (AC-5, AC-6, AC-9, AC-10, AC-14)
+  - [ ] Orders list: الدفع column and payment filter (AC-11)
+  - [ ] Finish: integrity and RLS tests, logs, layout, keyboard, axe, remaining flows (AC-14, AC-15, AC-16, AC-17)
+- [ ] Verify it: `/check verify payments & balances`
+- [ ] Test it: `/test payments & balances`
+- [ ] Review it (fresh model): `/check review payments & balances`
+- [ ] Document it: `/document payments & balances`
 
 ## Slice 8: Reports
 
