@@ -45,7 +45,7 @@ export const orders = pgTable(
     subtotal: integer("subtotal").notNull(),
     discountTotal: integer("discount_total").notNull().default(0),
     total: integer("total").notNull(),
-    // Cache of payments (feature 24); changes only with a ledger row.
+    // Cache of the `payments` ledger (spec 0023): only the payment actions write it.
     amountPaid: integer("amount_paid").notNull().default(0),
     status: orderStatus("status").notNull().default("new"),
     // Always inserted explicitly, with the same Date passed to `allocateOrderNumber`.
@@ -72,6 +72,8 @@ export const orders = pgTable(
       sql`${t.total} = ${t.subtotal} + ${t.deliveryFee} - ${t.discountTotal} and ${t.total} >= 0`,
     ),
     check("orders_amount_paid_check", sql`${t.amountPaid} >= 0`),
+    // Spec 0023 AC-14: never more paid than the order costs.
+    check("orders_amount_paid_total_check", sql`${t.amountPaid} <= ${t.total}`),
     check(
       "orders_delivery_check",
       sql`${t.fulfilment} <> 'delivery' or (${t.deliveryZoneId} is not null and ${t.deliveryZoneName} is not null and ${t.address} is not null and btrim(${t.address}) <> '')`,

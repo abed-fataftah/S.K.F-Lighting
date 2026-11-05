@@ -92,6 +92,20 @@
       "when": 1793814754082,
       "tag": "0012_price_change_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793878118093,
+      "tag": "0013_payments_balances",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793878121416,
+      "tag": "0014_payments_append_only",
+      "breakpoints": true
     }
   ]
 }

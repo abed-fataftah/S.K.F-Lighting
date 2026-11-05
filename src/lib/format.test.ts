@@ -11,6 +11,7 @@ import {
   isDateKey,
   shopDateKey,
   shopDayStart,
+  formatDayKey,
 } from "./format";
 import { formatPrice } from "./money";
 
@@ -204,5 +205,13 @@ describe("shop day keys", () => {
 
   it("refuses a malformed key, a bug the filter parser prevents", () => {
     expect(() => shopDayStart("2026-13-01")).toThrow(RangeError);
+  });
+});
+
+// covers: AC-1 (spec 0023)
+describe("formatDayKey", () => {
+  it("shows a date column as the shop's day, in summer and winter", () => {
+    expect(formatDayKey("2026-01-15")).toBe("15/01/2026");
+    expect(formatDayKey("2026-07-15")).toBe("15/07/2026");
   });
 });

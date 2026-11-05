@@ -16,3 +16,9 @@ export const isUniqueViolation = (error: unknown, constraint: string) => {
 
 /** `23503`: a foreign key refused it (for example a delete that lost a race with a new order line). */
 export const isForeignKeyViolation = (error: unknown) => pgErrorOf(error)?.code === "23503";
+
+/** `23514`: a check constraint refused the row. */
+export const isCheckViolation = (error: unknown, constraint: string) => {
+  const pg = pgErrorOf(error);
+  return pg?.code === "23514" && pg.constraint_name === constraint;
+};

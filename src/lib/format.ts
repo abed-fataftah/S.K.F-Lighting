@@ -131,6 +131,11 @@ export function shopDayStart(key: string): Date {
   return new Date(Math.min(...candidates));
 }
 
+/** A shop day key (a `date` column) as `20/10/2026` (spec 0023): the same text as `formatDate`. */
+export function formatDayKey(key: string): string {
+  return formatDate(shopDayStart(key));
+}
+
 /** `1,250`, `-3`. Whole numbers only: quantities, counts, KPIs. Money goes through `formatPrice`. */
 export function formatNumber(n: number): string {
   if (!Number.isSafeInteger(n)) throw new RangeError(`formatNumber needs a safe integer, got ${n}`);

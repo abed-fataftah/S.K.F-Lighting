@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { fail, ok, type Fail, type Ok } from "@/lib/result";
+import { isCheckViolation } from "@/server/db/pg-error";
 import { orderEvents, orderLinePriceChanges, orderLines, orders } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import { canAdjustPrices, type AdjustedPriceError } from "../price-adjust";
@@ -107,7 +108,14 @@ export function adjustOrderPricesInDb(
           .where(eq(orderLines.id, line.lineId));
         lines.push({ lineId: line.lineId, unitPrice: line.price, lineTotal });
       }
-      const totals = await recomputeOrderTotals(tx, input.orderId);
+      // The `amount_paid <= total` check (spec 0023 AC-14) refuses the totals write first; it is
+      // the same refusal.
+      const totals = await recomputeOrderTotals(tx, input.orderId).catch((error: unknown) => {
+        if (isCheckViolation(error, "orders_amount_paid_total_check")) {
+          throw new BelowPaid(order.amountPaid);
+        }
+        throw error;
+      });
       if (totals.total < order.amountPaid) throw new BelowPaid(order.amountPaid);
 
       const [event] = await tx

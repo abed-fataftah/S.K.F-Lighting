@@ -47,3 +47,8 @@ export const accountEventType = pgEnum("account_event_type", [
   "details_edited",
   "removed",
 ]);
+
+// The ledger (spec 0023): `payments.kind` and `payments.method`.
+export const paymentKind = pgEnum("payment_kind", ["payment", "refund", "reversal"]);
+
+export const paymentMethod = pgEnum("payment_method", ["cash", "cheque"]);

@@ -25,6 +25,7 @@ describe("parseOrderFilters", () => {
       range: "month",
       type: "electrician",
       method: "pickup",
+      payment: "refund_due",
       page: "3",
     });
     expect(filters).toEqual({
@@ -35,6 +36,7 @@ describe("parseOrderFilters", () => {
       to: null,
       type: "electrician",
       method: "pickup",
+      payment: "refund_due",
       page: 3,
     });
   });
@@ -49,6 +51,7 @@ describe("parseOrderFilters", () => {
         to: "2026-13-01",
         type: "admin",
         method: "post",
+        payment: "owed",
         page: "-2",
       }).filters,
     ).toEqual(NO_ORDER_FILTERS);
@@ -113,6 +116,7 @@ describe("orderFiltersToParams", () => {
       to: "2026-10-09",
       type: "customer",
       method: "delivery",
+      payment: "partial",
       page: "2",
     });
     const again = parse(Object.fromEntries(orderFiltersToParams(filters)));
@@ -123,6 +127,22 @@ describe("orderFiltersToParams", () => {
     const filters = { ...NO_ORDER_FILTERS, status: "ready" as const, page: 4 };
     expect(orderFiltersToParams(filters, 1).toString()).toBe("status=ready");
     expect(orderFiltersToParams(filters, 5).toString()).toBe("status=ready&page=5");
+  });
+});
+
+// covers: AC-11 (spec 0023)
+describe("the payment filter", () => {
+  it.each(["none", "partial", "paid", "refund_due"] as const)("reads payment=%s", (payment) => {
+    expect(parse({ payment }).filters.payment).toBe(payment);
+  });
+
+  it("is written after method, in the fixed order", () => {
+    const filters = { ...NO_ORDER_FILTERS, method: "pickup" as const, payment: "paid" as const };
+    expect(orderFiltersToParams(filters, 2).toString()).toBe("method=pickup&payment=paid&page=2");
+  });
+
+  it("narrows the list", () => {
+    expect(hasOrderFilters({ ...NO_ORDER_FILTERS, payment: "none" })).toBe(true);
   });
 });
 

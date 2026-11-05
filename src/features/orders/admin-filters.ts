@@ -1,4 +1,4 @@
-// The orders list filters (spec 0014 AC-9 to AC-12). Pure: every filter lives in the address,
+// The orders list filters (spec 0014 AC-9 to AC-12, spec 0023 AC-11). Pure: every filter lives in the address,
 // read here and written back in one fixed order, so a filtered view can be bookmarked and back and
 // reload keep it. Unknown or broken values are ignored, never an error.
 import { addDaysToKey, isDateKey } from "@/lib/format";
@@ -16,6 +16,10 @@ export type OrderType = (typeof ORDER_TYPES)[number];
 export const ORDER_METHODS = ["delivery", "pickup"] as const;
 export type OrderMethod = (typeof ORDER_METHODS)[number];
 
+/** Where an order's money stands (spec 0023 AC-11); the الدفع badge shows the same values. */
+export const ORDER_PAYMENTS = ["none", "partial", "paid", "refund_due"] as const;
+export type OrderPaymentFilter = (typeof ORDER_PAYMENTS)[number];
+
 export type OrderFilters = {
   readonly status: ShownStatus | null;
   readonly unseen: boolean;
@@ -26,6 +30,7 @@ export type OrderFilters = {
   readonly to: string | null;
   readonly type: OrderType | null;
   readonly method: OrderMethod | null;
+  readonly payment: OrderPaymentFilter | null;
   readonly page: number;
 };
 
@@ -40,6 +45,7 @@ export const NO_ORDER_FILTERS: OrderFilters = {
   to: null,
   type: null,
   method: null,
+  payment: null,
   page: 1,
 };
 
@@ -71,6 +77,7 @@ export function parseOrderFilters(params: SearchParams, today: string) {
     to,
     type: oneOf(ORDER_TYPES, first(params.type)),
     method: oneOf(ORDER_METHODS, first(params.method)),
+    payment: oneOf(ORDER_PAYMENTS, first(params.payment)),
     page: parsePage(first(params.page)),
   };
   return { filters, days: orderDays(filters, today) };
@@ -99,7 +106,8 @@ export function hasOrderFilters(filters: OrderFilters): boolean {
     filters.from !== null ||
     filters.to !== null ||
     filters.type !== null ||
-    filters.method !== null
+    filters.method !== null ||
+    filters.payment !== null
   );
 }
 
@@ -116,6 +124,7 @@ export function orderFiltersToParams(filters: OrderFilters, page = filters.page)
   }
   if (filters.type) params.set("type", filters.type);
   if (filters.method) params.set("method", filters.method);
+  if (filters.payment) params.set("payment", filters.payment);
   if (page > 1) params.set("page", String(page));
   return params;
 }

@@ -1,6 +1,6 @@
 // The tables Drizzle migrates (public schema, spec 0002). drizzle.config.ts reads this barrel,
 // not index.ts: `drizzle-kit generate` ignores schemaFilter and would create the auth stub.
-// Later features add payments, loyalty, returns, and content tables here.
+// Later features add loyalty, returns, and content tables here.
 export * from "./enums";
 export * from "./profiles";
 export * from "./catalog";
@@ -9,3 +9,4 @@ export * from "./orders";
 export * from "./content";
 export * from "./accounts";
 export * from "./drafts";
+export * from "./payments";
