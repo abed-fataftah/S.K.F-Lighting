@@ -14,11 +14,13 @@ import { formatDateTime, formatPhone } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
 import { routes } from "@/lib/routes";
 import type { AdminOrderRow } from "../server/admin-queries";
+import { PaymentBadge } from "./payment-badge";
 import { OrderStatusBadge } from "./status-badge";
 
 // The orders table (spec 0014 AC-8), shared by the server rendered list and the client phone
 // search results, so it holds no server code. An unseen order carries a yellow dot with hidden
-// text; a customer's cancellation also shows "ألغاه العميل".
+// text; a customer's cancellation also shows "ألغاه العميل". الدفع shows where the money stands
+// (spec 0023 AC-11).
 export function OrdersTable({
   rows,
   label,
@@ -40,6 +42,7 @@ export function OrdersTable({
           <TableHead>{t("type")}</TableHead>
           <TableHead>{t("method")}</TableHead>
           <TableHead>{t("statusColumn")}</TableHead>
+          <TableHead>{t("paymentColumn")}</TableHead>
           <TableHead>{t("total")}</TableHead>
           <TableHead>{t("date")}</TableHead>
         </TableRow>
@@ -85,6 +88,13 @@ export function OrdersTable({
                   <Badge variant="new">{t("cancelledByCustomer")}</Badge>
                 ) : null}
               </span>
+            </TableCell>
+            <TableCell className="whitespace-nowrap">
+              <PaymentBadge
+                status={order.status}
+                amountPaid={order.amountPaid}
+                total={order.total}
+              />
             </TableCell>
             <TableCell className="whitespace-nowrap">
               <Ltr>{formatPrice(order.total)}</Ltr>

@@ -80,12 +80,45 @@ describe("historyEntries", () => {
       ]),
     ).toEqual([{ id: "1", at, kind: "prices", from: 0, to: 0, count: 0 }]);
   });
+
+  // covers: AC-10 (spec 0023)
+  it("turns each payment_recorded into a payment line by its kind and method", () => {
+    const event = (id: string, eventData: Record<string, unknown>) =>
+      ({
+        id,
+        type: "payment_recorded",
+        actorKind: "admin",
+        toStatus: null,
+        data: eventData,
+        at,
+      }) as const;
+    expect(
+      historyEntries([
+        event("1", {
+          kind: "payment",
+          method: "cash",
+          amount: 10_000,
+          fromPaid: 0,
+          toPaid: 10_000,
+        }),
+        event("2", { kind: "refund", method: "cheque", amount: 4_000 }),
+        event("3", { kind: "reversal", reverses: "x", method: "cheque", amount: 4_000 }),
+        event("4", { kind: "other", method: "card", amount: "5" }),
+      ]),
+    ).toEqual([
+      { id: "1", at, kind: "payment", entry: "payment", amount: 10_000, method: "cash" },
+      { id: "2", at, kind: "payment", entry: "refund", amount: 4_000, method: "cheque" },
+      { id: "3", at, kind: "payment", entry: "reversal", amount: 4_000, method: "cheque" },
+      { id: "4", at, kind: "payment", entry: "payment", amount: 0, method: "cash" },
+    ]);
+  });
 });
 
 // covers: AC-8 (spec 0022), AC-14 (spec 0014)
 describe("FLAGGING_EVENTS", () => {
-  it("flags new orders and cancels, never a price save", () => {
+  it("flags new orders and cancels, never a price save or a payment", () => {
     expect(FLAGGING_EVENTS).toEqual(["created", "cancelled"]);
     expect(FLAGGING_EVENTS).not.toContain("line_price_changed");
+    expect(FLAGGING_EVENTS).not.toContain("payment_recorded");
   });
 });

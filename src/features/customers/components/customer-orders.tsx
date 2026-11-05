@@ -71,6 +71,13 @@ export function CustomerOrdersTable({ rows }: { readonly rows: readonly MyOrderR
                     <span className="type-small text-muted" data-testid="customer-order-money">
                       {t("moneyPaid")}
                     </span>
+                  ) : money.kind === "refund" ? (
+                    <span className="type-small text-muted" data-testid="customer-order-money">
+                      {t.rich("moneyRefundDue", {
+                        price: formatPrice(money.amount),
+                        ltr: (chunks) => <Ltr>{chunks}</Ltr>,
+                      })}
+                    </span>
                   ) : null}
                 </span>
               </TableCell>

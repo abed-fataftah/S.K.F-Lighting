@@ -16,28 +16,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
+import { formatPrice } from "@/lib/money";
 import { CANCEL_REASON_MAX } from "../schemas";
 import { cancelOrderByAdmin } from "../server/admin-actions";
 import type { OrderStatus } from "../status";
 
 // "إلغاء الطلب" (spec 0014 AC-4): a confirm dialog with an optional reason. Both buttons are
 // disabled while the action runs; on success it closes and the page shows the cancelled state;
-// on an error it stays open with the status card's message for that error.
+// on an error it stays open with the status card's message for that error. With money recorded on
+// the order it warns that a refund is owed after the cancel (spec 0023 AC-9).
 export function CancelOrderDialog({
   orderId,
   number,
   status,
+  amountPaid,
   disabled,
   onDone,
 }: {
   readonly orderId: string;
   readonly number: string;
   readonly status: OrderStatus;
+  /** Money already recorded, from the page render: a moment old is fine for a warning. */
+  readonly amountPaid: number;
   readonly disabled: boolean;
   /** Called after a successful cancel, so the card can move focus to its badge. */
   readonly onDone: () => void;
 }) {
   const t = useTranslations("AdminOrders");
+  const tp = useTranslations("AdminPayments");
   const router = useRouter();
   const reasonId = useId();
   const [open, setOpen] = useState(false);
@@ -95,6 +101,14 @@ export function CancelOrderDialog({
             data-testid="order-cancel-reason"
           />
         </Field>
+        {amountPaid > 0 ? (
+          <p data-testid="order-cancel-paid-warning">
+            {tp.rich("cancelWarning", {
+              amount: formatPrice(amountPaid),
+              ltr: (chunks) => <Ltr>{chunks}</Ltr>,
+            })}
+          </p>
+        ) : null}
         {problem ? (
           <Alert data-testid="order-cancel-problem">
             <AlertDescription>{t(problem)}</AlertDescription>

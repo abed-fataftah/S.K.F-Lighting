@@ -14,8 +14,10 @@ describe("orderMoneyLine", () => {
     ["delivered", 24_999, 25_000, { kind: "remaining", amount: 1 }],
     ["ready", 25_000, 25_000, { kind: "paid" }],
     ["delivered", 30_000, 25_000, { kind: "paid" }],
-    ["cancelled", 10_000, 25_000, { kind: "none" }],
-    ["cancelled", 25_000, 25_000, { kind: "none" }],
+    // Spec 0023 AC-13: a cancelled order shows only the money still owed back.
+    ["cancelled", 0, 25_000, { kind: "none" }],
+    ["cancelled", 10_000, 25_000, { kind: "refund", amount: 10_000 }],
+    ["cancelled", 25_000, 25_000, { kind: "refund", amount: 25_000 }],
   ] as const)("reads %s with %i paid of %i", (status, paid, total, line) => {
     expect(orderMoneyLine(status, paid, total)).toEqual(line);
   });

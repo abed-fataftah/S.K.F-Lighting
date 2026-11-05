@@ -14,3 +14,26 @@ const BADGES = { none: "off", partial: "proc", paid: "ok" } as const;
 export function paymentBadgeVariant(state: PaymentState): (typeof BADGES)[PaymentState] {
   return BADGES[state];
 }
+
+export type CustomerPaymentRow = {
+  readonly key: "paidAmount" | "remainingAmount" | "refundDue";
+  readonly amount: number;
+};
+
+/**
+ * The amounts under the badge (spec 0023 AC-12): المدفوع and, while above 0, المتبقي on a live order;
+ * on a cancelled one the money owed back. Nothing until something is paid.
+ */
+export function customerPaymentRows(
+  cancelled: boolean,
+  amountPaid: number,
+  total: number,
+): readonly CustomerPaymentRow[] {
+  if (amountPaid <= 0) return [];
+  if (cancelled) return [{ key: "refundDue", amount: amountPaid }];
+  const remaining = total - amountPaid;
+  return [
+    { key: "paidAmount", amount: amountPaid },
+    ...(remaining > 0 ? [{ key: "remainingAmount" as const, amount: remaining }] : []),
+  ];
+}

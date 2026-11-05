@@ -28,15 +28,21 @@ export function myOrdersStep(
 export type OrderMoneyLine =
   | { readonly kind: "none" }
   | { readonly kind: "remaining"; readonly amount: number }
-  | { readonly kind: "paid" };
+  | { readonly kind: "paid" }
+  | { readonly kind: "refund"; readonly amount: number };
 
-/** The line under a card's total (AC-4): nothing on a cancelled or unpaid order. */
+/**
+ * The line under a card's total (AC-4): nothing on an unpaid order; on a cancelled one, only the
+ * money still owed back (spec 0023 AC-13).
+ */
 export function orderMoneyLine(
   status: OrderStatus,
   amountPaid: number,
   total: number,
 ): OrderMoneyLine {
-  if (status === "cancelled") return { kind: "none" };
+  if (status === "cancelled") {
+    return amountPaid > 0 ? { kind: "refund", amount: amountPaid } : { kind: "none" };
+  }
   const state = paymentState(amountPaid, total);
   if (state === "partial") return { kind: "remaining", amount: total - amountPaid };
   return state === "paid" ? { kind: "paid" } : { kind: "none" };

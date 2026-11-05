@@ -5,10 +5,18 @@ import { formatDateTime, formatNumber } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
 import { historyEntries, type HistoryEvent } from "../admin-history";
 
+const PAYMENT_EVENT_KEYS = {
+  payment: "eventPayment",
+  refund: "eventRefund",
+  reversal: "eventReversal",
+} as const;
+
 // "سجل الطلب" (spec 0014 AC-6): what happened to the order, oldest first, each with its time on
-// the shop's clock. A price save shows its totals and the owner's private note (spec 0022 AC-8).
+// the shop's clock. A price save shows its totals and the owner's private note (spec 0022 AC-8); a
+// payment, refund, or reversal its amount and how it was paid (spec 0023 AC-10).
 export function OrderHistory({ events }: { readonly events: readonly HistoryEvent[] }) {
   const t = useTranslations("AdminOrders");
+  const tp = useTranslations("AdminPayments");
   const entries = historyEntries(events);
 
   return (
@@ -29,7 +37,13 @@ export function OrderHistory({ events }: { readonly events: readonly HistoryEven
                         count: formatNumber(entry.count),
                         ltr: (chunks) => <Ltr>{chunks}</Ltr>,
                       })
-                    : t("eventCancelled", { actor: t(entry.actor) })}
+                    : entry.kind === "payment"
+                      ? t.rich(PAYMENT_EVENT_KEYS[entry.entry], {
+                          amount: formatPrice(entry.amount),
+                          method: tp(entry.method === "cheque" ? "methodCheque" : "methodCash"),
+                          ltr: (chunks) => <Ltr>{chunks}</Ltr>,
+                        })
+                      : t("eventCancelled", { actor: t(entry.actor) })}
             </span>
             {entry.kind === "prices" && entry.note ? (
               <span className="break-words text-muted" data-testid="order-history-note">

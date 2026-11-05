@@ -44,6 +44,13 @@ export function MyOrderCard({ order }: { readonly order: MyOrderRow }) {
             <p className="type-small text-muted" data-testid="my-order-money">
               {t("paid")}
             </p>
+          ) : money.kind === "refund" ? (
+            <p className="type-small text-muted" data-testid="my-order-money">
+              {t.rich("refundDue", {
+                price: formatPrice(money.amount),
+                ltr: (chunks) => <Ltr>{chunks}</Ltr>,
+              })}
+            </p>
           ) : null}
         </div>
       </div>

@@ -45,6 +45,7 @@ export function OrderStatusCard({
   cancelledAt,
   cancelledBy,
   cancelReason,
+  amountPaid,
 }: {
   readonly orderId: string;
   readonly number: string;
@@ -54,6 +55,8 @@ export function OrderStatusCard({
   readonly cancelledAt: Date | null;
   readonly cancelledBy: ActorKind | null;
   readonly cancelReason: string | null;
+  /** For the cancel dialog's warning (spec 0023 AC-9); as the page rendered it. */
+  readonly amountPaid: number;
 }) {
   const t = useTranslations("AdminOrders");
   const router = useRouter();
@@ -181,6 +184,7 @@ export function OrderStatusCard({
           orderId={orderId}
           number={number}
           status={status}
+          amountPaid={amountPaid}
           disabled={pending}
           onDone={() => {
             focusOnChange.current = true;

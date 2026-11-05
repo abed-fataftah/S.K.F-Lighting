@@ -11,6 +11,7 @@ import { routes } from "@/lib/routes";
 import {
   hasOrderFilters,
   ORDER_METHODS,
+  ORDER_PAYMENTS,
   ORDER_RANGES,
   ORDER_TYPES,
   orderFiltersToParams,
@@ -19,6 +20,7 @@ import {
   type OrderRange,
 } from "../admin-filters";
 import { ORDER_STATUSES_SHOWN } from "../status";
+import { PAYMENT_KEYS } from "./payment-badge";
 
 const RANGE_KEYS: Readonly<Record<OrderRange, "rangeToday" | "range7d" | "rangeMonth">> = {
   today: "rangeToday",
@@ -28,7 +30,7 @@ const RANGE_KEYS: Readonly<Record<OrderRange, "rangeToday" | "range7d" | "rangeM
 
 const TYPE_KEYS = { customer: "typeCustomer", electrician: "typeElectrician" } as const;
 
-// The orders list filters (spec 0014 AC-9 to AC-12). Chips are plain links that change one filter
+// The orders list filters (spec 0014 AC-9 to AC-12, the الدفع select of spec 0023 AC-11). Chips are plain links that change one filter
 // and return to page 1; the selects and the date fields sit in one GET form that carries the
 // chips' choice in hidden fields. No script: every view is an address you can bookmark.
 export function OrderFiltersBar({
@@ -124,6 +126,17 @@ export function OrderFiltersBar({
             {ORDER_METHODS.map((method) => (
               <NativeSelectOption key={method} value={method}>
                 {t(method)}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Field className="min-w-0 flex-[1_1_10rem]">
+          <FieldLabel htmlFor="orders-payment">{t("paymentFilter")}</FieldLabel>
+          <NativeSelect id="orders-payment" name="payment" defaultValue={filters.payment ?? ""}>
+            <NativeSelectOption value="">{t("all")}</NativeSelectOption>
+            {ORDER_PAYMENTS.map((payment) => (
+              <NativeSelectOption key={payment} value={payment}>
+                {t(PAYMENT_KEYS[payment])}
               </NativeSelectOption>
             ))}
           </NativeSelect>

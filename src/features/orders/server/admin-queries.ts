@@ -5,6 +5,7 @@ import {
   desc,
   eq,
   exists,
+  gt,
   gte,
   inArray,
   isNull,
@@ -21,7 +22,9 @@ import { getDb } from "@/server/db";
 import { orderEvents, orderLines, orders, profiles, type OrderEventData } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
 import { pageWindow, splitPage } from "@/lib/paging";
-import type { OrderDays, OrderFilters } from "../admin-filters";
+import type { PaymentRow } from "@/features/payments/ledger";
+import { readOrderPayments } from "@/features/payments/server/queries";
+import type { OrderDays, OrderFilters, OrderPaymentFilter } from "../admin-filters";
 import { FLAGGING_EVENTS } from "../admin-history";
 import type { ActorKind, OrderStatus } from "../status";
 
@@ -42,6 +45,8 @@ export type AdminOrderRow = {
   readonly phoneE164: string;
   readonly fulfilment: "pickup" | "delivery";
   readonly total: number;
+  /** Shown as the الدفع badge (spec 0023 AC-11). */
+  readonly amountPaid: number;
   readonly placedAt: Date;
   readonly status: OrderStatus;
   /** `electrician` shows كهربائي; anything else, guests included, عميل (spec 0014 AC-11). */
@@ -65,6 +70,7 @@ const rowColumns = {
   phoneE164: orders.customerPhoneE164,
   fulfilment: orders.fulfilment,
   total: orders.total,
+  amountPaid: orders.amountPaid,
   placedAt: orders.placedAt,
   status: orders.status,
   placedByRole: orders.placedByRole,
@@ -74,6 +80,21 @@ const rowColumns = {
     ne(orders.cancelledBy, "admin"),
   )}) is true`.mapWith(Boolean),
 };
+
+/** The الدفع filter (spec 0023 AC-11): the same split as `orderPaymentBadge`. */
+function paymentCondition(payment: OrderPaymentFilter): SQL | undefined {
+  const live = ne(orders.status, "cancelled");
+  switch (payment) {
+    case "none":
+      return and(live, eq(orders.amountPaid, 0));
+    case "partial":
+      return and(live, gt(orders.amountPaid, 0), lt(orders.amountPaid, orders.total));
+    case "paid":
+      return and(live, gt(orders.amountPaid, 0), gte(orders.amountPaid, orders.total));
+    case "refund_due":
+      return and(eq(orders.status, "cancelled"), gt(orders.amountPaid, 0));
+  }
+}
 
 /** The filters as SQL, combined with AND (spec 0014 AC-9 to AC-12). */
 function filterConditions(filters: OrderFilters, days: OrderDays): SQL[] {
@@ -94,6 +115,7 @@ function filterConditions(filters: OrderFilters, days: OrderDays): SQL[] {
         ? or(isNull(orders.placedByRole), ne(orders.placedByRole, "electrician"))
         : undefined,
     filters.method ? eq(orders.fulfilment, filters.method) : undefined,
+    filters.payment ? paymentCondition(filters.payment) : undefined,
   ];
   return conditions.filter((condition) => condition !== undefined);
 }
@@ -141,16 +163,25 @@ export async function orderNumberExists(db: Db, orderNumber: string): Promise<bo
 
 export type AdminOrderEvent = {
   readonly id: string;
-  readonly type: "created" | "status_changed" | "cancelled" | "line_price_changed";
+  readonly type: (typeof HISTORY_EVENTS)[number];
   readonly actorKind: ActorKind;
   readonly toStatus: OrderStatus | null;
-  /** A price save's `lineCount`, `fromTotal`, `toTotal`, and `note` (spec 0022 AC-8). */
+  /**
+   * A price save's `lineCount`, `fromTotal`, `toTotal`, and `note` (spec 0022 AC-8); a payment's
+   * `kind`, `method`, `amount`, `fromPaid`, and `toPaid` (spec 0023 AC-10).
+   */
   readonly data: OrderEventData;
   readonly at: Date;
 };
 
 /** The event types the history shows (spec 0014 AC-6); later features add their own. */
-const HISTORY_EVENTS = ["created", "status_changed", "cancelled", "line_price_changed"] as const;
+const HISTORY_EVENTS = [
+  "created",
+  "status_changed",
+  "cancelled",
+  "line_price_changed",
+  "payment_recorded",
+] as const;
 
 export type AdminOrder = {
   readonly id: string;
@@ -193,6 +224,8 @@ export type AdminOrder = {
   }[];
   /** Oldest first, by `created_at, id`. */
   readonly events: readonly AdminOrderEvent[];
+  /** The ledger, oldest first (spec 0023 AC-1); cheque details and notes are owner only. */
+  readonly payments: readonly PaymentRow[];
 };
 
 export async function readAdminOrder(db: Db, orderNumber: string): Promise<AdminOrder | null> {
@@ -228,8 +261,12 @@ export async function readAdminOrder(db: Db, orderNumber: string): Promise<Admin
     .limit(1);
   if (!order) return null;
 
-  const [lines, events] = await Promise.all([readLines(db, order.id), readEvents(db, order.id)]);
-  return { ...order, lines, events };
+  const [lines, events, payments] = await Promise.all([
+    readLines(db, order.id),
+    readEvents(db, order.id),
+    readOrderPayments(db, order.id),
+  ]);
+  return { ...order, lines, events, payments };
 }
 
 function readLines(db: Db, orderId: string) {

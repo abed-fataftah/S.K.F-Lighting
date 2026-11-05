@@ -15,6 +15,7 @@ import { getAdminOrder } from "@/features/orders/server/admin-queries";
 import { formatDateTime, formatPhone } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { OrderPaymentsCard } from "@/features/payments/components/order-payments-card";
 
 export async function generateMetadata({
   params,
@@ -24,9 +25,9 @@ export async function generateMetadata({
   return { title: t("orderMeta", { number: decodeURIComponent(number) }) };
 }
 
-// One order (spec 0004 AC-13, spec 0014; docs/design/pages/admin-order-details.md without payments,
-// which come with feature 24): its lines with the electrician price edit (spec 0022), status card,
-// customer, and history.
+// One order (spec 0004 AC-13, spec 0014; docs/design/pages/admin-order-details.md): its lines with
+// the electrician price edit (spec 0022), the payments card under the totals (spec 0023), status
+// card, customer, and history.
 // Opening it marks it seen (spec 0014 AC-14).
 export default async function AdminOrderPage({ params }: PageProps<"/admin/orders/[number]">) {
   const { number } = await params;
@@ -101,6 +102,15 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
             canAdjust={canAdjustPrices(order.placedByRole, order.status)}
             locked={pricesLocked(order.placedByRole, order.status)}
           />
+          <OrderPaymentsCard
+            orderId={order.id}
+            paymentId={crypto.randomUUID()}
+            status={order.status}
+            total={order.total}
+            amountPaid={order.amountPaid}
+            placedAt={order.placedAt}
+            rows={order.payments}
+          />
         </section>
 
         <div className="flex min-w-0 flex-[1_1_var(--admin-detail-side)] flex-col gap-4">
@@ -113,6 +123,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
             cancelledAt={order.cancelledAt}
             cancelledBy={order.cancelledBy}
             cancelReason={order.cancelReason}
+            amountPaid={order.amountPaid}
           />
           <Card>
             <div className="flex flex-wrap items-center justify-between gap-2">
