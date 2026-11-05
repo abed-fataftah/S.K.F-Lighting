@@ -4,20 +4,29 @@ Part of the [S.K.F Lighting scope](index.md). From cart to a saved order you can
 
 ## Slice 3: Cart & checkout
 
-### 12. Cart
+### 12. Cart · done
 Review chosen products with their options, change quantities, remove items, and see the total.
 **Done when:** the cart keeps its items between visits, the total updates as quantities change, and items that went out of stock are flagged before ordering.
-- [ ] Build it: `/develop cart`
+spec [0004](../specs/0004-first-order-end-to-end/index.md) (cart behavior, AC-4, AC-5) · code in `src/features/cart/`, `src/app/[locale]/cart/`
+- [x] Build it: `/develop cart`
 
 ### 13. Checkout & delivery · needs a decision
 The order form: full name, phone, area and city or town, a detailed address when delivery is chosen, and optional notes. Choose shop pickup or delivery; the delivery fee (West Bank ₪20, ’48 areas ₪70) is added to the total.
 **Done when:** invalid or unrealistic entries are rejected with clear messages in the customer's language, the address is required only for delivery, and the total shows the correct fee for the chosen area.
 - [ ] Design it (spec): `/architect checkout & delivery`
 
-### 14. Order confirmation & WhatsApp
+### 14. Order confirmation & WhatsApp · done
 After sending, a confirmation page with the order number and summary, WhatsApp opened with the full order message, and a WhatsApp contact button that includes the order number.
 **Done when:** every order gets a unique, easy to read order number, the WhatsApp message lists items, options, quantities, fee, and total, and the contact button works on phones and computers.
-- [ ] Build it: `/develop order confirmation & whatsapp`
+spec [0013](../specs/0013-order-confirmation-whatsapp/index.md) · code in `src/features/orders/`, `src/features/checkout/`, `src/features/shell/`, `src/app/[locale]/checkout/done/`
+- [x] Design it (spec): `/architect order confirmation & whatsapp`
+- [x] Build it: `/develop order confirmation & whatsapp`
+  - [x] Summary from the saved order: shared photo fragment, `getPlacedOrder` extended, `OrderSummary` card, phone line and keep note (AC-1, AC-2, AC-3, AC-5 to AC-8)
+  - [x] Copy button and the W7 float: `CopyOrderNumber`, `orderNumberInPath`, thin client `FabLink` (AC-4, AC-9, AC-11, AC-12)
+  - [x] Phone and computer flows: Playwright on 390 and 1280, links, copy, console spy, axe (AC-10, AC-13)
+  - [x] Not found hardening: guarded decode on the confirmation page, unknown number and broken segment flows (AC-2, AC-9, AC-13)
+- [x] Verify it: `/check verify order confirmation & whatsapp`
+- [x] Test it: `/test order confirmation & whatsapp`
 
 ## Slice 4: Managing orders
 
