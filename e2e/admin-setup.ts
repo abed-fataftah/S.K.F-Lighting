@@ -29,16 +29,28 @@ async function reachable(url: string) {
     .catch(() => false);
 }
 
+/**
+ * A fresh start for a test account: an existing one gets this run's password and loses its
+ * authenticators; it is not deleted, since an owner who recorded payments cannot be (spec 0023:
+ * `payments.recorded_by` restricts the delete, so the money trail keeps who wrote it).
+ */
 async function recreateUser(admin: SupabaseClient, email: string, password: string) {
   const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 });
   if (error) throw error;
   const old = data.users.find((user) => user.email === email);
-  if (old) {
-    const removed = await admin.auth.admin.deleteUser(old.id);
+  if (!old) {
+    const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+    if (created.error) throw created.error;
+    return;
+  }
+  const updated = await admin.auth.admin.updateUserById(old.id, { password, email_confirm: true });
+  if (updated.error) throw updated.error;
+  const factors = await admin.auth.admin.mfa.listFactors({ userId: old.id });
+  if (factors.error) throw factors.error;
+  for (const factor of factors.data.factors) {
+    const removed = await admin.auth.admin.mfa.deleteFactor({ id: factor.id, userId: old.id });
     if (removed.error) throw removed.error;
   }
-  const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
-  if (created.error) throw created.error;
 }
 
 function promote(email: string) {

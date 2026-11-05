@@ -130,7 +130,7 @@ test("the owner cuts two lines, resets one, and the electrician sees the deal", 
   await expect(page.getByTestId("admin-order-discount")).toHaveText(formatPrice(cut - start));
   await checkA11y(page, testInfo, { touch: false });
 
-  await page.getByLabel("ملاحظة (تظهر لك فقط)").fill("مشروع كبير");
+  await page.getByTestId("price-note").fill("مشروع كبير");
   await page.getByTestId("save-prices").click();
   await expect(page.getByTestId("prices-saved")).toHaveText("حُفظت الأسعار.");
   await expect(editButton(page)).toBeFocused();

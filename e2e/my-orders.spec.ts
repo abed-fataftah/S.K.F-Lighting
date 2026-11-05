@@ -171,7 +171,8 @@ test("a customer follows their orders, what is still owed, and opens one", async
   await expect(page.getByTestId("my-order-money")).toHaveCount(0);
   await checkA11y(page, testInfo);
 
-  // AC-4: part paid, then fully paid; a cancelled order never shows a line.
+  // AC-4: part paid, then fully paid; a cancelled order shows only the money owed back (spec
+  // 0023 AC-13).
   await recordPayment(sql, newer, placed.total - 1_000);
   await page.reload();
   await expect(first.getByTestId("my-order-money")).toHaveText("المتبقي ₪10");
@@ -183,7 +184,7 @@ test("a customer follows their orders, what is still owed, and opens one", async
   await page.reload();
   const cancelled = card(page, older.number);
   await expect(cancelled.getByText("ملغي")).toBeVisible();
-  await expect(cancelled.getByTestId("my-order-money")).toHaveCount(0);
+  await expect(cancelled.getByTestId("my-order-money")).toHaveText("مبلغ يُعاد إليك ₪10");
 
   // AC-3: the card opens its order page.
   await page.getByRole("link", { name: `عرض الطلب ${newer.number}` }).click();
