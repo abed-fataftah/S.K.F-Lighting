@@ -10,6 +10,7 @@ import {
   drafts,
   orderLines,
   orders,
+  pages,
   productMedia,
   productVariants,
   products,
@@ -72,6 +73,7 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
         "order_events",
         "banners",
         "featured_products",
+        "pages",
       ]) {
         expect(byName.get(name), name).toBe(true);
       }
@@ -788,6 +790,53 @@ describe.skipIf(!hasLocalDb)("core schema on the local database", () => {
           [],
         );
       });
+    });
+  });
+
+  // covers: spec 0025 AC-5, AC-14
+  describe("settings and policies migration", () => {
+    it("refuses a zone fee above ₪500 or not in whole shekels, and keeps the seeded fees", async () => {
+      await withRollback(db, async (tx) => {
+        const [zone] = await tx.select().from(deliveryZones).limit(1);
+        for (const fee of [50100, 2050]) {
+          await expectViolation(tx, "delivery_zones_fee_range_check", (sp) =>
+            sp.update(deliveryZones).set({ fee }).where(eq(deliveryZones.id, zone.id)),
+          );
+        }
+        for (const fee of [0, 50000]) {
+          await tx.update(deliveryZones).set({ fee }).where(eq(deliveryZones.id, zone.id));
+        }
+      });
+    });
+
+    it("holds exactly the three policy slugs, each once", async () => {
+      await withRollback(db, async (tx) => {
+        await expectViolation(tx, "pages_slug_check", (sp) =>
+          sp.insert(pages).values({ slug: "about", title: "من نحن", body: "نص" }),
+        );
+        await expectViolation(tx, "pages_slug_unique", (sp) =>
+          sp.insert(pages).values({ slug: "terms", title: "نسخة", body: "نص" }),
+        );
+      });
+    });
+
+    it("seeds the three pages with Arabic drafts; returns asks within 7 days of delivery", async () => {
+      const seeded = await db.select().from(pages);
+      expect(seeded.map((p) => p.slug).sort()).toEqual(["privacy", "returns", "terms"]);
+      expect(seeded.every((p) => p.title && p.body.includes("## "))).toBe(true);
+      const returns = seeded.find((p) => p.slug === "returns")?.body ?? "";
+      expect(returns).toContain("خلال 7 أيام من تاريخ التوصيل");
+      expect(returns).toContain("علبته الأصلية");
+      expect(returns).toContain("رقم طلبك على واتساب");
+    });
+
+    it("has RLS on pages and grants nothing to anon or authenticated", async () => {
+      const grants = rows(
+        await db.execute(sql`
+          select 1 from information_schema.role_table_grants
+          where table_name = 'pages' and grantee in ('anon', 'authenticated')`),
+      );
+      expect(grants).toEqual([]);
     });
   });
 });

@@ -44,3 +44,19 @@ export const featuredProducts = pgTable("featured_products", {
   sort: integer("sort").notNull(),
   createdAt: createdAt(),
 }).enableRLS();
+
+// The three policy pages the owner writes in Arabic Markdown (spec 0025). The migration inserts them
+// with starter drafts; `version` goes up by 1 on every save, so a save sent with an older value is
+// `stale` (AC-11). Title and body length limits live in Zod only.
+export const pages = pgTable(
+  "pages",
+  {
+    id: id(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    version: integer("version").notNull().default(0),
+    ...timestamps(),
+  },
+  (t) => [check("pages_slug_check", sql`${t.slug} in ('privacy', 'terms', 'returns')`)],
+).enableRLS();
