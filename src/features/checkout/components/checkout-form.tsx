@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Ltr } from "@/components/ltr";
@@ -382,7 +383,27 @@ export function CheckoutForm({
           {pending ? t("submitting") : t("submit")}
         </Button>
         <p className="type-small text-muted">{t("note")}</p>
+        <p className="type-small text-muted" data-testid="checkout-policy-line">
+          {t.rich("policyLine", {
+            terms: (chunks) => <PolicyLink href={routes.terms}>{chunks}</PolicyLink>,
+            returns: (chunks) => <PolicyLink href={routes.returns}>{chunks}</PolicyLink>,
+          })}
+        </p>
       </Card>
     </form>
+  );
+}
+
+/**
+ * A policy under the send button (spec 0025 AC-12): a new tab keeps the typed form. The hidden
+ * words are part of the name, not an `aria-label`, so the visible text stays in it.
+ */
+function PolicyLink({ href, children }: { readonly href: string; readonly children: ReactNode }) {
+  const t = useTranslations("Checkout");
+  return (
+    <Link href={href} target="_blank" rel="noopener" className="font-bold text-ink underline">
+      {children}
+      <span className="sr-only"> {t("opensInNewTab")}</span>
+    </Link>
   );
 }
