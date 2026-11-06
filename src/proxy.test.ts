@@ -39,6 +39,8 @@ describe("proxy", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
+    vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost");
     supabase.refresh = false;
   });
 
@@ -178,6 +180,47 @@ describe("proxy", () => {
       expect(rewrittenTo(response)).toBeNull();
       expect(response.cookies.get("sb-auth")?.value).toBe("fresh");
     });
+  });
+});
+
+// covers: AC-2 (spec 0026)
+describe("indexing by host", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
+    vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://skf.example");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const paths = [
+    ["a storefront rewrite", "/"],
+    ["a locale redirect", "/ar"],
+    ["the dashboard", "/admin/orders"],
+    ["an auth callback", "/auth/confirm"],
+    ["the catalog count, which skips the session", "/api/catalog/count?q=ثريا"],
+    ["a broken order address", "/orders/%E0%A4%A"],
+  ] as const;
+
+  it.each(paths)("says noindex on %s off the production host", async (_label, path) => {
+    const response = await proxy(new NextRequest(`https://skf-pro.abc.workers.dev${path}`));
+
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow");
+  });
+
+  it.each(paths)("adds no robots header on %s on the production host", async (_label, path) => {
+    const response = await proxy(new NextRequest(`https://skf.example${path}`));
+
+    expect(response.headers.get("X-Robots-Tag")).toBeNull();
+  });
+
+  it("treats www as not production", async () => {
+    const response = await proxy(new NextRequest("https://www.skf.example/"));
+
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow");
   });
 });
 

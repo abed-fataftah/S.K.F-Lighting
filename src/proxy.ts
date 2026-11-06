@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { ADMIN_PATH_HEADER } from "@/features/admin-auth/next-path";
+import { isProductionHost, NOINDEX_HEADER } from "@/features/seo/indexing";
 import { routing } from "@/i18n/routing";
+import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { refreshSession } from "@/server/auth/proxy-session";
 
@@ -40,7 +42,7 @@ function isBrokenOrderPath(pathname: string) {
   }
 }
 
-export async function proxy(request: NextRequest) {
+async function route(request: NextRequest): Promise<NextResponse> {
   if (isBrokenOrderPath(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL(routes.orderTrack, request.url), 307);
   }
@@ -52,6 +54,16 @@ export async function proxy(request: NextRequest) {
     : handleI18nRouting(request);
 
   return applySession(response);
+}
+
+// Off the production host (a `workers.dev` or branch preview) every answer says do not index,
+// whichever path above produced it (spec 0026 AC-2).
+export async function proxy(request: NextRequest) {
+  const response = await route(request);
+  if (!isProductionHost(request.nextUrl.host, parsePublicEnv().siteUrl)) {
+    response.headers.set(NOINDEX_HEADER.name, NOINDEX_HEADER.value);
+  }
+  return response;
 }
 
 export const config = {
