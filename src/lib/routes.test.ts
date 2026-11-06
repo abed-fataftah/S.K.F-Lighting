@@ -179,3 +179,25 @@ describe("account routes", () => {
     expect(routes.accountOrdersMore(1, 1)).toBe("/account/orders#o-1");
   });
 });
+
+// spec 0024 AC-2, AC-9
+describe("routes.admin reports", () => {
+  it("writes no query for this month, the preset otherwise, and days only for custom", () => {
+    expect(routes.admin.reportsFor({ range: "month", from: "2026-11-01", to: "2026-11-06" })).toBe(
+      "/admin/reports",
+    );
+    expect(routes.admin.reportsFor({ range: "7d", from: "2026-10-31", to: "2026-11-06" })).toBe(
+      "/admin/reports?range=7d",
+    );
+    expect(routes.admin.reportsFor({ range: "custom" })).toBe("/admin/reports?range=custom");
+    expect(routes.admin.reportsFor({ range: "custom", from: "2026-03-02", to: "2026-04-10" })).toBe(
+      "/admin/reports?range=custom&from=2026-03-02&to=2026-04-10",
+    );
+  });
+
+  it("exports the resolved days", () => {
+    expect(routes.admin.reportsExport({ from: "2026-11-01", to: "2026-11-06" })).toBe(
+      "/admin/reports/export?from=2026-11-01&to=2026-11-06",
+    );
+  });
+});

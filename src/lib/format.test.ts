@@ -12,6 +12,8 @@ import {
   shopDateKey,
   shopDayStart,
   formatDayKey,
+  formatDayShort,
+  formatMonthKey,
 } from "./format";
 import { formatPrice } from "./money";
 
@@ -213,5 +215,30 @@ describe("formatDayKey", () => {
   it("shows a date column as the shop's day, in summer and winter", () => {
     expect(formatDayKey("2026-01-15")).toBe("15/01/2026");
     expect(formatDayKey("2026-07-15")).toBe("15/07/2026");
+  });
+});
+
+// spec 0024 AC-6, AC-14: the chart's axis labels.
+describe("formatDayShort", () => {
+  it("writes day/month without leading zeros", () => {
+    expect(formatDayShort("2026-11-05")).toBe("5/11");
+    expect(formatDayShort("2026-03-28")).toBe("28/3");
+  });
+
+  it("refuses a key that is not a real day", () => {
+    expect(() => formatDayShort("2026-02-30")).toThrow(RangeError);
+  });
+});
+
+describe("formatMonthKey", () => {
+  it("writes month/year", () => {
+    expect(formatMonthKey("2026-11")).toBe("11/2026");
+    expect(formatMonthKey("2027-01")).toBe("1/2027");
+  });
+
+  it("refuses anything but a month key", () => {
+    for (const key of ["2026-13", "2026-00", "2026-11-05", "11/2026"]) {
+      expect(() => formatMonthKey(key)).toThrow(RangeError);
+    }
   });
 });

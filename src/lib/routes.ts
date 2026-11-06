@@ -6,6 +6,7 @@ import {
   type ListFilters,
 } from "@/features/catalog/list-filters";
 import { orderFiltersToParams, type OrderFilters } from "@/features/orders/admin-filters";
+import type { ReportDays, ReportRange } from "@/features/reports/period";
 
 const segment = (value: string) => encodeURIComponent(value);
 
@@ -131,6 +132,23 @@ export const routes = {
     customerOrdersMore: (id: string, page: number, position: number) =>
       `${withQuery(`/admin/customers/${segment(id)}`, page > 1 ? `page=${page}` : "")}#o-${position}`,
     reports: "/admin/reports",
+    /** The report on a period (spec 0024 AC-2): `month` writes no query; days only for `custom`. */
+    reportsFor: (period: {
+      readonly range: ReportRange;
+      readonly from?: string;
+      readonly to?: string;
+    }) => {
+      if (period.range === "month") return "/admin/reports";
+      const params = new URLSearchParams({ range: period.range });
+      if (period.range === "custom") {
+        if (period.from) params.set("from", period.from);
+        if (period.to) params.set("to", period.to);
+      }
+      return `/admin/reports?${params.toString()}`;
+    },
+    /** The period's orders as CSV (spec 0024 AC-9): always the resolved days, never a preset. */
+    reportsExport: (days: ReportDays) =>
+      `/admin/reports/export?${new URLSearchParams({ from: days.from, to: days.to }).toString()}`,
     products: "/admin/products",
     /** The products list with its filters (spec 0006 AC-1); empty values and page 1 stay out. */
     productsList: (filters: {

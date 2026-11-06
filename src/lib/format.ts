@@ -136,6 +136,22 @@ export function formatDayKey(key: string): string {
   return formatDate(shopDayStart(key));
 }
 
+/** A shop day key as a short chart label (spec 0024 AC-6): `2026-11-05` reads `5/11`. */
+export function formatDayShort(key: string): string {
+  const [, month, day] = partsOrThrow(key);
+  return `${day}/${month}`;
+}
+
+const MONTH_KEY = /^(\d{4})-(\d{2})$/;
+
+/** A month key `YYYY-MM` as a chart label (spec 0024 AC-6): `2026-11` reads `11/2026`. */
+export function formatMonthKey(key: string): string {
+  const match = MONTH_KEY.exec(key);
+  const month = match ? Number(match[2]) : 0;
+  if (!match || month < 1 || month > 12) throw new RangeError(`Not a month key: ${key}`);
+  return `${month}/${match[1]}`;
+}
+
 /** `1,250`, `-3`. Whole numbers only: quantities, counts, KPIs. Money goes through `formatPrice`. */
 export function formatNumber(n: number): string {
   if (!Number.isSafeInteger(n)) throw new RangeError(`formatNumber needs a safe integer, got ${n}`);
