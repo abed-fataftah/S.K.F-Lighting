@@ -47,7 +47,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 24 | Payments & balances | Slice 7 | in-progress |
 | 25 | Homepage, banners & featured products | Slice 8 | in-progress |
 | 26 | Shop settings & policy pages | Slice 8 | planned |
-| 27 | Sales reports | Slice 8 | planned |
+| 27 | Sales reports | Slice 8 | in-progress |
 | 28 | Search engine visibility | Slice 8 | planned |
 | 29 | Visitor stats & error alerts | Slice 8 | planned |
 | 30 | Go live | Launch | planned |

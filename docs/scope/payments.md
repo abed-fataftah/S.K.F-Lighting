@@ -22,7 +22,16 @@ Spec: [0023](../specs/0023-payments-balances/index.md) · code in `src/features/
 
 ## Slice 8: Reports
 
-### 27. Sales reports · needs a decision
+### 27. Sales reports · in-progress
 How many orders came through the website and the total sales from them (sales, not profit), by date range.
 **Done when:** the dashboard shows order count and total sales for a chosen period, and the spec states exactly how cancellations, returns, partial payments, and delivery fees are counted.
-- [ ] Design it (spec): `/architect sales reports`
+Spec: [0024](../specs/0024-sales-reports/index.md) · code in `src/features/reports/`
+- [x] Design it (spec): `/architect sales reports`
+- [x] Build it: `/develop sales reports`
+  - [x] Thin thread: the counting rule in `salesSummaryInDb`, preset chips, range line, and the four KPI cards on real orders (AC-1, AC-2, AC-4, AC-5, AC-10)
+  - [x] Custom range: the date form, every field error, this month shown on error (AC-2, AC-3)
+  - [x] Chart, top products, and empty state: day and month bars with a text alternative, top 10 products (AC-4, AC-6, AC-7, AC-8)
+  - [x] Export: the CSV route with auth, checks, formula guard, and logs (AC-9, AC-12)
+  - [x] Finish: loading and error states, layout at 390 and 1280, keyboard, axe, remaining tests (AC-11, AC-13, AC-14)
+- [ ] Verify it: `/check verify sales reports`
+- [ ] Test it: `/test sales reports`
