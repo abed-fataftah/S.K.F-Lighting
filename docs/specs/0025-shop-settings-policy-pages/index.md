@@ -1,7 +1,7 @@
 # 0025. Shop settings and policy pages
 
 **Date**: 2026-11-06
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
