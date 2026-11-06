@@ -16,12 +16,12 @@ export default defineConfig({
     {
       name: "phone",
       use: { ...devices["Pixel 7"] },
-      testIgnore: /(rate-limit|homepage)\.spec\.ts/,
+      testIgnore: /(rate-limit|homepage|shop-settings)\.spec\.ts/,
     },
     {
       name: "desktop",
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
-      testIgnore: /(rate-limit|homepage)\.spec\.ts/,
+      testIgnore: /(rate-limit|homepage|shop-settings)\.spec\.ts/,
     },
     // After them, alone: it changes Home's banners and featured products, which other flows read
     // (spec 0011 AC-16), and puts them back when it ends.
@@ -31,12 +31,20 @@ export default defineConfig({
       testMatch: /homepage\.spec\.ts/,
       dependencies: ["phone", "desktop"],
     },
+    // After Home, alone: it changes the WhatsApp number, the delivery zones, and the policy pages
+    // every flow reads (spec 0025), and puts them back when it ends.
+    {
+      name: "settings",
+      use: { ...devices["Pixel 7"] },
+      testMatch: /shop-settings\.spec\.ts/,
+      dependencies: ["homepage"],
+    },
     // Last, alone: its submits spend the order allowance of the shared local IP (spec 0004 AC-10).
     {
       name: "rate-limit",
       use: { ...devices["Pixel 7"] },
       testMatch: /rate-limit\.spec\.ts/,
-      dependencies: ["homepage"],
+      dependencies: ["settings"],
     },
   ],
   webServer: {
