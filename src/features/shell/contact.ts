@@ -3,9 +3,18 @@
 // (spec 0025 AC-3), which the line ignores.
 export type ContactLine = { readonly phone: string | null; readonly address: string | null };
 
-export type ShopContact = ContactLine & { readonly whatsappNumber: string | null };
+export type ShopContact = ContactLine & {
+  readonly whatsappNumber: string | null;
+  /** The name Home's `Store` block publishes (spec 0026 AC-9). */
+  readonly shopName: string | null;
+};
 
-export const noContact: ShopContact = { phone: null, address: null, whatsappNumber: null };
+export const noContact: ShopContact = {
+  phone: null,
+  address: null,
+  whatsappNumber: null,
+  shopName: null,
+};
 
 export function contactLine(contact: ContactLine): ContactLine | null {
   const phone = contact.phone?.trim() || null;

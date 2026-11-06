@@ -117,7 +117,11 @@ export function buildNavigation(
     .filter((main) => main.productCount > 0);
 }
 
-export type PageCategory = NavCategory & { readonly description: string | null };
+export type PageCategory = NavCategory & {
+  readonly description: string | null;
+  /** Only a main ever has one; a sub page shares with its main's (spec 0026 AC-7). */
+  readonly imageKey: string | null;
+};
 
 export type CategoryPageScope = {
   readonly main: PageCategory;

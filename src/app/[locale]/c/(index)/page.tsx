@@ -7,6 +7,7 @@ import { PageErrorState } from "@/components/error-state";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getNavigation } from "@/features/catalog/server/queries";
+import { shareMetadata, shopImage } from "@/features/seo/share";
 import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
@@ -18,12 +19,25 @@ import { withTimeLimit } from "@/server/db/time-limit";
 const CATEGORIES_READ_TIMEOUT_MS = 3000;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [t, meta] = await Promise.all([getTranslations("Categories"), getTranslations("Metadata")]);
+  const [t, meta, seo] = await Promise.all([
+    getTranslations("Categories"),
+    getTranslations("Metadata"),
+    getTranslations("Seo"),
+  ]);
   const { siteUrl } = parsePublicEnv();
+  const canonical = `${siteUrl}${routes.categories}`;
   return {
     title: t("metaTitle"),
     description: meta("description"),
-    alternates: { canonical: `${siteUrl}${routes.categories}` },
+    alternates: { canonical },
+    // The share title is the page's heading, with no site suffix (spec 0026 AC-5, AC-11).
+    ...shareMetadata({
+      siteName: meta("title"),
+      title: t("title"),
+      description: meta("description"),
+      canonical,
+      image: shopImage(siteUrl, seo("shopImageAlt")),
+    }),
   };
 }
 

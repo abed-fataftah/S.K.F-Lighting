@@ -8,8 +8,11 @@ import { FilterChipLink } from "@/features/catalog/components/filter-chip-link";
 import { PolicyBody } from "@/features/policies/components/policy-body";
 import { getPolicyPage } from "@/features/policies/server/queries";
 import { isPolicySlug, policySlugs } from "@/features/policies/slugs";
+import { shareMetadata, shopImage } from "@/features/seo/share";
+import { stripMarkdown, summarize } from "@/features/seo/summary";
 import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { formatDate } from "@/lib/format";
+import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 
@@ -21,9 +24,29 @@ async function loadPage(slug: string) {
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/policies/[slug]">): Promise<Metadata> {
-  const [{ slug }, t] = await Promise.all([params, getTranslations("PageTitles")]);
+  const [{ slug }, t, meta, seo] = await Promise.all([
+    params,
+    getTranslations("PageTitles"),
+    getTranslations("Metadata"),
+    getTranslations("Seo"),
+  ]);
   const page = await loadPage(slug);
-  return { title: t("policy", { title: page.title }) };
+  const { siteUrl } = parsePublicEnv();
+  // The body as plain words, cut like a product's (spec 0026 AC-10).
+  const description = summarize(stripMarkdown(page.body)) ?? meta("description");
+  const canonical = `${siteUrl}${routes.policy(page.slug)}`;
+  return {
+    title: t("policy", { title: page.title }),
+    description,
+    alternates: { canonical },
+    ...shareMetadata({
+      siteName: meta("title"),
+      title: page.title,
+      description,
+      canonical,
+      image: shopImage(siteUrl, seo("shopImageAlt")),
+    }),
+  };
 }
 
 // A policy page (spec 0025 AC-8, AC-13; docs/design/pages/policies.md): the owner's title and

@@ -6,7 +6,8 @@ import { shopSettings } from "@/server/db/schema";
 import { withTimeLimit } from "@/server/db/time-limit";
 import { contactLine, noContact, type ShopContact } from "../contact";
 
-// The footer's contact details (spec 0003, AC-15) and the WhatsApp number (spec 0025 AC-3, AC-4).
+// The footer's contact details (spec 0003, AC-15), the WhatsApp number (spec 0025 AC-3, AC-4), and
+// the shop's name for Home's `Store` block (spec 0026 AC-9).
 // Public shop data, never customer data.
 // A failed or slow read (over 1.5 seconds) gives nulls, so the footer hides the line and
 // the page still renders. Logs say what went wrong, never the values.
@@ -36,6 +37,7 @@ export const getShopContact = cache(() =>
         phone: shopSettings.contactPhone,
         address: shopSettings.address,
         whatsappNumber: shopSettings.whatsappNumber,
+        shopName: shopSettings.shopName,
       })
       .from(shopSettings)
       .limit(1);

@@ -141,7 +141,6 @@ export async function readHomeProducts(db: Db): Promise<readonly CardProduct[]> 
 export type TreeCategory = PageCategory & {
   readonly showOnHome: boolean;
   readonly homeSubtitle: string | null;
-  readonly imageKey: string | null;
 };
 
 export type CatalogTree = {
@@ -217,7 +216,8 @@ type PageHead = {
  * page starts streaming; the products then load under the page's own Suspense boundary.
  */
 export type CategoryHead = {
-  readonly main: PageHead;
+  /** With its photo, the share image of both a main and a sub page (spec 0026 AC-7). */
+  readonly main: PageHead & { readonly imageKey: string | null };
   readonly sub: PageHead | null;
   readonly navSubs: readonly NavSub[];
   readonly chipSubs: readonly NavSub[];
@@ -245,7 +245,7 @@ export function readCategoryHead(
   const scope = resolveCategoryPage(tree.categories, tree.listed, mainSlug, subSlug);
   if (!scope) return null;
   return {
-    main: head(scope.main),
+    main: { ...head(scope.main), imageKey: scope.main.imageKey },
     sub: scope.sub ? head(scope.sub) : null,
     navSubs: scope.navSubs,
     chipSubs: scope.chipSubs,

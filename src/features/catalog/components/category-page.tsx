@@ -15,6 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
+import { categoryShareImage, shareMetadata, shopImage } from "@/features/seo/share";
 import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
@@ -22,6 +23,7 @@ import { parsePage } from "@/lib/paging";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { supabaseEnv } from "@/server/auth/env";
 import { withTimeLimit } from "@/server/db/time-limit";
 import {
   appliedChips,
@@ -104,7 +106,11 @@ export async function categoryMetadata(address: Address): Promise<Metadata> {
   if (!result.ok || !result.data) return {};
   const data = result.data;
   const current = data.sub ?? data.main;
-  const [t, meta] = await Promise.all([getTranslations("Categories"), getTranslations("Metadata")]);
+  const [t, meta, seo] = await Promise.all([
+    getTranslations("Categories"),
+    getTranslations("Metadata"),
+    getTranslations("Seo"),
+  ]);
   const { siteUrl } = parsePublicEnv();
   const unfiltered = `${siteUrl}${routes.categoryPage(data.main.slug, data.sub?.slug ?? null)}`;
   // A filter counts once resolved (spec 0010 AC-8); when the list read fails, the address decides.
@@ -112,16 +118,32 @@ export async function categoryMetadata(address: Address): Promise<Metadata> {
     ? await loadCategoryList(address.main, address.sub, page, query)
     : null;
   const filtered = list?.ok ? isFiltered(list.data.filters) : isFiltered(parsed);
+  const description = current.description ?? meta("description");
   return {
     title: t("pageTitle", { name: current.name }),
-    description: current.description ?? meta("description"),
+    description,
     // A filtered list points at the unfiltered page 1 (spec 0010 AC-14). Pages 2 and up repeat
-    // page 1 with more cards. Both stay out of the index, their links still followed.
+    // page 1 with more cards. Both stay out of the index, their links still followed, and keep
+    // the layout's share tags; only the indexable page 1 has its own (spec 0026 AC-5, AC-7).
     ...(filtered
       ? { robots: { index: false, follow: true }, alternates: { canonical: unfiltered } }
       : page > 1
         ? { robots: { index: false, follow: true } }
-        : { alternates: { canonical: unfiltered } }),
+        : {
+            alternates: { canonical: unfiltered },
+            ...shareMetadata({
+              siteName: meta("title"),
+              title: current.name,
+              description,
+              canonical: unfiltered,
+              image: categoryShareImage({
+                mainImageKey: data.main.imageKey,
+                name: current.name,
+                supabaseUrl: supabaseEnv().url,
+                shop: shopImage(siteUrl, seo("shopImageAlt")),
+              }),
+            }),
+          }),
   };
 }
 

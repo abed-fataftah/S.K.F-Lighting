@@ -20,7 +20,12 @@ describe("readShopContact", () => {
   });
 
   it("returns the phone, address, and WhatsApp number the read gives", async () => {
-    const contact = { phone: "0599 123 456", address: "نابلس", whatsappNumber: "970599123456" };
+    const contact = {
+      phone: "0599 123 456",
+      address: "نابلس",
+      whatsappNumber: "970599123456",
+      shopName: "S.K.F Lighting",
+    };
     await expect(readShopContact(async () => contact)).resolves.toEqual(contact);
   });
 
@@ -29,7 +34,7 @@ describe("readShopContact", () => {
       throw new Error("connection refused for 0599 123 456");
     });
 
-    expect(result).toEqual({ phone: null, address: null, whatsappNumber: null });
+    expect(result).toEqual({ phone: null, address: null, whatsappNumber: null, shopName: null });
     const logged = JSON.stringify(vi.mocked(console.error).mock.calls);
     expect(logged).not.toContain("0599");
   });
@@ -45,7 +50,12 @@ describe("readShopContact", () => {
     expect(settled).toBe(false);
 
     await vi.advanceTimersByTimeAsync(1);
-    await expect(pending).resolves.toEqual({ phone: null, address: null, whatsappNumber: null });
+    await expect(pending).resolves.toEqual({
+      phone: null,
+      address: null,
+      whatsappNumber: null,
+      shopName: null,
+    });
     expect(CONTACT_TIMEOUT_MS).toBe(1500);
   });
 
@@ -74,7 +84,7 @@ describe("readShopContact", () => {
   it("logs unknown when the read rejects with something that is not an Error", async () => {
     const result = await readShopContact(() => Promise.reject("0599 123 456"));
 
-    expect(result).toEqual({ phone: null, address: null, whatsappNumber: null });
+    expect(result).toEqual({ phone: null, address: null, whatsappNumber: null, shopName: null });
     expect(console.error).toHaveBeenCalledWith("getShopContact: read failed", {
       error: "unknown",
     });

@@ -11,6 +11,7 @@ import {
 import type { ZoneFee } from "@/features/home/fees";
 import type { HomeCircle } from "@/features/home/home-rules";
 import type { HomeSections } from "@/features/home/server/home";
+import { noContact, type ShopContact } from "@/features/shell/contact";
 import ar from "@/i18n/messages/ar.json";
 
 // Home's reads are the boundary: each test decides how they answer.
@@ -20,9 +21,12 @@ const getDeliveryFees = vi.fn<() => Promise<readonly ZoneFee[] | null>>();
 const getShopAddress = vi.fn<() => Promise<string | null>>();
 vi.mock("@/features/home/server/home", () => ({ getHomeSections, getDeliveryFees }));
 const canAddToDraft = vi.fn<() => Promise<boolean>>(async () => false);
+const getShopContact = vi.fn<() => Promise<ShopContact>>(async () => noContact);
 vi.mock("@/features/shell/server/shop-contact", () => ({
   getShopAddress,
+  getShopContact,
   getWhatsappNumber: async () => "970500000000",
+  pickWhatsappNumber: (saved: string | null) => saved || "970500000000",
 }));
 vi.mock("@/features/drafts/server/guard", () => ({ canAddToDraft }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
@@ -34,7 +38,7 @@ vi.mock("next-intl/server", () => ({
     (ar[namespace] as Record<string, string>)[key],
 }));
 
-const { default: HomePage } = await import("./page");
+const { default: HomePage, generateMetadata } = await import("./page");
 
 type Props = {
   children?: ReactNode;
@@ -155,5 +159,74 @@ describe("home page", () => {
     answer({}, null);
 
     expect(find(await HomePage(), TrustSection)?.props.zoneLine).toBeNull();
+  });
+});
+
+type ScriptProps = { readonly dangerouslySetInnerHTML?: { readonly __html: string } };
+const storeBlocks = (page: ReactNode) =>
+  findAll(page, (el) => el.type === "script").map((el) =>
+    JSON.parse((el.props as ScriptProps).dangerouslySetInnerHTML!.__html),
+  );
+
+// covers: AC-8, AC-9 (spec 0026)
+describe("home for search engines", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("carries one Store block with the saved name, number, and trimmed street line", async () => {
+    answer({});
+    getShopContact.mockResolvedValueOnce({
+      phone: null,
+      address: "  شارع السلام  ",
+      whatsappNumber: "970599123456",
+      shopName: "S.K.F Lighting",
+    });
+
+    const blocks = storeBlocks(await HomePage());
+
+    expect(blocks).toEqual([
+      {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        name: "S.K.F Lighting",
+        url: "http://localhost:3000/",
+        logo: "http://localhost:3000/brand/logo.png",
+        image: "http://localhost:3000/brand/share.png",
+        telephone: "+970599123456",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "شارع السلام",
+          addressLocality: ar.Seo.town,
+          addressCountry: "PS",
+        },
+      },
+    ]);
+  });
+
+  it("keeps a reduced block when the contact read failed", async () => {
+    answer({});
+
+    const [block] = storeBlocks(await HomePage());
+
+    expect(block.name).toBe(ar.Metadata.title);
+    expect(block.telephone).toBe("+970500000000");
+    expect(block.address).toEqual({
+      "@type": "PostalAddress",
+      addressLocality: ar.Seo.town,
+      addressCountry: "PS",
+    });
+  });
+
+  it("names the town in its own title, description, and share tags", async () => {
+    const meta = await generateMetadata();
+
+    expect(meta.title).toBe(ar.Seo.homeTitle);
+    expect(meta.description).toBe(ar.Seo.homeDescription);
+    expect(meta.alternates?.canonical).toBe("http://localhost:3000/");
+    expect(meta.openGraph).toMatchObject({
+      title: ar.Seo.homeTitle,
+      url: "http://localhost:3000/",
+      siteName: ar.Metadata.title,
+      images: [{ url: "http://localhost:3000/brand/share.png", alt: ar.Seo.shopImageAlt }],
+    });
   });
 });
