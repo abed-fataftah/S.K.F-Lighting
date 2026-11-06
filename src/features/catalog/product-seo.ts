@@ -1,19 +1,12 @@
+import { summarize } from "@/features/seo/summary";
 import { toShekelsInput } from "@/lib/money";
 import type { ProductOptions } from "./product-view";
 
 // The product page for search engines (spec 0009 AC-15): the meta description and the `Product`
 // JSON-LD with one `Offer`, or an `AggregateOffer` when the counted variants differ in price.
 
-const SUMMARY_LENGTH = 155;
-
-/** The description with whitespace collapsed, cut to 155 code points; null when there is none. */
-export function productSummary(text: string | null): string | null {
-  const collapsed = (text ?? "").replace(/\s+/g, " ").trim();
-  return collapsed ? Array.from(collapsed).slice(0, SUMMARY_LENGTH).join("") : null;
-}
-
 export function metaDescription(text: string | null, fallback: string): string {
-  return productSummary(text) ?? fallback;
+  return summarize(text) ?? fallback;
 }
 
 const IN_STOCK = "https://schema.org/InStock";
@@ -56,7 +49,7 @@ export function productJsonLd(product: {
   readonly options: ProductOptions;
   readonly inStock: boolean;
 }) {
-  const description = productSummary(product.description);
+  const description = summarize(product.description);
   const offer = offers(product.options, product.inStock, product.url);
   return {
     "@context": "https://schema.org",

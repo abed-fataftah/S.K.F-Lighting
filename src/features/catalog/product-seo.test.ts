@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { metaDescription, productJsonLd, productSummary } from "./product-seo";
+import { metaDescription, productJsonLd } from "./product-seo";
 import type { ProductOptions } from "./product-view";
 
 // covers: AC-15, AC-19 (spec 0009)
@@ -20,12 +20,6 @@ const base = {
 };
 
 describe("the meta description", () => {
-  it("collapses whitespace and cuts at 155 code points", () => {
-    expect(productSummary("  ثريا\n\nكريستال \t كبيرة ")).toBe("ثريا كريستال كبيرة");
-    const long = "😀".repeat(200);
-    expect(Array.from(productSummary(long)!)).toHaveLength(155);
-  });
-
   it("falls back when there is no description", () => {
     expect(metaDescription(null, "ثريات")).toBe("ثريات");
     expect(metaDescription("   ", "ثريات")).toBe("ثريات");

@@ -28,6 +28,7 @@ import { breadcrumbJsonLd, serializeJsonLd } from "@/features/catalog/seo";
 import { getProductPage } from "@/features/catalog/server/queries";
 import { ProductAddToDraft } from "@/features/drafts/components/product-add-to-draft";
 import { canAddToDraft } from "@/features/drafts/server/guard";
+import { productShareImage, shareMetadata, shopImage } from "@/features/seo/share";
 import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
@@ -54,13 +55,32 @@ export async function generateMetadata({
 }: PageProps<"/[locale]/p/[slug]">): Promise<Metadata> {
   const product = await loadProduct((await params).slug);
   if (!product) return {};
-  const [t, meta] = await Promise.all([getTranslations("PageTitles"), getTranslations("Metadata")]);
+  const [t, meta, catalog, seo] = await Promise.all([
+    getTranslations("PageTitles"),
+    getTranslations("Metadata"),
+    getTranslations("Catalog"),
+    getTranslations("Seo"),
+  ]);
   const { siteUrl } = parsePublicEnv();
+  const description = metaDescription(product.description, meta("description"));
+  // Always the bare page, also when the address carries `?v` (AC-15, spec 0026 AC-14).
+  const canonical = `${siteUrl}${routes.product(product.slug)}`;
   return {
     title: t("product", { name: product.name }),
-    description: metaDescription(product.description, meta("description")),
-    // Always the bare page, also when the address carries `?v` (AC-15).
-    alternates: { canonical: `${siteUrl}${routes.product(product.slug)}` },
+    description,
+    alternates: { canonical },
+    ...shareMetadata({
+      siteName: meta("title"),
+      title: product.name,
+      description,
+      canonical,
+      image: productShareImage({
+        photo: product.photos[0] ?? null,
+        supabaseUrl: supabaseEnv().url,
+        fallbackAlt: catalog("photoAlt", { name: product.name, n: formatNumber(1) }),
+        shop: shopImage(siteUrl, seo("shopImageAlt")),
+      }),
+    }),
   };
 }
 

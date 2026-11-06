@@ -19,7 +19,12 @@ vi.mock("next/font/google", () => ({
 // The shell's server reads: no database in a unit test.
 vi.mock("server-only", () => ({}));
 vi.mock("@/features/shell/server/shop-contact", () => ({
-  getShopContact: async () => ({ phone: null, address: null, whatsappNumber: null }),
+  getShopContact: async () => ({
+    phone: null,
+    address: null,
+    whatsappNumber: null,
+    shopName: null,
+  }),
   pickWhatsappNumber: (saved: string | null) => saved ?? "970500000000",
 }));
 vi.mock("@/features/cart/server/queries", () => ({ readCartCount: async () => 0 }));
@@ -106,7 +111,25 @@ describe("storefront metadata", () => {
   it("uses the Arabic shop name and description", async () => {
     const metadata = await generateMetadata(props("ar"));
 
-    expect(metadata).toEqual({ title: ar.Metadata.title, description: ar.Metadata.description });
+    expect(metadata).toMatchObject({
+      title: ar.Metadata.title,
+      description: ar.Metadata.description,
+    });
+  });
+
+  // covers: AC-5 (spec 0026)
+  it("gives every page the shop image, site name, locale, and card to share with", async () => {
+    const metadata = await generateMetadata(props("ar"));
+    const image = { url: "http://localhost:3000/brand/share.png", alt: ar.Seo.shopImageAlt };
+
+    expect(String(metadata.metadataBase)).toBe("http://localhost:3000/");
+    expect(metadata.openGraph).toEqual({
+      type: "website",
+      siteName: ar.Metadata.title,
+      locale: "ar_AR",
+      images: [image],
+    });
+    expect(metadata.twitter).toEqual({ card: "summary_large_image", images: [image] });
   });
 
   it("returns no metadata for an unknown locale instead of throwing", async () => {

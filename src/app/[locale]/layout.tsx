@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { HtmlDocument } from "@/components/html-document";
 import { SkipLink } from "@/components/skip-link";
 import { readCartCount } from "@/features/cart/server/queries";
+import { defaultShareMetadata, shopImage } from "@/features/seo/share";
 import { listNavigation } from "@/features/catalog/server/queries";
 import { buildStripText } from "@/features/home/fees";
 import { getDeliveryFees } from "@/features/home/server/home";
@@ -15,12 +16,26 @@ import { SiteHeader } from "@/features/shell/components/site-header";
 import { WhatsAppFab } from "@/features/shell/components/whatsapp-fab";
 import { getShopContact, pickWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { routing } from "@/i18n/routing";
+import { parsePublicEnv } from "@/lib/public-env";
 
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
-  const t = await getTranslations({ locale, namespace: "Metadata" });
-  return { title: t("title"), description: t("description") };
+  const [t, seo] = await Promise.all([
+    getTranslations({ locale, namespace: "Metadata" }),
+    getTranslations({ locale, namespace: "Seo" }),
+  ]);
+  const { siteUrl } = parsePublicEnv();
+  // Every storefront page shares with the shop image unless it sets its own (spec 0026 AC-5).
+  return {
+    metadataBase: new URL(siteUrl),
+    title: t("title"),
+    description: t("description"),
+    ...defaultShareMetadata({
+      siteName: t("title"),
+      image: shopImage(siteUrl, seo("shopImageAlt")),
+    }),
+  };
 }
 
 // The storefront shell (spec 0003, AC-11): one centered 480px column on the page colour.
