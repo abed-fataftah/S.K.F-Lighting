@@ -177,7 +177,8 @@ test("home names the town, shares the shop image, and carries one Store block", 
   expectFullSet(tags);
   expect(tags.title).toBe(ar.Seo.homeTitle);
   expect(tags.description).toBe(ar.Seo.homeDescription);
-  expect(tags.canonical).toBe(`${configuredSite}/`);
+  // Next writes the root address without its trailing slash; both are the same URL.
+  expect(new URL(tags.canonical ?? "").href).toBe(`${configuredSite}/`);
   expect(tags.ogImage).toBe(`${configuredSite}/brand/share.png`);
   expect(tags.ogImageAlt).toBe(ar.Seo.shopImageAlt);
 
