@@ -12,10 +12,12 @@ const { assertDesignSystemPageOn } = await import("./gate");
 // covers: AC-19 (spec 0003): the gallery returns 404 unless the flag is on.
 describe("design system gallery gate", () => {
   it("shows the not found page when the flag is off", () => {
-    expect(() => assertDesignSystemPageOn({ designSystemPage: false })).toThrow("NEXT_NOT_FOUND");
+    expect(() => assertDesignSystemPageOn({ designSystemPage: false, cf: null })).toThrow(
+      "NEXT_NOT_FOUND",
+    );
   });
 
   it("lets the page render when the flag is on", () => {
-    expect(() => assertDesignSystemPageOn({ designSystemPage: true })).not.toThrow();
+    expect(() => assertDesignSystemPageOn({ designSystemPage: true, cf: null })).not.toThrow();
   });
 });

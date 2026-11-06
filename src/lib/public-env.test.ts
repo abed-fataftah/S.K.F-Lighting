@@ -11,7 +11,12 @@ const env = (overrides: Record<string, string | undefined>) => ({
 // covers: AC-17 (spec 0003): a missing or malformed WhatsApp number fails the parse.
 describe("parsePublicEnv: WhatsApp number", () => {
   it("accepts digits with the country code", () => {
-    expect(parsePublicEnv(env({}))).toEqual({ whatsappNumber: "970500000000", siteUrl: SITE });
+    expect(parsePublicEnv(env({}))).toEqual({
+      whatsappNumber: "970500000000",
+      siteUrl: SITE,
+      sentryDsn: null,
+      cfBeaconToken: null,
+    });
   });
 
   it.each(["12345678", "123456789012345"])("accepts the edge length %s", (number) => {
@@ -51,4 +56,37 @@ describe("parsePublicEnv: site URL", () => {
       );
     },
   );
+});
+
+// covers: AC-6, AC-13 (spec 0027): both monitoring values are optional, and empty means off.
+describe("parsePublicEnv: Sentry DSN and beacon token", () => {
+  const DSN = "https://abc123@o1.ingest.sentry.io/42";
+
+  it("reads both when set", () => {
+    const parsed = parsePublicEnv(
+      env({ NEXT_PUBLIC_SENTRY_DSN: DSN, NEXT_PUBLIC_CF_BEACON_TOKEN: "a1b2c3d4e5" }),
+    );
+    expect(parsed.sentryDsn).toBe(DSN);
+    expect(parsed.cfBeaconToken).toBe("a1b2c3d4e5");
+  });
+
+  it.each([undefined, ""])("reads %j as off", (value) => {
+    const parsed = parsePublicEnv(
+      env({ NEXT_PUBLIC_SENTRY_DSN: value, NEXT_PUBLIC_CF_BEACON_TOKEN: value }),
+    );
+    expect(parsed.sentryDsn).toBeNull();
+    expect(parsed.cfBeaconToken).toBeNull();
+  });
+
+  it("rejects a DSN that is not a URL", () => {
+    expect(() => parsePublicEnv(env({ NEXT_PUBLIC_SENTRY_DSN: "abc123" }))).toThrow(
+      /NEXT_PUBLIC_SENTRY_DSN/,
+    );
+  });
+
+  it("rejects a beacon token with a script in it", () => {
+    expect(() => parsePublicEnv(env({ NEXT_PUBLIC_CF_BEACON_TOKEN: '"><script>' }))).toThrow(
+      /NEXT_PUBLIC_CF_BEACON_TOKEN/,
+    );
+  });
 });
