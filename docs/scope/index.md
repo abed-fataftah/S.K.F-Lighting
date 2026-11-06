@@ -46,7 +46,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 23 | Electrician price adjustments | Slice 6 | in-progress |
 | 24 | Payments & balances | Slice 7 | in-progress |
 | 25 | Homepage, banners & featured products | Slice 8 | in-progress |
-| 26 | Shop settings & policy pages | Slice 8 | planned |
+| 26 | Shop settings & policy pages | Slice 8 | in-progress |
 | 27 | Sales reports | Slice 8 | in-progress |
 | 28 | Search engine visibility | Slice 8 | planned |
 | 29 | Visitor stats & error alerts | Slice 8 | planned |
@@ -75,6 +75,7 @@ Out of scope for now, kept so the plan stays honest.
 - **Automatic WhatsApp sending**: the site messages you from the shop number by itself, through a business messaging service · needs a decision
 - **PDF of a draft or order**: a clean quote electricians can share · needs a decision
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
+- **Owner profile on Home**: your display name and a circle photo, edited in settings and shown on Home · from spec 0025, waits for your approval (O-28)
 - **Quick order on computers**: a wide table layout for building drafts at a desk, once design O-1 is drawn · from spec 0020
 - **Copy an order into a new draft**: start a new draft from one of an electrician's past orders, for repeat jobs · from spec 0020
 - **JSON export of an order** · needs a decision
