@@ -12,6 +12,7 @@ import { WhatsAppHandoff } from "@/features/checkout/components/whatsapp-handoff
 import { getPlacedOrder } from "@/features/checkout/server/queries";
 import { OrderSummary } from "@/features/orders/components/order-summary";
 import { buildNewOrderMessage } from "@/features/orders/whatsapp-message";
+import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
@@ -47,7 +48,8 @@ export default async function ConfirmationPage({
     getTranslations("Confirmation"),
     getTranslations("OrderMessage"),
   ]);
-  const { whatsappNumber, siteUrl } = parsePublicEnv();
+  const { siteUrl } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
   const text = buildNewOrderMessage(order, {
     siteUrl,
     whatsappNumber,

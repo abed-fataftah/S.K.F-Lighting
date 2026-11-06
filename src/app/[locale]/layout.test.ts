@@ -19,7 +19,8 @@ vi.mock("next/font/google", () => ({
 // The shell's server reads: no database in a unit test.
 vi.mock("server-only", () => ({}));
 vi.mock("@/features/shell/server/shop-contact", () => ({
-  getShopContact: async () => ({ phone: null, address: null }),
+  getShopContact: async () => ({ phone: null, address: null, whatsappNumber: null }),
+  pickWhatsappNumber: (saved: string | null) => saved ?? "970500000000",
 }));
 vi.mock("@/features/cart/server/queries", () => ({ readCartCount: async () => 0 }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");

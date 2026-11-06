@@ -28,6 +28,7 @@ import { breadcrumbJsonLd, serializeJsonLd } from "@/features/catalog/seo";
 import { getProductPage } from "@/features/catalog/server/queries";
 import { ProductAddToDraft } from "@/features/drafts/components/product-add-to-draft";
 import { canAddToDraft } from "@/features/drafts/server/guard";
+import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { mediaObjectUrl } from "@/lib/media-url";
@@ -103,7 +104,8 @@ export default async function ProductPage({
   const data = applyRequestedVariant(product, parseRequestedVariant(query.v));
 
   const t = await getTranslations("Catalog");
-  const { whatsappNumber, siteUrl } = parsePublicEnv();
+  const { siteUrl } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
   const { main, sub } = data.breadcrumb;
 
   return (

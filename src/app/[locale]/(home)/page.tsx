@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { getShopAddress } from "@/features/shell/server/shop-contact";
+import { getShopAddress, getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { BannerCarousel } from "@/features/home/components/banner-carousel";
 import { HeroCard } from "@/features/home/components/hero-card";
 import {
@@ -25,7 +25,8 @@ export default async function HomePage() {
     getShopAddress(),
     canAddToDraft(),
   ]);
-  const { whatsappNumber, siteUrl } = parsePublicEnv();
+  const { siteUrl } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
   const banners = sections.banners ?? [];
   const circles = sections.circles ?? [];
   const featured = sections.featured ?? [];

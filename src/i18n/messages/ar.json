@@ -132,7 +132,15 @@
     "passwordMismatch": "كلمتا المرور غير متطابقتين.",
     "passwordSame": "كلمة المرور الجديدة مطابقة للحالية.",
     "passwordWeak": "كلمة المرور ضعيفة أو ظهرت في تسريب سابق. اختر كلمة مرور أخرى.",
-    "passwordWrongCurrent": "كلمة المرور الحالية غير صحيحة."
+    "passwordWrongCurrent": "كلمة المرور الحالية غير صحيحة.",
+    "whatsappRequired": "أدخل رقم واتساب.",
+    "whatsappCountryCode": "أضف رمز الدولة في البداية، مثل 970.",
+    "whatsappInvalid": "أدخل رقم واتساب مع رمز الدولة، مثل 970599123456.",
+    "shopPhoneInvalid": "أدخل رقم هاتف صحيحاً.",
+    "feeInvalid": "أدخل رسوماً بالشيكل من 0 إلى 500، بدون كسور.",
+    "zoneNameTaken": "يوجد منطقة بهذا الاسم.",
+    "pageTitleRequired": "اكتب عنوان الصفحة.",
+    "pageBodyRequired": "اكتب نص الصفحة."
   },
   "DesignSystem": {
     "metaTitle": "نظام التصميم · S.K.F للإنارة",
@@ -480,7 +488,9 @@
       "cart_empty": "السلة فارغة. أضف منتجات ثم أرسل الطلب.",
       "rate_limited": "أرسلت طلبات كثيرة خلال دقيقة. حاول مرة أخرى بعد دقيقة.",
       "save_failed": "تعذّر حفظ الطلب. حاول مرة أخرى."
-    }
+    },
+    "policyLine": "بإرسال طلبك فإنك توافق على <terms>الشروط والأحكام</terms> و<returns>سياسة الإرجاع</returns>.",
+    "opensInNewTab": "(تفتح في نافذة جديدة)"
   },
   "Confirmation": {
     "title": "تم استلام طلبك",
@@ -526,7 +536,8 @@
     "confirmRecovery": "استعادة كلمة المرور | S.K.F للإنارة",
     "myOrders": "طلباتي | S.K.F للإنارة",
     "quickOrder": "طلب سريع | S.K.F للإنارة",
-    "drafts": "مسوداتي | S.K.F للإنارة"
+    "drafts": "مسوداتي | S.K.F للإنارة",
+    "policy": "{title} | S.K.F للإنارة"
   },
   "AdminAuth": {
     "loginTitle": "دخول لوحة التحكم",
@@ -1723,5 +1734,66 @@
       "not_found": "لم تعد هذه المسودة موجودة.",
       "failed": "تعذّر الإضافة. حاول مرة أخرى."
     }
+  },
+  "Policies": {
+    "tabsLabel": "السياسات",
+    "updated": "آخر تحديث: {date}",
+    "questionTitle": "لديك سؤال؟",
+    "whatsappMessage": "مرحباً، عندي سؤال عن سياسات المتجر."
+  },
+  "AdminSettings": {
+    "metaTitle": "إعدادات المتجر | S.K.F للإنارة",
+    "title": "إعدادات المتجر",
+    "loading": "جارٍ تحميل الإعدادات",
+    "errorTitle": "تعذّر تحميل الإعدادات",
+    "errorText": "تحقق من الاتصال بالإنترنت ثم حاول مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "saving": "جارٍ الحفظ",
+    "failed": "تعذّر الحفظ. حاول مرة أخرى.",
+    "contactTitle": "بيانات التواصل",
+    "whatsapp": "رقم واتساب",
+    "whatsappHelp": "مع رمز الدولة، مثل 970599123456. يُستخدم في كل أزرار واتساب في المتجر.",
+    "phone": "رقم الهاتف",
+    "address": "العنوان",
+    "optional": "(اختياري)",
+    "saveContact": "حفظ الإعدادات",
+    "contactSaved": "تم حفظ الإعدادات.",
+    "zonesTitle": "رسوم التوصيل",
+    "zonesText": "تظهر المناطق المفعّلة في صفحة إتمام الطلب وفي شريط الرئيسية.",
+    "zoneName": "اسم المنطقة",
+    "zoneShortName": "الاسم المختصر",
+    "zoneShortNameHelp": "يظهر في شريط الرئيسية، مثل: الضفة",
+    "zoneFee": "الرسوم (₪)",
+    "zoneActive": "مفعّلة",
+    "zoneActiveLabel": "مفعّلة: {name}",
+    "zonePaused": "متوقفة",
+    "zoneSave": "حفظ",
+    "zoneSaveLabel": "حفظ: {name}",
+    "zoneSaved": "تم الحفظ.",
+    "zoneRowLabel": "منطقة {name}",
+    "newZoneTitle": "منطقة جديدة",
+    "addZone": "إضافة منطقة",
+    "zoneLimit": "الحد الأقصى 10 مناطق.",
+    "cancel": "إلغاء",
+    "allPaused": "التوصيل متوقف: كل المناطق غير مفعّلة، والاستلام من المعرض فقط متاح.",
+    "notFound": "لم نجد هذه المنطقة. أعد تحميل الصفحة.",
+    "policiesTitle": "صفحات السياسات",
+    "updated": "آخر تحديث: {date}",
+    "edit": "تعديل",
+    "editLabel": "تعديل: {title}",
+    "editorMetaTitle": "تعديل {title} | S.K.F للإنارة",
+    "back": "العودة إلى الإعدادات",
+    "pageTitle": "العنوان",
+    "pageBody": "النص",
+    "pageBodyHelp": "للتنسيق: ## عنوان فرعي، - بند في قائمة، **نص عريض**.",
+    "preview": "معاينة",
+    "editMode": "تعديل",
+    "modeLabel": "طريقة العرض",
+    "savePage": "حفظ الصفحة",
+    "pageSaved": "تم حفظ الصفحة.",
+    "viewPage": "عرض الصفحة",
+    "opensInNewTab": "(تفتح في نافذة جديدة)",
+    "stale": "عُدّلت هذه الصفحة من مكان آخر بعد أن فتحتها. انسخ نصك، ثم أعد تحميل الصفحة.",
+    "pageNotFound": "لم نجد هذه الصفحة."
   }
 }

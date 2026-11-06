@@ -13,9 +13,8 @@ import { InfoStrip } from "@/features/shell/components/info-strip";
 import { SiteFooter } from "@/features/shell/components/site-footer";
 import { SiteHeader } from "@/features/shell/components/site-header";
 import { WhatsAppFab } from "@/features/shell/components/whatsapp-fab";
-import { getShopContact } from "@/features/shell/server/shop-contact";
+import { getShopContact, pickWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { routing } from "@/i18n/routing";
-import { parsePublicEnv } from "@/lib/public-env";
 
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
@@ -30,7 +29,6 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
 export default async function StorefrontLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const { whatsappNumber } = parsePublicEnv();
   // The menu's categories never break the shell: a failed or slow read gives null (spec 0008 AC-14).
   // The fees are one small cached read the home page reuses for its delivery card (spec 0011 AC-6).
   const [contact, cartCount, navigation, fees, home] = await Promise.all([
@@ -40,6 +38,8 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
     getDeliveryFees(),
     getTranslations({ locale, namespace: "Home" }),
   ]);
+  // The saved number, else the env one; a failed or slow contact read falls back too (spec 0025 AC-4).
+  const whatsappNumber = pickWhatsappNumber(contact.whatsappNumber);
   const strip = buildStripText(fees, (zones) => home("strip", { zones }));
 
   return (

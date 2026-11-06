@@ -6,6 +6,7 @@ import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { EmptyState } from "@/components/empty-state";
 import { PageErrorState } from "@/components/error-state";
 import { ButtonLink } from "@/components/ui/button";
+import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { parsePage } from "@/lib/paging";
@@ -48,7 +49,7 @@ const query = (chunks: ReactNode) => <bdi>{chunks}</bdi>;
 
 export async function SearchPage({ params }: { readonly params: Params }) {
   const request = readSearchRequest(params.q);
-  const { whatsappNumber } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
   const shell = await getTranslations("Shell");
   const help = whatsappUrl(whatsappNumber, shell("whatsappMessages.help"));
 
@@ -97,7 +98,8 @@ async function SearchResults({
     withTimeLimit(() => getSearchList(terms, parsed, page), SEARCH_READ_TIMEOUT_MS),
     canAddToDraft(),
   ]);
-  const { whatsappNumber, siteUrl } = parsePublicEnv();
+  const { siteUrl } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
 
   if (!result.ok) {
     // Never the query: a shopper might type a phone number into search.

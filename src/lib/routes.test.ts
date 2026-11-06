@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NO_ORDER_FILTERS } from "@/features/orders/admin-filters";
+import { policySlugs } from "@/features/policies/slugs";
 import { routes } from "./routes";
 
 // covers: AC-13 (spec 0004); AC-1 (spec 0006); AC-12 (spec 0014)
@@ -199,5 +200,20 @@ describe("routes.admin reports", () => {
     expect(routes.admin.reportsExport({ from: "2026-11-01", to: "2026-11-06" })).toBe(
       "/admin/reports/export?from=2026-11-01&to=2026-11-06",
     );
+  });
+});
+
+// covers: spec 0025 AC-8, AC-10
+describe("policy routes", () => {
+  it("gives each slug its named policy route, in tab order", () => {
+    expect(policySlugs.map((slug) => routes.policy(slug))).toEqual([
+      routes.privacy,
+      routes.terms,
+      routes.returns,
+    ]);
+  });
+
+  it("opens each policy's editor under the settings page", () => {
+    expect(routes.admin.policy("returns")).toBe("/admin/settings/policies/returns");
   });
 });

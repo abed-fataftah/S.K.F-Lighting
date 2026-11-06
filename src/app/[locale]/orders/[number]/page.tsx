@@ -16,8 +16,8 @@ import { currentStep, customerTimeline } from "@/features/orders/customer-timeli
 import { parseOrderNumberInput } from "@/features/orders/order-number";
 import { getCustomerOrder } from "@/features/orders/server/customer-order";
 import { statusBadgeVariant } from "@/features/orders/status";
+import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { formatDate } from "@/lib/format";
-import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { getAdminAccess } from "@/server/auth/admin";
@@ -74,7 +74,7 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
   const current = timeline.kind === "path" ? currentStep(timeline.steps) : null;
   // W7 with the plain order number (AC-12), as the float sends on this path; W6 after the
   // customer's own cancel, and the W6 request on an order they can no longer cancel (spec 0016).
-  const { whatsappNumber } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
   const message = (key: "order" | "cancelled" | "cancelRequest") =>
     whatsappUrl(whatsappNumber, shell(`whatsappMessages.${key}`, { number: order.orderNumber }));
   const notifyUrl = message("cancelled");

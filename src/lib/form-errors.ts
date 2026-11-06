@@ -25,6 +25,14 @@ export const fieldErrorKeys = {
   password_same: "passwordSame",
   password_weak: "passwordWeak",
   password_wrong_current: "passwordWrongCurrent",
+  whatsapp_required: "whatsappRequired",
+  whatsapp_country_code: "whatsappCountryCode",
+  whatsapp_invalid: "whatsappInvalid",
+  phone_invalid: "shopPhoneInvalid",
+  fee_invalid: "feeInvalid",
+  zone_name_taken: "zoneNameTaken",
+  title_required: "pageTitleRequired",
+  body_required: "pageBodyRequired",
 } as const;
 
 export type FieldErrorCode = keyof typeof fieldErrorKeys;

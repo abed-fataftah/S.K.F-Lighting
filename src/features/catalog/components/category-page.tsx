@@ -15,6 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
+import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { parsePage } from "@/lib/paging";
@@ -142,7 +143,8 @@ function breadcrumbItems(data: CategoryHead, homeName: string, siteUrl: string) 
 export async function CategoryPage({ address }: { readonly address: Address }) {
   const { page, query, parsed } = addressOf(address);
   const result = await loadCategoryHead(address.main, address.sub, page);
-  const { whatsappNumber, siteUrl } = parsePublicEnv();
+  const { siteUrl } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
   const [t, catalog, shell] = await Promise.all([
     getTranslations("Categories"),
     getTranslations("Catalog"),
@@ -276,7 +278,8 @@ async function CategoryList({
     loadCategoryList(address.main, address.sub, page, query),
     canAddToDraft(),
   ]);
-  const { whatsappNumber, siteUrl } = parsePublicEnv();
+  const { siteUrl } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
   if (!result?.ok) {
     console.error("getCategoryList: read failed", { error: result?.error ?? "failed" });
     return <PageErrorState title={t("errorTitle")} whatsappNumber={whatsappNumber} />;

@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { Ltr } from "@/components/ltr";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
-import { contactLine, type ShopContact } from "../contact";
+import { contactLine, type ContactLine } from "../contact";
 import { policyLinks } from "../nav";
 import { Logo } from "./logo";
 
@@ -10,7 +10,7 @@ import { Logo } from "./logo";
 // the shop's phone and address from shop_settings (a missing part is hidden), "تتبّع طلبك"
 // (spec 0015 AC-15), and the three policy links, each 44 high. The bottom padding keeps the last link clear of the WhatsApp
 // float and the bottom bar when scrolled to the very end.
-export function SiteFooter({ contact }: { readonly contact: ShopContact }) {
+export function SiteFooter({ contact }: { readonly contact: ContactLine }) {
   const t = useTranslations("Shell");
   const line = contactLine(contact);
 

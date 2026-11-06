@@ -13,10 +13,10 @@ import { CartLineOptions } from "@/features/cart/components/cart-line-details";
 import { LineQuantity, RemoveLineButton } from "@/features/cart/components/cart-line-actions";
 import { readCart } from "@/features/cart/server/queries";
 import { readActiveZones } from "@/features/checkout/server/checkout-options";
+import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
-import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -38,7 +38,7 @@ export default async function CartPage() {
     getTranslations("Shell"),
     readCart(),
   ]);
-  const { whatsappNumber } = parsePublicEnv();
+  const whatsappNumber = await getWhatsappNumber();
 
   if (cart.lines.length === 0) {
     return (

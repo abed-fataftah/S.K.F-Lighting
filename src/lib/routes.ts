@@ -6,6 +6,7 @@ import {
   type ListFilters,
 } from "@/features/catalog/list-filters";
 import { orderFiltersToParams, type OrderFilters } from "@/features/orders/admin-filters";
+import type { PolicySlug } from "@/features/policies/slugs";
 import type { ReportDays, ReportRange } from "@/features/reports/period";
 
 const segment = (value: string) => encodeURIComponent(value);
@@ -106,6 +107,11 @@ export const routes = {
   privacy: "/policies/privacy",
   terms: "/policies/terms",
   returns: "/policies/returns",
+  /** One policy page by slug (spec 0025): the same addresses as the three named routes above. */
+  policy: (slug: PolicySlug) =>
+    ({ privacy: "/policies/privacy", terms: "/policies/terms", returns: "/policies/returns" })[
+      slug
+    ],
   designSystem: "/design-system",
   /** Route handlers outside the catalog's public reads. */
   api: {
@@ -171,6 +177,8 @@ export const routes = {
     categories: "/admin/categories",
     homepage: "/admin/homepage",
     settings: "/admin/settings",
+    /** A policy page's editor (spec 0025 AC-10). */
+    policy: (slug: PolicySlug) => `/admin/settings/policies/${segment(slug)}`,
     login: "/admin/login",
     mfa: "/admin/mfa",
   },

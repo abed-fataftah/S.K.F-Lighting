@@ -20,7 +20,10 @@ const getDeliveryFees = vi.fn<() => Promise<readonly ZoneFee[] | null>>();
 const getShopAddress = vi.fn<() => Promise<string | null>>();
 vi.mock("@/features/home/server/home", () => ({ getHomeSections, getDeliveryFees }));
 const canAddToDraft = vi.fn<() => Promise<boolean>>(async () => false);
-vi.mock("@/features/shell/server/shop-contact", () => ({ getShopAddress }));
+vi.mock("@/features/shell/server/shop-contact", () => ({
+  getShopAddress,
+  getWhatsappNumber: async () => "970500000000",
+}));
 vi.mock("@/features/drafts/server/guard", () => ({ canAddToDraft }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
