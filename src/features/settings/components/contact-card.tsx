@@ -12,6 +12,7 @@ import { fieldErrorsOf, type FieldErrors } from "@/lib/form-errors";
 import { shopContactSchema } from "../schemas";
 import { saveShopContact } from "../server/actions";
 import type { SettingsContact } from "../server/settings-db";
+import { callAction } from "./call-action";
 import { focusFirstError, SettingsField } from "./settings-field";
 
 const FIELDS = ["whatsappNumber", "contactPhone", "address"] as const;
@@ -52,7 +53,7 @@ export function ContactCard({
     if (!parsed.success) return showErrors(fieldErrorsOf(parsed.error));
     setErrors({});
     startTransition(async () => {
-      const result = await saveShopContact(values);
+      const result = await callAction(() => saveShopContact(values));
       if (result.ok) {
         setValues({
           whatsappNumber: result.data.whatsappNumber ?? "",

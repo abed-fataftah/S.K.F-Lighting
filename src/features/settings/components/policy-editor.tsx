@@ -19,6 +19,7 @@ import { routes } from "@/lib/routes";
 import { useFieldErrorText } from "@/lib/use-field-error-text";
 import { POLICY_BODY, POLICY_TITLE, savePolicySchema } from "../schemas";
 import { savePolicyPage } from "../server/actions";
+import { callAction } from "./call-action";
 import { focusFirstError, SettingsField } from "./settings-field";
 
 // The policy editor (spec 0025 AC-10, AC-11): title, Markdown body with a preview drawn by the
@@ -84,7 +85,7 @@ export function PolicyEditor({
     if (!parsed.success) return showErrors(fieldErrorsOf(parsed.error));
     setErrors({});
     startTransition(async () => {
-      const result = await savePolicyPage(input);
+      const result = await callAction(() => savePolicyPage(input));
       if (result.ok) {
         setVersion(result.data.version);
         setTitle(parsed.data.title);

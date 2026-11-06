@@ -13,6 +13,7 @@ import { toShekelsInput } from "@/lib/money";
 import { addZoneSchema, saveZoneSchema, ZONE_LIMIT, ZONE_NAME, ZONE_SHORT_NAME } from "../schemas";
 import { addZone, saveZone, setZoneActive, type ZoneResult } from "../server/actions";
 import type { SettingsZone } from "../server/settings-db";
+import { callAction } from "./call-action";
 import { focusFirstError, SettingsField } from "./settings-field";
 
 // "رسوم التوصيل" (spec 0025 AC-5, AC-6): every zone, active and paused, each saving on its own.
@@ -123,7 +124,7 @@ function useZoneForm(options: {
     if (found) return showErrors(found);
     setErrors({});
     startTransition(async () => {
-      const result = await options.send(values);
+      const result = await callAction(() => options.send(values));
       if (result.ok) {
         setValues(valuesOf(result.data));
         setNotice("saved");
@@ -267,7 +268,7 @@ function ActiveSwitch({
     setFailed(false);
     startTransition(async () => {
       setOptimistic(next);
-      const result = await setZoneActive({ id: zone.id, isActive: next });
+      const result = await callAction(() => setZoneActive({ id: zone.id, isActive: next }));
       if (result.ok) onSaved(result.data);
       else if (result.error === "forbidden") router.refresh();
       else setFailed(true);
