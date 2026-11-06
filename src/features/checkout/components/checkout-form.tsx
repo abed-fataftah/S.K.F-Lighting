@@ -401,7 +401,12 @@ export function CheckoutForm({
 function PolicyLink({ href, children }: { readonly href: string; readonly children: ReactNode }) {
   const t = useTranslations("Checkout");
   return (
-    <Link href={href} target="_blank" rel="noopener" className="font-bold text-ink underline">
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener"
+      className="inline-flex min-h-11 items-center font-bold text-ink underline"
+    >
       {children}
       <span className="sr-only"> {t("opensInNewTab")}</span>
     </Link>
