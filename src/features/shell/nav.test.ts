@@ -65,12 +65,13 @@ describe("activeAdminLink", () => {
     expect(activeAdminLink("/admin/homepage/banners")).toBe("homepage");
   });
 
-  it("lists the eight links in the handoff order", () => {
+  it("lists the nine links in the handoff order, visits after reports", () => {
     expect(adminLinks.map((link) => link.id)).toEqual([
       "home",
       "orders",
       "customers",
       "reports",
+      "stats",
       "products",
       "categories",
       "homepage",

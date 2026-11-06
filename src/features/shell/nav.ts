@@ -24,13 +24,23 @@ export const policyLinks: readonly { readonly id: PolicyId; readonly href: strin
 ];
 
 export type AdminLinkId =
-  "home" | "orders" | "customers" | "reports" | "products" | "categories" | "homepage" | "settings";
+  | "home"
+  | "orders"
+  | "customers"
+  | "reports"
+  | "stats"
+  | "products"
+  | "categories"
+  | "homepage"
+  | "settings";
 
 export const adminLinks: readonly { readonly id: AdminLinkId; readonly href: string }[] = [
   { id: "home", href: routes.admin.home },
   { id: "orders", href: routes.admin.orders },
   { id: "customers", href: routes.admin.customers },
   { id: "reports", href: routes.admin.reports },
+  // Visits, after Reports (spec 0027 AC-1).
+  { id: "stats", href: routes.admin.stats() },
   { id: "products", href: routes.admin.products },
   { id: "categories", href: routes.admin.categories },
   { id: "homepage", href: routes.admin.homepage },

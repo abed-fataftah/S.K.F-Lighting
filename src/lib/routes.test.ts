@@ -203,6 +203,16 @@ describe("routes.admin reports", () => {
   });
 });
 
+// covers: spec 0027 AC-1
+describe("routes.admin.stats", () => {
+  it("writes no query for 7d, the default, and the period otherwise", () => {
+    expect(routes.admin.stats()).toBe("/admin/stats");
+    expect(routes.admin.stats("7d")).toBe("/admin/stats");
+    expect(routes.admin.stats("today")).toBe("/admin/stats?period=today");
+    expect(routes.admin.stats("30d")).toBe("/admin/stats?period=30d");
+  });
+});
+
 // covers: spec 0025 AC-8, AC-10
 describe("policy routes", () => {
   it("gives each slug its named policy route, in tab order", () => {

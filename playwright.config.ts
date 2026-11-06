@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { STUB_ENV, STUB_PORT } from "./e2e/stubs/cf-graphql-data";
 
 // Spec 0001: CI runs these against `pnpm preview` (the real Workers runtime).
 // Locally they run against `pnpm dev` unless E2E_TARGET=preview.
@@ -47,10 +48,20 @@ export default defineConfig({
       dependencies: ["settings"],
     },
   ],
-  webServer: {
-    command: onWorkers ? "pnpm preview" : "pnpm dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 300_000,
-  },
+  webServer: [
+    // The Web Analytics stand in the stats page reads (spec 0027). Under `pnpm preview` the Worker
+    // gets STUB_ENV from .dev.vars (see .dev.vars.example and CI); `pnpm dev` gets it here.
+    {
+      command: "pnpm exec tsx e2e/stubs/cf-graphql.ts",
+      url: `http://127.0.0.1:${STUB_PORT}/health`,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: onWorkers ? "pnpm preview" : "pnpm dev",
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 300_000,
+      env: onWorkers ? {} : STUB_ENV,
+    },
+  ],
 });

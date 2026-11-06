@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildProductSlug, nextFreeSlug, slugify } from "./slug";
+import { buildProductSlug, decodeSlug, nextFreeSlug, slugify } from "./slug";
 
 describe("buildProductSlug", () => {
   it.each([
@@ -47,5 +47,15 @@ describe("nextFreeSlug", () => {
     expect(nextFreeSlug("ثريات", ["ثريات"])).toBe("ثريات-2");
     expect(nextFreeSlug("ثريات", ["ثريات", "ثريات-2", "ثريات-3"])).toBe("ثريات-4");
     expect(nextFreeSlug("ثريات", ["ثريات", "ثريات-3"])).toBe("ثريات-2");
+  });
+});
+
+describe("decodeSlug", () => {
+  it("decodes a percent encoded Arabic slug", () => {
+    expect(decodeSlug(encodeURIComponent("ثريا-كريستال-ch-1020"))).toBe("ثريا-كريستال-ch-1020");
+  });
+
+  it("keeps a broken escape as it is", () => {
+    expect(decodeSlug("lamp%E0")).toBe("lamp%E0");
   });
 });

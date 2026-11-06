@@ -26,6 +26,7 @@ import {
 } from "@/features/catalog/product-view";
 import { breadcrumbJsonLd, serializeJsonLd } from "@/features/catalog/seo";
 import { getProductPage } from "@/features/catalog/server/queries";
+import { decodeSlug } from "@/features/catalog/slug";
 import { ProductAddToDraft } from "@/features/drafts/components/product-add-to-draft";
 import { canAddToDraft } from "@/features/drafts/server/guard";
 import { productShareImage, shareMetadata, shopImage } from "@/features/seo/share";
@@ -38,16 +39,8 @@ import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { supabaseEnv } from "@/server/auth/env";
 
-// Arabic slugs arrive percent encoded (spec 0004, Value sourcing: slug lookup).
-function decodeSlug(raw: string): string {
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
-}
-
 // The page and its metadata share one read per request, keyed on the decoded slug (AC-16).
+// Arabic slugs arrive percent encoded (spec 0004, Value sourcing: slug lookup).
 const loadProduct = (slug: string) => getProductPage(decodeSlug(slug));
 
 export async function generateMetadata({

@@ -8,6 +8,7 @@ import {
 import { orderFiltersToParams, type OrderFilters } from "@/features/orders/admin-filters";
 import type { PolicySlug } from "@/features/policies/slugs";
 import type { ReportDays, ReportRange } from "@/features/reports/period";
+import type { StatsPreset } from "@/features/stats/period";
 
 const segment = (value: string) => encodeURIComponent(value);
 
@@ -152,6 +153,9 @@ export const routes = {
       }
       return `/admin/reports?${params.toString()}`;
     },
+    /** Visits (spec 0027 AC-1): `7d`, the default, writes no query. */
+    stats: (period: StatsPreset = "7d") =>
+      period === "7d" ? "/admin/stats" : `/admin/stats?period=${period}`,
     /** The period's orders as CSV (spec 0024 AC-9): always the resolved days, never a preset. */
     reportsExport: (days: ReportDays) =>
       `/admin/reports/export?${new URLSearchParams({ from: days.from, to: days.to }).toString()}`,

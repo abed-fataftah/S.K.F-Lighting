@@ -1,5 +1,6 @@
 import {
   ChartColumn,
+  ChartLine,
   ClipboardList,
   FolderTree,
   House,
@@ -30,6 +31,7 @@ export const adminIcons: Readonly<Record<AdminLinkId, LucideIcon>> = {
   orders: ClipboardList,
   customers: Users,
   reports: ChartColumn,
+  stats: ChartLine,
   products: Package,
   categories: FolderTree,
   homepage: PanelsTopLeft,

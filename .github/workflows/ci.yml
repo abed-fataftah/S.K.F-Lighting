@@ -52,9 +52,16 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      # The Worker reads .dev.vars under `pnpm preview`: turn on the design system gallery (spec 0003).
-      # Never set in production.
-      - run: echo "DESIGN_SYSTEM_PAGE=1" > .dev.vars
+      # The Worker reads .dev.vars under `pnpm preview`: turn on the design system gallery (spec 0003),
+      # and point the stats page at the local Web Analytics stub (spec 0027). Never set in production.
+      - run: |
+          cat > .dev.vars <<'VARS'
+          DESIGN_SYSTEM_PAGE=1
+          CF_ACCOUNT_ID=e2e-account
+          CF_WEB_ANALYTICS_SITE_TAG=e2e-site
+          CF_ANALYTICS_API_TOKEN=e2e-token
+          CF_GRAPHQL_URL=http://127.0.0.1:8790/graphql
+          VARS
       # playwright.config.ts starts `pnpm preview` (OpenNext build, then workerd) when CI is set.
       - run: pnpm exec playwright test
       - if: failure()

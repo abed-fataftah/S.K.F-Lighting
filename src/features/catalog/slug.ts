@@ -29,3 +29,16 @@ export function buildProductSlug(name: string, code: string): string {
   const base = slugify(name);
   return base ? `${base}-${code}` : code;
 }
+
+/**
+ * A slug as it arrives in an address: Arabic slugs come percent encoded (spec 0004, Value
+ * sourcing: slug lookup). A broken escape is kept as it is. The product page and the stats page's
+ * top products (spec 0027 AC-3) both read slugs this way.
+ */
+export function decodeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}

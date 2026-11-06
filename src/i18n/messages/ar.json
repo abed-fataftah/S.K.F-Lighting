@@ -103,6 +103,7 @@
       "orders": "الطلبات",
       "customers": "العملاء",
       "reports": "التقارير",
+      "stats": "الزيارات",
       "products": "المنتجات",
       "categories": "الأقسام",
       "homepage": "الصفحة الرئيسية",
@@ -837,6 +838,47 @@
       "delivered": "توصيل",
       "pickup": "استلام من المتجر"
     }
+  },
+  "Stats": {
+    "metaTitle": "الزيارات",
+    "title": "الزيارات",
+    "periodLabel": "الفترة",
+    "period": {
+      "today": "اليوم",
+      "7d": "آخر 7 أيام",
+      "30d": "آخر 30 يوماً"
+    },
+    "periodRange": "من {from} إلى {to}",
+    "visitsTitle": "الزيارات والمشاهدات",
+    "pageViews": "مشاهدات الصفحات",
+    "visits": "الزيارات",
+    "estimateHint": "الأرقام تقديرية: تأخذ Cloudflare عيّنة عند كثرة الزيارات، وأدوات حجب الإعلانات تخفي بعض الزوّار، وقد تُحسب بعض الروبوتات.",
+    "byDay": "مشاهدات الصفحات حسب اليوم",
+    "chartLabel": "مشاهدات الصفحات {pageViews}، والزيارات {visits}، من {from} إلى {to}",
+    "chartDay": "اليوم",
+    "topProducts": "المنتجات الأكثر مشاهدة",
+    "product": "المنتج",
+    "views": "المشاهدات",
+    "actions": "إجراءات",
+    "edit": "تعديل",
+    "editProduct": "تعديل {name}",
+    "productsEmpty": "لم تُشاهَد صفحة أي منتج في هذه الفترة.",
+    "sources": "من أين جاء الزوّار",
+    "source": "المصدر",
+    "sourceNames": {
+      "google": "جوجل",
+      "facebook": "فيسبوك",
+      "instagram": "إنستغرام",
+      "whatsapp": "واتساب",
+      "direct": "مباشر"
+    },
+    "sourcesEmpty": "لا زيارات في هذه الفترة.",
+    "whatsappNote": "الروابط التي تُفتح داخل تطبيق واتساب تصل غالبًا دون مصدر، فتُحسب ضمن «مباشر».",
+    "sectionError": "تعذّر تحميل هذا القسم.",
+    "retry": "حاول مرة أخرى",
+    "notSetUpTitle": "إحصاءات الزيارات غير مفعّلة بعد",
+    "notSetUpText": "تظهر الزيارات هنا بعد ربط المتجر بخدمة Cloudflare Web Analytics.",
+    "loading": "جارٍ تحميل الزيارات"
   },
   "AdminProducts": {
     "metaTitle": "المنتجات | S.K.F للإنارة",

@@ -14,6 +14,7 @@ import { InfoStrip } from "@/features/shell/components/info-strip";
 import { SiteFooter } from "@/features/shell/components/site-footer";
 import { SiteHeader } from "@/features/shell/components/site-header";
 import { WhatsAppFab } from "@/features/shell/components/whatsapp-fab";
+import { AnalyticsBeacon } from "@/features/stats/components/analytics-beacon";
 import { getShopContact, pickWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { routing } from "@/i18n/routing";
 import { parsePublicEnv } from "@/lib/public-env";
@@ -76,6 +77,8 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
         <BottomBar cartCount={cartCount} />
         <WhatsAppFab whatsappNumber={whatsappNumber} />
       </NextIntlClientProvider>
+      {/* Storefront only, never under /admin or /auth (spec 0027 AC-6). */}
+      <AnalyticsBeacon />
     </HtmlDocument>
   );
 }

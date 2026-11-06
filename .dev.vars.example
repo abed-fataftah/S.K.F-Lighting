@@ -3,3 +3,12 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 # "1" turns on the design system gallery at /design-system (spec 0003). Never set in production.
 DESIGN_SYSTEM_PAGE=1
+
+# The stats page (spec 0027). In production CF_ACCOUNT_ID and CF_WEB_ANALYTICS_SITE_TAG are `vars` in
+# wrangler.jsonc and the token is a secret (`pnpm wrangler secret put CF_ANALYTICS_API_TOKEN`).
+# Locally these point the page at the e2e stub (e2e/stubs/cf-graphql.ts, started by Playwright).
+# Leave all four out to see the "not set up" notice.
+CF_ACCOUNT_ID=e2e-account
+CF_WEB_ANALYTICS_SITE_TAG=e2e-site
+CF_ANALYTICS_API_TOKEN=e2e-token
+CF_GRAPHQL_URL=http://127.0.0.1:8790/graphql
