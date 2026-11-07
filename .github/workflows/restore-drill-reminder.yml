@@ -1,0 +1,32 @@
+# Spec 0028 AC-11: a backup only counts once it has been restored. Each quarter this opens an issue
+# that points at the drill steps; a person runs the drill, logs it in the runbook, and closes it.
+# No secrets: the job's own token, allowed to write issues and nothing else.
+name: Restore drill reminder
+
+on:
+  schedule:
+    # 06:00 UTC on the first of January, April, July, and October.
+    - cron: "0 6 1 1,4,7,10 *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  remind:
+    name: Open the quarterly restore drill issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUNBOOK: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.event.repository.default_branch }}/docs/runbooks/go-live.md#restore-drill
+        run: |
+          gh issue create --title "Quarterly restore drill" --body "Time for the quarterly restore drill.
+
+          1. Download the newest \`db/<stamp>/\` folder (dump.age, auth.age, manifest.json) from the R2 backup bucket.
+          2. Run \`pnpm backup:restore-drill\` against a fresh local database, as the runbook says.
+          3. Write the result into the drill log, then close this issue.
+
+          Steps: ${RUNBOOK}"

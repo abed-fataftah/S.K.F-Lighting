@@ -4,9 +4,14 @@
 # section 6): variables BACKUP_AGE_RECIPIENTS, R2_ENDPOINT, R2_BUCKET, SUPABASE_S3_ENDPOINT,
 # SUPABASE_S3_REGION; secrets DATABASE_URL_DIRECT (the session pooler, port 5432, IPv4),
 # R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, SUPABASE_S3_ACCESS_KEY_ID, SUPABASE_S3_SECRET_ACCESS_KEY.
+# R2 lifecycle rules (set on the bucket, not here, AC-7): `db/` expires after 84 days (about 12
+# weekly copies, hand runs included), `media/removed/` after 90; `media/current/` never expires.
 name: Backup
 
 on:
+  schedule:
+    # Sundays at 01:00 UTC. The Sentry cron monitor below expects exactly this slot (AC-8).
+    - cron: "0 1 * * 0"
   workflow_dispatch:
 
 concurrency:
@@ -22,6 +27,7 @@ env:
   AGE_SHA256: cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10
   RCLONE_VERSION: "1.75.2"
   RCLONE_SHA256: 349ac8fba6ff65d6247043f1750cdcb518ec5d500ef91463a10d37c0ccdf3702
+  SENTRY_CLI_VERSION: "3.8.2"
 
 jobs:
   backup:
@@ -59,9 +65,21 @@ jobs:
           echo "${RCLONE_SHA256}  rclone.zip" | sha256sum -c -
           unzip -q rclone.zip
           sudo install "rclone-v${RCLONE_VERSION}-linux-amd64/rclone" /usr/local/bin/rclone
-      - run: pg_dump --version && age --version && rclone version | head -1
-      - run: pnpm backup:run
+      - run: npm install --global "@sentry/cli@${SENTRY_CLI_VERSION}"
+      - run: pg_dump --version && age --version && rclone version | head -1 && sentry-cli --version
+      # The Sunday run checks in with the Sentry cron monitor, which emails on a failed run, one over
+      # an hour, or none within two hours of its slot (AC-8). Check ins by DSN need no auth token.
+      # Hand runs skip the wrapper, so they never mark the monitor.
+      - name: Back up
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            sentry-cli monitors run skf-weekly-backup --schedule "0 1 * * 0" \
+              --check-in-margin 120 --max-runtime 60 -- pnpm backup:run
+          else
+            pnpm backup:run
+          fi
         env:
+          SENTRY_DSN: ${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
           DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
           BACKUP_AGE_RECIPIENTS: ${{ vars.BACKUP_AGE_RECIPIENTS }}
           R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
