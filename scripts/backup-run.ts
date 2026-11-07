@@ -179,11 +179,13 @@ async function main() {
   const recipients = parseRecipients(process.env.BACKUP_AGE_RECIPIENTS);
   if (!recipients.ok) {
     console.error(
-      `BACKUP_AGE_RECIPIENTS must hold exactly 2 different age public keys, one per line (${recipients.error}). Nothing was dumped.`,
+      `BACKUP_AGE_RECIPIENTS must hold 2 different age public keys, one per line, or 3 while rotating a key (${recipients.error}). Nothing was dumped.`,
     );
     process.exitCode = 1;
     return;
   }
+  // A count only, never a key (AC-4, AC-17).
+  if (recipients.data.length === 3) console.log("3 recipients, rotation in progress");
   const env = backupEnv();
   const stamp = backupStamp(started);
   const prefix = backupPrefix(stamp, env.eventName);

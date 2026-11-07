@@ -16,22 +16,23 @@ export function backupPrefix(stamp: string, eventName: string | undefined): stri
   return eventName === "schedule" ? `db/${stamp}/` : `db/manual/${stamp}/`;
 }
 
-export type Recipients = readonly [string, string];
+/** 2 keys normally, 3 only while one is being rotated (AC-4, AC-17). */
+export type Recipients = readonly [string, string] | readonly [string, string, string];
 
 const AGE_RECIPIENT = /^age1[0-9a-z]+$/;
 
-/** The two `age` public keys, one per line (AC-4). Blank lines are ignored; anything else refuses. */
+/** The `age` public keys, one per line (AC-4). Blank lines are ignored; anything else refuses. */
 export function parseRecipients(
   text: string | undefined,
-): Result<Recipients, "not_two_keys" | "not_age_keys" | "same_key"> {
+): Result<Recipients, "not_two_or_three_keys" | "not_age_keys" | "same_key"> {
   const lines = (text ?? "")
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line !== "");
-  if (lines.length !== 2) return fail("not_two_keys");
+  if (lines.length !== 2 && lines.length !== 3) return fail("not_two_or_three_keys");
   if (!lines.every((line) => AGE_RECIPIENT.test(line))) return fail("not_age_keys");
-  if (lines[0] === lines[1]) return fail("same_key");
-  return ok([lines[0], lines[1]] as const);
+  if (new Set(lines).size !== lines.length) return fail("same_key");
+  return ok(lines as unknown as Recipients);
 }
 
 export type MediaGuard = "ok" | "empty" | "dropped";

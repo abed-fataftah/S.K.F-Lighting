@@ -9,6 +9,8 @@ import {
 
 const KEY_A = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p";
 const KEY_B = "age1lggyhqrw2nlhcxprm67z43rta597azn8gknawjehu9d9dl0jq3yqqvfafg";
+const KEY_C = "age1zvkyg2lqzraa2lnjvqej32nkuu0ues2s82hzrye869xeexvn73equnujwj";
+const KEY_D = "age1yhm4gctwfmrpz87tdslm550wrx6m79y9f2hdzt0lndjnehwj0ukqrjpyx5";
 
 // covers: AC-4 (spec 0028): the run's start in UTC to the minute.
 describe("backupStamp", () => {
@@ -41,7 +43,8 @@ describe("backupPrefix", () => {
   });
 });
 
-// covers: AC-4 (spec 0028): exactly two age public keys, checked before anything is dumped.
+// covers: AC-4 (spec 0028): 2 different age public keys, or 3 during a rotation (AC-17),
+// checked before anything is dumped.
 describe("parseRecipients", () => {
   it("takes two keys, one per line, with blank lines and spaces around them", () => {
     expect(parseRecipients(`${KEY_A}\n${KEY_B}\n`)).toEqual({ ok: true, data: [KEY_A, KEY_B] });
@@ -51,14 +54,21 @@ describe("parseRecipients", () => {
     });
   });
 
+  it("takes a third key while one is being rotated", () => {
+    expect(parseRecipients(`${KEY_A}\n${KEY_B}\n${KEY_C}\n`)).toEqual({
+      ok: true,
+      data: [KEY_A, KEY_B, KEY_C],
+    });
+  });
+
   it.each([
     ["nothing", undefined],
     ["an empty value", ""],
     ["one key", KEY_A],
-    ["three keys", `${KEY_A}\n${KEY_B}\n${KEY_A}`],
+    ["four keys", `${KEY_A}\n${KEY_B}\n${KEY_C}\n${KEY_D}`],
     ["two keys on one line", `${KEY_A} ${KEY_B}`],
   ])("refuses %s", (_name, text) => {
-    expect(parseRecipients(text)).toEqual({ ok: false, error: "not_two_keys" });
+    expect(parseRecipients(text)).toEqual({ ok: false, error: "not_two_or_three_keys" });
   });
 
   it("refuses a line that is not an age public key", () => {
@@ -74,6 +84,10 @@ describe("parseRecipients", () => {
 
   it("refuses the same key twice, which would leave one key that opens nothing else", () => {
     expect(parseRecipients(`${KEY_A}\n${KEY_A}`)).toEqual({ ok: false, error: "same_key" });
+    expect(parseRecipients(`${KEY_A}\n${KEY_B}\n${KEY_A}`)).toEqual({
+      ok: false,
+      error: "same_key",
+    });
   });
 });
 
