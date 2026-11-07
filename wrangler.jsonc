@@ -60,8 +60,8 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      // Replace with the id from `pnpm wrangler hyperdrive create skf-pro-db --connection-string=<session pooler URL>`.
-      "id": "00000000000000000000000000000000",
+      // `skf-pro-db`: the production session pooler, caching off (docs/runbooks/supabase-production.md).
+      "id": "66d1fbf9c77e471d9e737778f6a81001",
       // Local `supabase start` database, used by `next dev` and `pnpm preview`.
       "localConnectionString": "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
     },
