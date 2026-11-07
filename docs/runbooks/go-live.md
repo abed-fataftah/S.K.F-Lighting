@@ -73,7 +73,7 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 - [ ] On the owner's own device, with `age` installed (see Tools on Windows): `age-keygen -o skf-backup-owner.key`. It prints `Public key: age1...`. The owner keeps the key file in their password manager and a printed copy at the shop. It never goes into GitHub, Cloudflare, or the repo.
 - [ ] On your machine: `age-keygen -o skf-backup-dev.key`. Keep the file in your password manager.
-- [ ] `production` variable `BACKUP_AGE_RECIPIENTS`: the two public keys, one per line. The backup refuses to start with anything but exactly two different keys.
+- [ ] `production` variable `BACKUP_AGE_RECIPIENTS`: the two public keys, one per line. The backup refuses to start unless it holds two different keys (three only while you rotate one, see Key rotation).
 
 **Supabase Storage S3 keys**
 
@@ -125,16 +125,22 @@ The drill proves a backup really opens. It restores into your **local** Supabase
    pnpm backup:restore-drill --dir <that folder> --identity <path to your age key file>
    ```
    The key path is only an argument: never put it in the repo, `.env.local`, or a log. The decrypted files live in the OS temp folder and are deleted at the end, even after a failure.
-5. Done when every line reads PASS: counts (every table matches the manifest), RLS, and photos (3 restored photos found in `media/current/`). A count mismatch names the table. `photos` fails when the manifest says the photo copy failed.
+5. Done when every line reads PASS: counts (every table matches the manifest), RLS, and photos (3 restored photos found in `media/current/`). A count mismatch names the table. `photos` fails when the manifest says the photo copy failed. Each `pg_restore` warning prints as its own line above the count, schema messages only. If the drill stops with `the local database is now empty`, run `pnpm exec supabase db reset` and start again from step 4.
 6. By hand: `pnpm dev`, open a real product page and a real order in the dashboard. Product photos do not show locally; they live in production Storage and R2.
 7. Run `pnpm exec supabase db reset` before going back to normal work. The restored database carries production's migration history, so never run `pnpm db:migrate` on it.
 8. Write the result in the drill log.
 
 ### Key rotation
 
-To replace a key, add the new public key as a third line of `BACKUP_AGE_RECIPIENTS` first. Wait until at least one weekly run succeeds, then remove the old key. Older dumps stay readable only with the old key, so keep it until they expire (84 days), or decrypt and encrypt them again to the new keys if needed.
+To replace a key (a new phone, a lost password manager, someone leaving), work through these in order:
 
-Open point: today the backup accepts exactly two keys (spec 0028 AC-4), so the third line above makes it refuse to run. Settle how rotation should work (`/architect go live: key rotation versus the two key check`) before you rotate a key for the first time.
+1. The person who holds the key makes the new pair on their own device: `age-keygen -o skf-backup-<who>-<year>.key`. The key file stays with them, as in step 6.
+2. Add its public key as a third line of `BACKUP_AGE_RECIPIENTS`. The backup accepts three keys and logs `3 recipients, rotation in progress` (never the keys themselves).
+3. **Actions → Backup → Run workflow** by hand, then run the restore drill on that run's `db/manual/<stamp>/` folder with `--identity` set to the **new** key. Done when every line reads PASS. Write the stamp in the drill log, with "rotation" under Problems found.
+4. Wait for one scheduled Sunday run to succeed with a green check in on the Sentry cron monitor.
+5. Remove the old key from `BACKUP_AGE_RECIPIENTS`, back to two lines, within the same month.
+
+Older dumps stay readable with the key that did not change, so keeping the old key until they expire (84 days) is only a second copy, not a need.
 
 ### Tools on Windows
 
