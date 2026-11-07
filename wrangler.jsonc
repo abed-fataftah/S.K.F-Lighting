@@ -4,6 +4,11 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-12",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // The shop's only public address (spec 0028 AC-1); `www` redirects to it by a Cloudflare rule.
+  "routes": [{ "pattern": "skf-lighting.com", "custom_domain": true }],
+  "workers_dev": false,
+  // workers_dev off also turns preview URLs off unless they are named on their own.
+  "preview_urls": true,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
