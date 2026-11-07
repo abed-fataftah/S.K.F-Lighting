@@ -138,7 +138,7 @@ Open point: today the backup accepts exactly two keys (spec 0028 AC-4), so the t
 
 ### Tools on Windows
 
-The drill needs `pg_restore` 17 or newer, `age`, and `rclone` on the `PATH`, and names any that are missing.
+The drill needs `pg_restore` 17 or newer with its `psql`, `age`, and `rclone` on the `PATH`, and names any that are missing.
 
 ```
 winget install PostgreSQL.PostgreSQL.17   # in the installer, the command line tools are enough
@@ -146,7 +146,7 @@ winget install FiloSottile.age
 winget install Rclone.Rclone
 ```
 
-Add `C:\Program Files\PostgreSQL\17\bin` to the `PATH` if the installer did not, open a new terminal, and check: `pg_restore --version`, `age --version`, `rclone version`.
+Add `C:\Program Files\PostgreSQL\17\bin` to the `PATH` if the installer did not, open a new terminal, and check: `pg_restore --version`, `psql --version`, `age --version`, `rclone version`.
 
 ## Day to day
 

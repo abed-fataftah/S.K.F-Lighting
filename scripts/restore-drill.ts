@@ -12,6 +12,7 @@ import postgres from "postgres";
 import { compareCounts, parseManifest, totalRows } from "@/features/launch/manifest";
 import { drillEnv, type DrillEnv } from "@/features/launch/server/env";
 import {
+  expectAllOk,
   postgresMajor,
   rcloneEnv,
   runOne,
@@ -39,8 +40,9 @@ function refuse(message: string): never {
 
 /** Names every tool the drill needs that is missing or too old (the runbook has the installs). */
 async function missingTools(): Promise<readonly string[]> {
-  const [pgRestore, age, rclone] = await Promise.all([
+  const [pgRestore, psql, age, rclone] = await Promise.all([
     toolVersion("pg_restore", ["--version"]),
+    toolVersion("psql", ["--version"]),
     toolVersion("age", ["--version"]),
     toolVersion("rclone", ["version"]),
   ]);
@@ -51,6 +53,8 @@ async function missingTools(): Promise<readonly string[]> {
       : major < MIN_PG_RESTORE
         ? [`pg_restore 17 or newer (found ${major})`]
         : []),
+    // Ships with pg_restore in every PostgreSQL client install.
+    ...(psql ? [] : ["psql"]),
     ...(age ? [] : ["age"]),
     ...(rclone ? [] : ["rclone"]),
   ];
@@ -70,24 +74,43 @@ async function decrypt(identity: string, from: string, to: string) {
 async function restore(databaseUrl: string, authFile: string, dumpFile: string): Promise<number> {
   const sql = postgres(databaseUrl, { max: 1, onnotice: () => {} });
   try {
-    // Also empties auth.identities and, through the foreign key, public.profiles.
-    await sql`truncate auth.users cascade`;
+    // Also empties auth.identities and, through the foreign keys, public.profiles and every table
+    // that points at it (orders, payments, ...), all of which step 3 restores. Replica role, so
+    // the append only guard on payments (`payments_no_truncate`) does not refuse it.
+    await sql.begin(async (tx) => {
+      await tx`set local session_replication_role = replica`;
+      await tx`truncate auth.users cascade`;
+    });
   } finally {
     await sql.end();
   }
   // One session with replica role: handle_new_user does not fire and make a second profile.
-  await runOne({
-    name: "pg_restore auth.age",
-    command: "pg_restore",
-    args: [
-      "--data-only",
-      "--disable-triggers",
-      "--exit-on-error",
-      `--dbname=${databaseUrl}`,
-      authFile,
-    ],
-    env: { ...process.env, PGOPTIONS: "-c session_replication_role=replica" },
-  });
+  // Supabase lets `postgres` set the role in SQL but not as a startup option (PGOPTIONS), so
+  // pg_restore writes the SQL and one psql session sets the role before running it. No
+  // `--disable-triggers`: its ALTER TABLE needs the table owner, and replica role already
+  // keeps every trigger quiet.
+  expectAllOk(
+    await runPipe([
+      {
+        name: "pg_restore auth.age",
+        command: "pg_restore",
+        args: ["--data-only", "--file=-", authFile],
+      },
+      {
+        name: "psql auth rows",
+        command: "psql",
+        args: [
+          "--no-psqlrc",
+          "--quiet",
+          "--set=ON_ERROR_STOP=1",
+          "--single-transaction",
+          "--command=set session_replication_role = replica",
+          "--file=-",
+          `--dbname=${databaseUrl}`,
+        ],
+      },
+    ]),
+  );
   // Exit on error stays off: warnings are counted, and the count checks decide pass or fail.
   const { exits } = await runPipe([
     {
