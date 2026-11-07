@@ -7,7 +7,9 @@ vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 
 type Card = ReactElement<{ onRetry: () => void; whatsappNumber: string }>;
-const cardOf = (page: ReactElement<{ children: Card }>) => page.props.children;
+// The card, next to the Sentry report (spec 0027 AC-9).
+const cardOf = (page: ReactElement<{ children: readonly ReactElement[] }>) =>
+  page.props.children.find((child) => child.type === ErrorState) as Card;
 
 // covers: AC-15 (spec 0003: a failed storefront page shows the error card, not a bare 500)
 describe("storefront error page", () => {
