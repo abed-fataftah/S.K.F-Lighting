@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { reportError } from "@/server/monitoring/report";
 import { redirect } from "next/navigation";
 import { fieldErrorsOf, type FieldErrors } from "@/lib/form-errors";
 import { fail, ok, type Fail, type Ok } from "@/lib/result";
@@ -52,12 +53,7 @@ async function orFailed<T>(run: () => Promise<T>): Promise<T | Fail<"failed">> {
   try {
     return await run();
   } catch (error) {
-    console.error(
-      JSON.stringify({
-        event: "admin_customer_db_error",
-        error: error instanceof Error ? error.name : "unknown",
-      }),
-    );
+    await reportError("admin_customer_db_error", error);
     return fail("failed");
   }
 }

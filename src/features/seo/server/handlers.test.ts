@@ -93,7 +93,9 @@ describe("handleSitemap", () => {
     expect(response.status).toBe(503);
     expect(response.headers.get("Retry-After")).toBe("3600");
     expect(await response.text()).toBe("");
-    expect(error).toHaveBeenCalledWith("sitemap: read failed", { error: "TypeError" });
+    expect(error).toHaveBeenCalledWith(
+      JSON.stringify({ event: "sitemap_read_failed", error: "TypeError" }),
+    );
   });
 
   it("answers 503 when the reads pass the 3 second limit", async () => {

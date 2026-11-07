@@ -16,6 +16,9 @@ vi.mock("@/server/db", () => ({ getDb }));
 const readCartCookie = vi.fn(async () => []);
 vi.mock("@/features/cart/server/cookies", () => ({ readCartCookie }));
 
+const reportError = vi.fn(async () => {});
+vi.mock("@/server/monitoring/report", () => ({ reportError }));
+
 const { placeOrder } = await import("./actions");
 
 const NAME = "أحمد يوسف";
@@ -96,5 +99,28 @@ describe("refused sends", () => {
     await placeOrder(null, form(valid));
     expect(logged.join("\n")).not.toContain(NAME);
     expect(logged.join("\n")).not.toContain(PHONE);
+  });
+});
+
+// covers: AC-10, AC-11 (spec 0027): only an unexpected save failure reaches Sentry.
+describe("reporting to Sentry", () => {
+  it("reports a database failure while saving as order_save_failed, tagged checkout", async () => {
+    orderRateCheck.mockResolvedValue("ok");
+    const result = await placeOrder(null, form(valid));
+    expect(result).toEqual({ ok: false, error: "save_failed" });
+    expect(reportError).toHaveBeenCalledOnce();
+    expect(reportError).toHaveBeenCalledWith(
+      "order_save_failed",
+      expect.objectContaining({ message: "the database must not be reached" }),
+      {},
+      { area: "checkout" },
+    );
+  });
+
+  it("never reports the expected refusals: rate limited, invalid, or the trap", async () => {
+    await placeOrder(null, form(valid));
+    await placeOrder(null, form({ ...valid, phone: "0222" }));
+    await placeOrder(null, form({ ...valid, company_fax_2: "x" }));
+    expect(reportError).not.toHaveBeenCalled();
   });
 });

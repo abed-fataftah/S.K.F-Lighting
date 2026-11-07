@@ -1,4 +1,6 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { withTimeLimit } from "@/server/db/time-limit";
 import { countUnseenOrders } from "./admin-queries";
 
@@ -13,6 +15,6 @@ export async function unseenOrdersForSidebar(
 ): Promise<number | undefined> {
   const result = await withTimeLimit(read, UNSEEN_COUNT_LIMIT_MS);
   if (result.ok) return result.data;
-  console.error(JSON.stringify({ event: "unseen_count_failed", error: result.error }));
+  await reportError("unseen_count_failed", failureOf(result));
   return undefined;
 }

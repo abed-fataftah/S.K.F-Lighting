@@ -1,4 +1,5 @@
 import { Lamp, SearchX } from "lucide-react";
+import { reportError } from "@/server/monitoring/report";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -175,7 +176,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   const help = whatsappUrl(whatsappNumber, shell("whatsappMessages.help"));
 
   if (!result.ok) {
-    console.error("getCategoryHead: read failed", { error: result.error });
+    await reportError("category_head_read_failed", result.error);
     return (
       <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <PageErrorState heading="h1" title={t("errorTitle")} whatsappNumber={whatsappNumber} />
@@ -303,7 +304,7 @@ async function CategoryList({
   const { siteUrl } = parsePublicEnv();
   const whatsappNumber = await getWhatsappNumber();
   if (!result?.ok) {
-    console.error("getCategoryList: read failed", { error: result?.error ?? "failed" });
+    await reportError("category_list_read_failed", result?.error ?? "failed");
     return <PageErrorState title={t("errorTitle")} whatsappNumber={whatsappNumber} />;
   }
   const list = result.data;

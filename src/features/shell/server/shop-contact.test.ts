@@ -66,9 +66,13 @@ describe("readShopContact", () => {
     await vi.advanceTimersByTimeAsync(CONTACT_TIMEOUT_MS);
     await pending;
 
-    expect(console.error).toHaveBeenCalledWith("getShopContact: no answer within the time limit", {
-      timeoutMs: CONTACT_TIMEOUT_MS,
-    });
+    expect(console.error).toHaveBeenCalledWith(
+      JSON.stringify({
+        event: "shop_contact_read_failed",
+        timeoutMs: CONTACT_TIMEOUT_MS,
+        error: "timeout",
+      }),
+    );
   });
 
   it("logs only the error's name when the read fails", async () => {
@@ -76,18 +80,27 @@ describe("readShopContact", () => {
       throw new TypeError("bad row نابلس");
     });
 
-    expect(console.error).toHaveBeenCalledWith("getShopContact: read failed", {
-      error: "TypeError",
-    });
+    expect(console.error).toHaveBeenCalledWith(
+      JSON.stringify({
+        event: "shop_contact_read_failed",
+        timeoutMs: CONTACT_TIMEOUT_MS,
+        error: "TypeError",
+      }),
+    );
   });
 
-  it("logs unknown when the read rejects with something that is not an Error", async () => {
+  it("logs only the failure code when the read rejects with something that is not an Error", async () => {
     const result = await readShopContact(() => Promise.reject("0599 123 456"));
 
     expect(result).toEqual({ phone: null, address: null, whatsappNumber: null, shopName: null });
-    expect(console.error).toHaveBeenCalledWith("getShopContact: read failed", {
-      error: "unknown",
-    });
+    expect(console.error).toHaveBeenCalledWith(
+      JSON.stringify({
+        event: "shop_contact_read_failed",
+        timeoutMs: CONTACT_TIMEOUT_MS,
+        error: "failed",
+      }),
+    );
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("0599");
   });
 });
 

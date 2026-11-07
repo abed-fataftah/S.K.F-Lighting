@@ -1,4 +1,6 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type { Account } from "@/features/accounts/server/profile";
 import { isSellable } from "@/features/catalog/sellable";
@@ -119,9 +121,7 @@ export async function handleQuickOrderSearch(request: Request, deps: SearchDeps)
 
   const result = await withTimeLimit(() => deps.search(parsed), QUICK_SEARCH_TIMEOUT_MS);
   if (!result.ok) {
-    const error =
-      result.error === "failed" && result.cause instanceof Error ? result.cause.name : result.error;
-    console.error(JSON.stringify({ event: "quick_order_search_failed", error }));
+    await reportError("quick_order_search_failed", failureOf(result));
     return json(503, { error: "unavailable" });
   }
   return json(200, { products: result.data });

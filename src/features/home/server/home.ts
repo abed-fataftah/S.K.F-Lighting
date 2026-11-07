@@ -1,4 +1,6 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { asc, eq } from "drizzle-orm";
 import { cache } from "react";
 import type { CardProduct } from "@/features/catalog/card-view";
@@ -47,19 +49,13 @@ function logReadFailed(
   part: Part,
   result: { readonly error: TimeLimitError; readonly cause?: unknown },
 ) {
-  const error =
-    result.error === "timeout"
-      ? "timeout"
-      : result.cause instanceof Error
-        ? result.cause.name
-        : "unknown";
-  console.error(JSON.stringify({ event: "home_read_failed", part, error }));
+  return reportError("home_read_failed", failureOf(result), { part });
 }
 
 async function timed<T>(part: Part, read: () => Promise<T>, ms: number): Promise<T | null> {
   const result = await withTimeLimit(read, ms);
   if (result.ok) return result.data;
-  logReadFailed(part, result);
+  await logReadFailed(part, result);
   return null;
 }
 

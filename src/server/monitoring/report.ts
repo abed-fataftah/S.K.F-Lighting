@@ -8,7 +8,11 @@ import { errorName, mayReport } from "./throttle";
 // always had, plus a Sentry event grouped by `event`, so each kind of failure is one issue. It
 // never throws and never holds up the response: the send leaves through `waitUntil`.
 
-export type ReportDetails = Readonly<Record<string, string | number | boolean>>;
+/** Flat values only, never customer data; they pass the scrubber on the way to Sentry. */
+export type ReportDetails = Readonly<Record<string, string | number | boolean | null>>;
+
+/** Sentry tags to filter and alert on, such as `area: checkout` (spec 0027 AC-11). */
+export type ReportTags = Readonly<Record<string, string>>;
 
 // The named exception to the no shared mutable state rule (spec 0027 AC-10): the last send time
 // per event name, per Worker instance, so a database outage cannot use up the monthly quota.
@@ -27,6 +31,7 @@ export async function reportError(
   event: string,
   error: unknown,
   details: ReportDetails = {},
+  tags: ReportTags = {},
 ): Promise<void> {
   console.error(JSON.stringify({ event, ...details, error: errorName(error) }));
   try {
@@ -37,6 +42,7 @@ export async function reportError(
     Sentry.withScope((scope) => {
       scope.setFingerprint([event]);
       scope.setTag("event", event);
+      scope.setTags(tags);
       if (host) scope.setTag("host", host);
       scope.setExtras(details);
       // A failure code such as `timeout` arrives as a string; Sentry needs an Error for a stack.

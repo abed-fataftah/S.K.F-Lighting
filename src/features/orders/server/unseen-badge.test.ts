@@ -37,7 +37,7 @@ describe("unseenOrdersForSidebar", () => {
       }),
     ).toBeUndefined();
     expect(error.mock.calls).toEqual([
-      [JSON.stringify({ event: "unseen_count_failed", error: "failed" })],
+      [JSON.stringify({ event: "unseen_count_failed", error: "Error" })],
     ]);
   });
 });

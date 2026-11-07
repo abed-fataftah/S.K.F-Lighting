@@ -1,6 +1,7 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { reportError } from "@/server/monitoring/report";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { storedImageFits } from "@/features/home/server/media-check";
@@ -34,8 +35,7 @@ import {
 const log = (event: string, fields: Readonly<Record<string, unknown>>) =>
   console.info(JSON.stringify({ event, ...fields }));
 
-const logError = (event: string, error: unknown) =>
-  console.error(JSON.stringify({ event, error: error instanceof Error ? error.name : "unknown" }));
+const logError = (event: string, error: unknown) => reportError(event, error);
 
 const refresh = () => revalidatePath(routes.admin.categories);
 

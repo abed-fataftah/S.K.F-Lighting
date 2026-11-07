@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { reportError, type ReportDetails } from "@/server/monitoring/report";
 import { after } from "next/server";
 import { z } from "zod";
 import { fail, ok, type Fail, type Ok } from "@/lib/result";
@@ -30,10 +31,8 @@ import { setProductPhotosInDb } from "./product-photos";
 const log = (event: string, fields: Readonly<Record<string, unknown>>) =>
   console.info(JSON.stringify({ event, ...fields }));
 
-const logError = (event: string, error: unknown, fields: Readonly<Record<string, unknown>>) =>
-  console.error(
-    JSON.stringify({ event, error: error instanceof Error ? error.name : "unknown", ...fields }),
-  );
+const logError = (event: string, error: unknown, fields: ReportDetails) =>
+  reportError(event, error, fields);
 
 /** The categories and colours, for the template's lists sheet and the review. */
 export async function getImportLookups(): Promise<Ok<EditorLookups> | Fail<"forbidden">> {

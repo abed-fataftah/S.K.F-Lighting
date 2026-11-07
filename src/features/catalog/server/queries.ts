@@ -1,4 +1,6 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import {
   and,
   asc,
@@ -189,14 +191,9 @@ export const NAVIGATION_TIMEOUT_MS = 1500;
 export const listNavigation = cache(async (): Promise<readonly NavMain[] | null> => {
   const result = await withTimeLimit(loadCatalogTree, NAVIGATION_TIMEOUT_MS);
   if (result.ok) return buildNavigation(result.data.categories, result.data.listed);
-  console.error("listNavigation: read failed", {
-    error: result.error === "timeout" ? "timeout" : errorName(result),
-  });
+  await reportError("navigation_read_failed", failureOf(result));
   return null;
 });
-
-const errorName = (result: { readonly cause?: unknown }) =>
-  result.cause instanceof Error ? result.cause.name : "unknown";
 
 /** `/c` (AC-15): navigation with no time limit of its own; the page sets one. */
 export async function getNavigation(): Promise<readonly NavMain[]> {

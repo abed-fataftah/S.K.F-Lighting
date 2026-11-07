@@ -141,7 +141,7 @@ describe("registerCustomer", () => {
     savePhoneAfterSignUp.mockRejectedValue(new Error("connection lost"));
     expect(await redirectOf(actions.registerCustomer(null, form(valid)))).toBe("/account/orders");
     expect(lines()).toEqual([
-      { event: "profile_phone_save_failed", userId: USER_ID },
+      { event: "profile_phone_save_failed", userId: USER_ID, error: "Error" },
       { event: "account_sign_up", ok: true },
     ]);
   });

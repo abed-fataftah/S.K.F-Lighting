@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { getTranslations } from "next-intl/server";
 import { CategoriesError } from "@/features/catalog/components/categories/categories-error";
 import { CategoriesManager } from "@/features/catalog/components/categories/categories-manager";
@@ -21,10 +23,7 @@ export default async function AdminCategoriesPage() {
   await requireAdminPage(routes.admin.categories);
   const result = await withTimeLimit(listAdminCategories, CATEGORIES_READ_TIMEOUT_MS);
   if (!result.ok) {
-    console.error("listAdminCategories: read failed", {
-      error: result.error,
-      cause: result.cause instanceof Error ? result.cause.name : undefined,
-    });
+    await reportError("admin_categories_read_failed", failureOf(result));
     const t = await getTranslations("AdminCategories");
     return (
       <>

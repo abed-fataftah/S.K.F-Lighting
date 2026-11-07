@@ -1,6 +1,7 @@
 "use server";
 
 import { after } from "next/server";
+import { reportError, type ReportDetails } from "@/server/monitoring/report";
 import { z } from "zod";
 import { fieldErrorsOf, type FieldErrors } from "@/lib/form-errors";
 import { fail, ok, type Fail, type Ok } from "@/lib/result";
@@ -34,10 +35,8 @@ import { saveProductInDb } from "./save-product";
 const log = (event: string, fields: Readonly<Record<string, unknown>>) =>
   console.info(JSON.stringify({ event, ...fields }));
 
-const logError = (event: string, error: unknown, fields: Readonly<Record<string, unknown>>) =>
-  console.error(
-    JSON.stringify({ event, error: error instanceof Error ? error.name : "unknown", ...fields }),
-  );
+const logError = (event: string, error: unknown, fields: ReportDetails) =>
+  reportError(event, error, fields);
 
 export type SaveProductError =
   | "forbidden"

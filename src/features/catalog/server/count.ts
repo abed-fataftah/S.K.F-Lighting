@@ -1,4 +1,6 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { checkOrderRate, rateKey, type OrderLimiter } from "@/features/checkout/rate-limit";
 import { getDb } from "@/server/db";
 import { withTimeLimit } from "@/server/db/time-limit";
@@ -59,7 +61,7 @@ export async function handleCount(request: Request, deps: CountDeps): Promise<Re
 
   const result = await withTimeLimit(() => deps.count(parsed), COUNT_TIMEOUT_MS);
   if (!result.ok) {
-    console.error(JSON.stringify({ event: "catalog_count_failed", error: result.error }));
+    await reportError("catalog_count_failed", failureOf(result));
     return json(503, { error: "unavailable" });
   }
   if (result.data === null) return json(404, { error: "not_found" });

@@ -1,4 +1,5 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
 import { storedObjectFits } from "@/features/catalog/media-rules";
 import { findStoredObject } from "@/server/storage/admin";
 
@@ -9,12 +10,7 @@ export async function storedImageFits(key: string): Promise<boolean> {
   try {
     return storedObjectFits(key, await findStoredObject(key));
   } catch (error) {
-    console.error(
-      JSON.stringify({
-        event: "home_media_check_failed",
-        error: error instanceof Error ? error.name : "unknown",
-      }),
-    );
+    await reportError("home_media_check_failed", error);
     return false;
   }
 }

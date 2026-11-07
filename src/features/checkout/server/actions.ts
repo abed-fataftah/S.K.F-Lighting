@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { reportError } from "@/server/monitoring/report";
+import { tagSentryRole } from "@/server/monitoring/user";
 import { getAccountProfile } from "@/features/accounts/server/profile";
 import type { CartView } from "@/features/cart/cart-view";
 import { readCartCookie } from "@/features/cart/server/cookies";
@@ -55,6 +57,7 @@ async function readPlacedBy(): Promise<PlacedBy> {
     console.warn(JSON.stringify({ event: "order_profile_removed", userId: account.userId }));
     return null;
   }
+  tagSentryRole(account.profile.role);
   return { userId: account.userId, role: account.profile.role };
 }
 
@@ -89,12 +92,9 @@ export async function placeOrder(_previous: CheckoutState, form: FormData): Prom
       placedBy: await readPlacedBy(),
     });
   } catch (error) {
-    console.error(
-      JSON.stringify({
-        event: "order_failed",
-        error: error instanceof Error ? error.name : "unknown",
-      }),
-    );
+    // Unexpected, so it reaches Sentry and alerts (spec 0027 AC-11, AC-12). The refusals above
+    // (invalid, rate limited, the trap, stock or price changes) are expected and never sent.
+    await reportError("order_save_failed", error, {}, { area: "checkout" });
     return { ok: false, error: "save_failed" };
   }
 

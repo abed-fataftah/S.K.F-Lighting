@@ -9,6 +9,7 @@ import { fail, ok, type Fail, type Ok } from "@/lib/result";
 import { routes } from "@/lib/routes";
 import { getDb } from "@/server/db";
 import { profiles } from "@/server/db/schema";
+import { tagSentryRole } from "@/server/monitoring/user";
 import { getClaims, getVerifiedUser } from "./session";
 
 // The dashboard guard (spec 0001, spec 0004 AC-1): role `admin` from `profiles.role` plus the
@@ -36,6 +37,7 @@ export const getAdminAccess = cache(async (): Promise<AdminAccess> => {
   const claims = await getClaims();
   if (!claims?.sub) return decideAdminAccess(null, null, null);
   const [user, role] = await Promise.all([getVerifiedUser(), readProfileRole(claims.sub)]);
+  tagSentryRole(role);
   return decideAdminAccess(claims, role, user?.id ?? null);
 });
 

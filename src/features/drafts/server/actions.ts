@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { reportError } from "@/server/monitoring/report";
 import type { z } from "zod";
 import { getAccountProfile } from "@/features/accounts/server/profile";
 import { rememberPlacedOrder } from "@/features/checkout/server/placed";
@@ -62,9 +63,8 @@ function refused<E extends string>(error: E, fields?: readonly string[]): Fail<E
   return fail(error);
 }
 
-function saveFailed(action: string, error: unknown): Fail<"save_failed"> {
-  const name = error instanceof Error ? error.name : "unknown";
-  console.error(JSON.stringify({ event: "draft_save_failed", action, error: name }));
+async function saveFailed(action: string, error: unknown): Promise<Fail<"save_failed">> {
+  await reportError("draft_save_failed", error, { action });
   return fail("save_failed");
 }
 
@@ -239,8 +239,7 @@ export async function readDraftPicker(input: {
   try {
     return ok(await readDraftPickerData(await getDb(), userId, parsed.data.productId));
   } catch (error) {
-    const name = error instanceof Error ? error.name : "unknown";
-    console.error(JSON.stringify({ event: "draft_picker_failed", error: name }));
+    await reportError("draft_picker_failed", error);
     return fail("save_failed");
   }
 }

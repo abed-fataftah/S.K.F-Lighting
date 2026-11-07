@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { tagSentryUser } from "@/server/monitoring/user";
 import { createSupabaseServerClient } from "./supabase";
 
 /** Verified token claims for normal pages and reads (checked locally, no round trip). */
@@ -7,6 +8,7 @@ export const getClaims = cache(async () => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data) return null;
+  if (data.claims.sub) tagSentryUser(data.claims.sub);
   return data.claims;
 });
 

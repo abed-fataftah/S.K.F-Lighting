@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { getTranslations } from "next-intl/server";
 import { HomepageEditor } from "@/features/home/components/homepage-editor";
 import { HomepageError } from "@/features/home/components/homepage-error";
@@ -21,17 +23,7 @@ export default async function AdminHomepagePage() {
   await requireAdminPage(routes.admin.homepage);
   const result = await withTimeLimit(getHomepageEditor, HOMEPAGE_READ_TIMEOUT_MS);
   if (!result.ok) {
-    console.error(
-      JSON.stringify({
-        event: "homepage_editor_read_failed",
-        error:
-          result.error === "timeout"
-            ? "timeout"
-            : result.cause instanceof Error
-              ? result.cause.name
-              : "unknown",
-      }),
-    );
+    await reportError("homepage_editor_read_failed", failureOf(result));
     const t = await getTranslations("AdminHomepage");
     return (
       <>

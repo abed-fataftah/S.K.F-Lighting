@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { getTranslations } from "next-intl/server";
 import { ContactCard } from "@/features/settings/components/contact-card";
 import { PoliciesCard } from "@/features/settings/components/policies-card";
@@ -27,17 +29,7 @@ export default async function AdminSettingsPage() {
     withTimeLimit(getSettingsPage, SETTINGS_READ_TIMEOUT_MS),
   ]);
   if (!result.ok) {
-    console.error(
-      JSON.stringify({
-        event: "settings_read_failed",
-        error:
-          result.error === "timeout"
-            ? "timeout"
-            : result.cause instanceof Error
-              ? result.cause.name
-              : "unknown",
-      }),
-    );
+    await reportError("settings_read_failed", failureOf(result));
   }
 
   return (

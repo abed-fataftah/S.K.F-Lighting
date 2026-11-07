@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { reportError } from "@/server/monitoring/report";
 import { fieldErrorsOf, formValues, type FieldErrors } from "@/lib/form-errors";
 import { parsePublicEnv } from "@/lib/public-env";
 import { fail, ok, type Fail, type Ok } from "@/lib/result";
@@ -92,8 +93,8 @@ export async function registerCustomer(
   // A failed phone write keeps the account and the session; /account then asks for the phone.
   try {
     await savePhoneAfterSignUp(await getDb(), data.user.id, { fullName: name, phone });
-  } catch {
-    console.error(JSON.stringify({ event: "profile_phone_save_failed", userId: data.user.id }));
+  } catch (error) {
+    await reportError("profile_phone_save_failed", error, { userId: data.user.id });
   }
   logOutcome("account_sign_up");
   redirect(safeStorefrontNext(next));

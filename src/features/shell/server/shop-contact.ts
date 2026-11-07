@@ -1,4 +1,6 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { cache } from "react";
 import { parsePublicEnv } from "@/lib/public-env";
 import { getDb } from "@/server/db";
@@ -19,13 +21,7 @@ export async function readShopContact(
 ): Promise<ShopContact> {
   const result = await withTimeLimit(read, timeoutMs);
   if (result.ok) return result.data;
-  if (result.error === "timeout") {
-    console.error("getShopContact: no answer within the time limit", { timeoutMs });
-  } else {
-    console.error("getShopContact: read failed", {
-      error: result.cause instanceof Error ? result.cause.name : "unknown",
-    });
-  }
+  await reportError("shop_contact_read_failed", failureOf(result), { timeoutMs });
   return noContact;
 }
 

@@ -1,4 +1,5 @@
 import { SearchX } from "lucide-react";
+import { reportError } from "@/server/monitoring/report";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -103,7 +104,7 @@ async function SearchResults({
 
   if (!result.ok) {
     // Never the query: a shopper might type a phone number into search.
-    console.error(JSON.stringify({ event: "search_read_failed", error: result.error }));
+    await reportError("search_read_failed", result.error);
     return (
       <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <h1 className="type-title-l">{t("title")}</h1>

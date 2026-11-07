@@ -1,4 +1,6 @@
 import "server-only";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import { getDb } from "@/server/db";
 import { withTimeLimit } from "@/server/db/time-limit";
 import { isProductionHost, NOINDEX_HEADER } from "../indexing";
@@ -35,9 +37,7 @@ export async function handleSitemap(request: Request, deps: SitemapDeps): Promis
   }
   const result = await withTimeLimit(deps.read, SITEMAP_TIMEOUT_MS);
   if (!result.ok) {
-    console.error("sitemap: read failed", {
-      error: result.error === "timeout" ? "timeout" : errorName(result.cause),
-    });
+    await reportError("sitemap_read_failed", failureOf(result));
     return new Response(null, { status: 503, headers: { "Retry-After": "3600" } });
   }
   return new Response(buildSitemapXml(collectSitemapEntries(deps.siteUrl, result.data)), {
@@ -47,5 +47,3 @@ export async function handleSitemap(request: Request, deps: SitemapDeps): Promis
     },
   });
 }
-
-const errorName = (cause: unknown) => (cause instanceof Error ? cause.name : "unknown");

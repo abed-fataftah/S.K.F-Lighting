@@ -1,4 +1,6 @@
 import { FolderTree } from "lucide-react";
+import { reportError } from "@/server/monitoring/report";
+import { failureOf } from "@/server/monitoring/throttle";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
@@ -50,7 +52,7 @@ export default async function CategoriesPage() {
     withTimeLimit(getNavigation, CATEGORIES_READ_TIMEOUT_MS),
   ]);
   const whatsappNumber = await getWhatsappNumber();
-  if (!result.ok) console.error("getNavigation: read failed", { error: result.error });
+  if (!result.ok) await reportError("navigation_read_failed", failureOf(result));
 
   return (
     <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
