@@ -52,10 +52,33 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
+      # The flows read and write the local Supabase, as on your machine: its database (the Worker's
+      # Hyperdrive localConnectionString), Auth, Storage, and Mailpit for the reset emails.
+      - name: Start local Supabase
+        id: supabase
+        run: |
+          pnpm exec supabase start -x studio,postgres-meta,edge-runtime,logflare,vector,realtime,supavisor
+          pnpm exec supabase status -o env > supabase.env
+          set -a; . ./supabase.env; set +a
+          {
+            echo "url=$API_URL"
+            echo "anon=$ANON_KEY"
+            echo "service=$SERVICE_ROLE_KEY"
+            echo "db=$DB_URL"
+          } >> "$GITHUB_OUTPUT"
+          rm supabase.env
+      - name: Migrate and seed the local database
+        run: pnpm db:migrate && pnpm db:seed
+        env:
+          DATABASE_URL_DIRECT: ${{ steps.supabase.outputs.db }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ steps.supabase.outputs.url }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ steps.supabase.outputs.anon }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.supabase.outputs.service }}
       # The Worker reads .dev.vars under `pnpm preview`: turn on the design system gallery (spec 0003),
       # and point the stats page at the local Web Analytics stub (spec 0027). Never set in production.
       - run: |
-          cat > .dev.vars <<'VARS'
+          cat > .dev.vars <<VARS
+          SUPABASE_SERVICE_ROLE_KEY=${{ steps.supabase.outputs.service }}
           DESIGN_SYSTEM_PAGE=1
           CF_ACCOUNT_ID=e2e-account
           CF_WEB_ANALYTICS_SITE_TAG=e2e-site
@@ -63,7 +86,13 @@ jobs:
           CF_GRAPHQL_URL=http://127.0.0.1:8790/graphql
           VARS
       # playwright.config.ts starts `pnpm preview` (OpenNext build, then workerd) when CI is set.
+      # The local keys go on this step, so they win over the placeholders at the top.
       - run: pnpm exec playwright test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ steps.supabase.outputs.url }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ steps.supabase.outputs.anon }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.supabase.outputs.service }}
+          DATABASE_URL_DIRECT: ${{ steps.supabase.outputs.db }}
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
