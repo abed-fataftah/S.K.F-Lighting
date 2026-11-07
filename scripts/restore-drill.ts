@@ -70,8 +70,10 @@ async function decrypt(identity: string, from: string, to: string) {
   }
 }
 
-/** The three step restore (AC-9): empty the sign in rows, load them with no triggers, then the data. */
-async function restore(databaseUrl: string, authFile: string, dumpFile: string): Promise<number> {
+const EMPTIED = "the local database is now empty: run supabase db reset and try again";
+
+/** Step 1 of the restore (AC-9): empty the sign in rows and everything that points at them. */
+async function emptySignInRows(databaseUrl: string) {
   const sql = postgres(databaseUrl, { max: 1, onnotice: () => {} });
   try {
     // Also empties auth.identities and, through the foreign keys, public.profiles and every table
@@ -84,6 +86,17 @@ async function restore(databaseUrl: string, authFile: string, dumpFile: string):
   } finally {
     await sql.end();
   }
+}
+
+/**
+ * Steps 2 and 3 (AC-9): load the sign in rows with no triggers, then the data. Returns the
+ * `pg_restore` warning and error lines of step 3, schema messages only, never row data.
+ */
+async function restoreRows(
+  databaseUrl: string,
+  authFile: string,
+  dumpFile: string,
+): Promise<readonly string[]> {
   // One session with replica role: handle_new_user does not fire and make a second profile.
   // Supabase lets `postgres` set the role in SQL but not as a startup option (PGOPTIONS), so
   // pg_restore writes the SQL and one psql session sets the role before running it. No
@@ -132,8 +145,7 @@ async function restore(databaseUrl: string, authFile: string, dumpFile: string):
   ]);
   const result = exits[0]!;
   if (result.code === null) throw new Error("pg_restore dump.age did not run");
-  return result.stderr.split(/\r?\n/).filter((line) => /^pg_restore: (error|warning):/.test(line))
-    .length;
+  return result.stderr.split(/\r?\n/).filter((line) => /^pg_restore: (error|warning):/.test(line));
 }
 
 /** The restored row count of each manifest table; null for a table that is not there. */
@@ -250,15 +262,20 @@ async function main() {
   // Decrypted dumps hold customer data: they live in the OS temp folder only while the drill runs.
   const work = mkdtempSync(join(tmpdir(), "skf-drill-"));
   const checks: Check[] = [];
+  // Set once step 1 has run: a failure after it leaves the local database empty (AC-9).
+  let emptied = false;
   try {
     const authFile = join(work, "auth.dump");
     const dumpFile = join(work, "public.dump");
     await decrypt(values.identity, join(dir, "auth.age"), authFile);
     await decrypt(values.identity, join(dir, "dump.age"), dumpFile);
 
-    const warnings = await restore(env.databaseUrl, authFile, dumpFile);
+    await emptySignInRows(env.databaseUrl);
+    emptied = true;
+    const warnings = await restoreRows(env.databaseUrl, authFile, dumpFile);
+    for (const line of warnings) console.log(line);
     console.log(
-      `pg_restore: ${warnings} warning or error lines while restoring public and drizzle (counted, not fatal).`,
+      `pg_restore: ${warnings.length} warning or error lines while restoring public and drizzle (counted, not fatal).`,
     );
 
     const restored = await restoredCounts(env.databaseUrl, Object.keys(manifest.tables));
@@ -288,6 +305,10 @@ async function main() {
           }
         : await imageCheck(env, env.databaseUrl),
     );
+  } catch (error) {
+    if (!emptied) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${message}\n${EMPTIED}`, { cause: error });
   } finally {
     rmSync(work, { recursive: true, force: true });
   }
