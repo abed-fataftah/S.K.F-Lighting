@@ -5,6 +5,7 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 ## 1. Domain and accounts
 
 - [ ] Choose the name (Latin letters, `.com` unless you prefer another extension Cloudflare Registrar sells) and buy it in **Cloudflare → Domain Registration → Register Domains**, on the same account as the Worker. The domain then lives in Cloudflare DNS, with nothing to move.
+  - Bought somewhere else (Namecheap, for example)? Then in Cloudflare, **Add a domain**, Free plan, on the same account as the Worker, and turn off DNSSEC at the registrar first if it is on. At the registrar, replace its nameservers with the two Cloudflare names. Done when Cloudflare shows the domain **Active** (often within an hour, up to a day). Step 3 needs this. You can move the registration itself to Cloudflare later (**Transfer Domains**), once the registrar's 60 day lock ends; nothing in this runbook needs that.
 - [ ] Workers Paid plan on (**Workers & Pages → Plans**).
 - [ ] Supabase Pro project, set up per [supabase-production.md](supabase-production.md): Project, Storage, Database lockdown, Connection strings. Leave the Auth URLs for step 3.
 - [ ] GitHub: `main` is the default branch (**Settings → General**). Scheduled workflows (backup, media sweep, drill reminder) only run on the default branch.
