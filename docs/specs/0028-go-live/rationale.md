@@ -65,3 +65,11 @@ For speed, Core Web Vitals in the lab with a performance floor of 80 measures wh
 The quiet launch exists because the first real customers find what tests do not. HSTS waits until after that week because it cannot be quickly undone in browsers that have seen it.
 
 **Runner up**: Option 3, for later, once there is enough traffic that a slowdown or a broken backup costs more than the setup.
+
+## Update 2026-11-07: key rotation and the restore steps
+
+**Key rotation.** AC-4 accepted exactly 2 recipients, while AC-17's rotation added a third first, so the two could not both hold. Options weighed: allow 2 or 3 keys (chosen); keep exactly 2 and swap one key in a single edit (no code change, but a mistyped or lost new key leaves newer dumps with only one working key until someone notices); keep exactly 2 and test the new key on a small file before swapping (catches a typo, not a key lost later). Allowing 3 only for the rotation keeps every dump openable by at least 2 keys at every moment, and the rotation proves the new key against a real backup before the old one goes. The cost is one small change to `parseRecipients`.
+
+**Restore steps, from the first drill.** The first local drill showed two steps of AC-9 could not run as written on Supabase: the cascade from `auth.users` reaches `payments`, whose append only guard refuses any TRUNCATE (so step 1 runs with the replica role too), and Supabase refuses `session_replication_role` as a startup option, so step 2 pipes `pg_restore` SQL into one `psql` session that sets it first. The intent of both steps is unchanged. The drill then matched all 23 tables exactly.
+
+A cross check on another model then tightened the rotation steps (who makes the new key, which backup proves it, what counts as a successful weekly run, a log line while 3 keys are set, a month to return to 2) and the drill's failure output (the warning lines themselves, and a plain note that a failure after step 1 leaves the local database empty). Two suggestions were turned down: replacing step 1 with `supabase db reset` (step 1 keeps the drill working on a database that is not fresh and does no harm on one that is), and a fixed 62 character key check (it would refuse age plugin keys).
