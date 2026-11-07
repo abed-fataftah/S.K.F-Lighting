@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import createNextIntlPlugin from "next-intl/plugin";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { parsePublicEnv } from "./src/lib/public-env";
@@ -32,7 +33,24 @@ const nextConfig: NextConfig = {
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-export default withNextIntl(nextConfig);
+const config = withNextIntl(nextConfig);
+
+// Spec 0027 AC-8: only the deploy job has SENTRY_AUTH_TOKEN. There the Sentry plugin uploads the
+// source maps during the Next build, under the release SENTRY_RELEASE (the git commit), and deletes
+// them afterwards, before OpenNext bundles the Worker, so they are never served. Check builds and
+// local builds stay plain.
+export default process.env.SENTRY_AUTH_TOKEN
+  ? withSentryConfig(config, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      release: { name: process.env.SENTRY_RELEASE },
+      sourcemaps: { deleteSourcemapsAfterUpload: true },
+      widenClientFileUpload: true,
+      telemetry: false,
+      silent: !process.env.CI,
+    })
+  : config;
 
 // Gives `next dev` access to Worker bindings (HYPERDRIVE) through getCloudflareContext().
 initOpenNextCloudflareForDev();

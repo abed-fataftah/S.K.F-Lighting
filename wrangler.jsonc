@@ -23,6 +23,13 @@
   "observability": {
     "enabled": true,
   },
+  // The stats page's Web Analytics read (spec 0027; docs/runbooks/monitoring.md). Not secret. Fill in
+  // both ids when the Web Analytics site exists; the token is a secret
+  // (`pnpm wrangler secret put CF_ANALYTICS_API_TOKEN`). All empty shows the "not set up" notice.
+  "vars": {
+    "CF_ACCOUNT_ID": "",
+    "CF_WEB_ANALYTICS_SITE_TAG": "",
+  },
   // Spam limit on placing orders (spec 0004 AC-10): 5 per 60 seconds per IP, per Cloudflare location.
   "ratelimits": [
     {
