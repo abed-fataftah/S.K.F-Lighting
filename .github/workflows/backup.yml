@@ -1,0 +1,74 @@
+# Spec 0028 AC-4 to AC-6: the weekly off site copy. One encrypted dump of `public` and `drizzle`, one
+# of the sign in rows, the product photos, then the manifest, all into the private R2 bucket. Never
+# runs on a pull request. Settings live in the `production` environment (docs/runbooks/go-live.md,
+# section 6): variables BACKUP_AGE_RECIPIENTS, R2_ENDPOINT, R2_BUCKET, SUPABASE_S3_ENDPOINT,
+# SUPABASE_S3_REGION; secrets DATABASE_URL_DIRECT (the session pooler, port 5432, IPv4),
+# R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, SUPABASE_S3_ACCESS_KEY_ID, SUPABASE_S3_SECRET_ACCESS_KEY.
+name: Backup
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: backup-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Pinned, and checked against the SHA256 the projects publish, before anything runs.
+  AGE_VERSION: "1.3.2"
+  AGE_SHA256: cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10
+  RCLONE_VERSION: "1.75.2"
+  RCLONE_SHA256: 349ac8fba6ff65d6247043f1750cdcb518ec5d500ef91463a10d37c0ccdf3702
+
+jobs:
+  backup:
+    name: Dump, photos, manifest
+    # Only main's copy of this file, the same rule as the deploy.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install the Postgres 17 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          echo /usr/lib/postgresql/17/bin >> "$GITHUB_PATH"
+      - name: Install age and rclone
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSLo age.tar.gz "https://github.com/FiloSottile/age/releases/download/v${AGE_VERSION}/age-v${AGE_VERSION}-linux-amd64.tar.gz"
+          echo "${AGE_SHA256}  age.tar.gz" | sha256sum -c -
+          tar -xzf age.tar.gz
+          sudo install age/age /usr/local/bin/age
+          curl -fsSLo rclone.zip "https://github.com/rclone/rclone/releases/download/v${RCLONE_VERSION}/rclone-v${RCLONE_VERSION}-linux-amd64.zip"
+          echo "${RCLONE_SHA256}  rclone.zip" | sha256sum -c -
+          unzip -q rclone.zip
+          sudo install "rclone-v${RCLONE_VERSION}-linux-amd64/rclone" /usr/local/bin/rclone
+      - run: pg_dump --version && age --version && rclone version | head -1
+      - run: pnpm backup:run
+        env:
+          DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+          BACKUP_AGE_RECIPIENTS: ${{ vars.BACKUP_AGE_RECIPIENTS }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          SUPABASE_S3_ENDPOINT: ${{ vars.SUPABASE_S3_ENDPOINT }}
+          SUPABASE_S3_REGION: ${{ vars.SUPABASE_S3_REGION }}
+          SUPABASE_S3_ACCESS_KEY_ID: ${{ secrets.SUPABASE_S3_ACCESS_KEY_ID }}
+          SUPABASE_S3_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_S3_SECRET_ACCESS_KEY }}
