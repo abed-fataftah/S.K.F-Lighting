@@ -159,6 +159,33 @@ export function formatNumber(n: number): string {
   return n < 0 ? `-${grouped}` : grouped;
 }
 
+// Measured numbers for the launch check's table (spec 0028 AC-14): a script, not a page, but the
+// same rule that every printed number comes from here.
+
+/** `2,345 ms`: a measured time, to the millisecond. */
+export function formatMs(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) throw new RangeError(`formatMs needs a time, got ${ms}`);
+  return `${formatNumber(Math.round(ms))} ms`;
+}
+
+/** `87`: a Lighthouse score from 0 to 1, read the way Lighthouse shows it, out of 100. */
+export function formatScore(score: number): string {
+  if (!(score >= 0 && score <= 1)) throw new RangeError(`formatScore needs 0 to 1, got ${score}`);
+  return String(Math.round(score * 100));
+}
+
+/** `0.052`: a small measure such as the layout shift score, rounded to `places` decimals. */
+export function formatDecimal(n: number, places: number): string {
+  if (!Number.isFinite(n) || !Number.isInteger(places) || places < 1 || places > 6) {
+    throw new RangeError(`formatDecimal needs a number and 1 to 6 places, got ${n}, ${places}`);
+  }
+  const factor = 10 ** places;
+  const scaled = Math.round(Math.abs(n) * factor);
+  const whole = formatNumber(Math.floor(scaled / factor));
+  const fraction = String(scaled % factor).padStart(places, "0");
+  return `${n < 0 && scaled !== 0 ? "-" : ""}${whole}.${fraction}`;
+}
+
 const STORED_MOBILE = /^\+97[02](5\d)(\d{3})(\d{4})$/;
 
 /** `+970599123456` reads `059 912 3456`; anything that is not a stored mobile comes back unchanged. */

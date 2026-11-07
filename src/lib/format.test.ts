@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatDecimal,
+  formatMs,
+  formatScore,
   formatDate,
   formatDateTime,
   formatNumber,
@@ -240,5 +243,52 @@ describe("formatMonthKey", () => {
     for (const key of ["2026-13", "2026-00", "2026-11-05", "11/2026"]) {
       expect(() => formatMonthKey(key)).toThrow(RangeError);
     }
+  });
+});
+
+// covers: AC-14 (spec 0028): the launch check's table prints through these, never toFixed.
+describe("formatMs", () => {
+  it("rounds to the millisecond and groups thousands", () => {
+    expect(formatMs(2345.4)).toBe("2,345 ms");
+    expect(formatMs(199.5)).toBe("200 ms");
+    expect(formatMs(0)).toBe("0 ms");
+  });
+
+  it("refuses a value that is not a time", () => {
+    for (const ms of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => formatMs(ms)).toThrow(RangeError);
+    }
+  });
+});
+
+describe("formatScore", () => {
+  it("shows a 0 to 1 score out of 100", () => {
+    expect(formatScore(0.87)).toBe("87");
+    expect(formatScore(0.795)).toBe("80");
+    expect(formatScore(1)).toBe("100");
+    expect(formatScore(0)).toBe("0");
+  });
+
+  it("refuses a score outside 0 to 1", () => {
+    for (const score of [1.2, -0.1, Number.NaN]) {
+      expect(() => formatScore(score)).toThrow(RangeError);
+    }
+  });
+});
+
+describe("formatDecimal", () => {
+  it("rounds to the given places, padding with zeros", () => {
+    expect(formatDecimal(0.1, 3)).toBe("0.100");
+    expect(formatDecimal(0.0524, 3)).toBe("0.052");
+    expect(formatDecimal(0.0005, 3)).toBe("0.001");
+    expect(formatDecimal(1234.5, 1)).toBe("1,234.5");
+    expect(formatDecimal(-0.25, 2)).toBe("-0.25");
+    expect(formatDecimal(-0.0001, 2)).toBe("0.00");
+  });
+
+  it("refuses a value or a place count it cannot show", () => {
+    expect(() => formatDecimal(Number.NaN, 2)).toThrow(RangeError);
+    expect(() => formatDecimal(1, 0)).toThrow(RangeError);
+    expect(() => formatDecimal(1, 1.5)).toThrow(RangeError);
   });
 });
