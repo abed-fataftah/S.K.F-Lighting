@@ -61,6 +61,14 @@ Before go live, the owner pastes this paragraph into the privacy policy at **/ad
 4. Trigger the same route on a `workers.dev` or preview address: nothing must arrive.
 5. Remove the temporary route and button, deploy again, and record the result in the spec's `verify.md`.
 
+## 7. The weekly backup monitor (spec 0028 AC-8)
+
+The Sunday backup checks in with the Sentry cron monitor `skf-weekly-backup` (`.github/workflows/backup.yml`, through `sentry-cli monitors run` with the DSN, so no auth token is needed). The monitor is created by its first scheduled check in: schedule `0 1 * * 0` UTC, a margin of 120 minutes, at most 60 minutes of run time.
+
+1. Check that your Sentry plan includes a cron monitor (the free Developer plan has had one). If it does not, say so before launch: spec 0028 names the fallback.
+2. After the first Sunday run, open **Crons → skf-weekly-backup** and set its alert to email you (Member: your account) when a check in fails, runs over time, or is missed. This is the third alert rule, beside the two in section 2.
+3. The proof, once before launch, is a deliberately failing scheduled run ([go-live.md](go-live.md), step 6). Hand runs never mark the monitor.
+
 ## Day to day
 
 - **Where a failure is logged.** Every unexpected failure goes through `reportError(event, error, details)` in `src/server/monitoring/report.ts`: one JSON line in Workers Logs (always) and one Sentry issue per `event` name. Sentry gets at most one event per name per minute from each Worker instance, so an outage cannot use up the free monthly quota.
