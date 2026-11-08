@@ -4,11 +4,12 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 ## 1. Domain and accounts
 
-- [ ] Choose the name (Latin letters, `.com` unless you prefer another extension Cloudflare Registrar sells) and buy it in **Cloudflare → Domain Registration → Register Domains**, on the same account as the Worker. The domain then lives in Cloudflare DNS, with nothing to move.
+- [x] Choose the name (Latin letters, `.com` unless you prefer another extension Cloudflare Registrar sells) and buy it in **Cloudflare → Domain Registration → Register Domains**, on the same account as the Worker. The domain then lives in Cloudflare DNS, with nothing to move.
   - Bought somewhere else (Namecheap, for example)? Then in Cloudflare, **Add a domain**, Free plan, on the same account as the Worker, and turn off DNSSEC at the registrar first if it is on. At the registrar, replace its nameservers with the two Cloudflare names. Done when Cloudflare shows the domain **Active** (often within an hour, up to a day). Step 3 needs this. You can move the registration itself to Cloudflare later (**Transfer Domains**), once the registrar's 60 day lock ends; nothing in this runbook needs that.
+  - Then clear the registrar's parking records. Cloudflare copies the old records when it adds the domain, so the root and `www` still point at the registrar's parking page (`http://<domain>/` shows "recently registered", `https://<domain>/` answers 522). In **DNS → Records**, delete every `A`, `AAAA`, and `CNAME` record on the root (`@`) and on `www`; keep `TXT` and `MX`. Step 3 needs the root free: a Workers Custom Domain will not attach over an existing record, and the deploy fails. Done when no `A`, `AAAA`, or `CNAME` record is left on either name.
 - [ ] Workers Paid plan on (**Workers & Pages → Plans**).
 - [ ] Supabase Pro project, set up per [supabase-production.md](supabase-production.md): Project, Storage, Database lockdown, Connection strings. Leave the Auth URLs for step 3.
-- [ ] GitHub: `main` is the default branch (**Settings → General**). Scheduled workflows (backup, media sweep, drill reminder) only run on the default branch.
+- [ ] GitHub: `main` is the default branch (**Settings → General**). Scheduled workflows (backup, media sweep, drill reminder) only run on the default branch, and CI deploys only from `main`. No `main` on GitHub yet? Merge the finished work into one branch, push it as `main` (`git push origin <that branch>:main`), then make `main` the default.
 - [ ] GitHub `production` environment exists, with **Deployment branches** limited to `main`. Its variables and secrets are filled in by the steps below, and each step names them.
 
 ## 2. First deploy
