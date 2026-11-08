@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -17,7 +18,7 @@ import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { HOME_LIMITS, type HomeCircle } from "../home-rules";
+import { changesSide, circleSteps, HOME_LIMITS, type HomeCircle } from "../home-rules";
 
 const AUTO_MS = 3500;
 const SWIPE_PX = 40;
@@ -83,50 +84,94 @@ function CircleWords({ circle }: { readonly circle: HomeCircle }) {
   );
 }
 
-/** One to three circles: a still row of plain links, no arrows and no movement (AC-4). */
-function StillRow({ circles }: { readonly circles: readonly HomeCircle[] }) {
+/** A single circle: alone and centred, a plain link, no arrows and no movement (AC-4). */
+function LoneCircle({ circle }: { readonly circle: HomeCircle }) {
   return (
-    <ul className="flex justify-center gap-3.5 px-(--page-pad)" data-testid="home-circles">
-      {circles.map((circle) => (
-        <li key={circle.slug} className="w-28 text-center">
-          <Link href={routes.category(circle.slug)} className="block rounded-btn">
-            <CirclePicture circle={circle} />
-            <CircleWords circle={circle} />
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div className="flex justify-center px-(--page-pad)" data-testid="home-circles">
+      <Link href={routes.category(circle.slug)} className="block w-28 rounded-btn text-center">
+        <CirclePicture circle={circle} />
+        <CircleWords circle={circle} />
+      </Link>
+    </div>
   );
 }
 
-/** Where circle `index` sits when `centre` is in the middle: its signed steps from the centre. */
-function stepsFrom(index: number, centre: number, count: number) {
-  const raw = (((index - centre) % count) + count) % count;
-  return raw > count / 2 ? raw - count : raw;
+/** How far out a circle `steps` from the centre sits, capped where it has faded away. */
+const awayFrom = (steps: number) => Math.min(Math.abs(steps), 3) as 0 | 1 | 2 | 3;
+
+/** The move along the line in px, positive toward the inline end (`end` is -1 in right to left). */
+function placed(steps: number, end: 1 | -1) {
+  const away = awayFrom(steps);
+  return {
+    transform: `translateX(${end * Math.sign(steps) * OFFSETS[away]}px) scale(${SCALES[away]})`,
+    opacity: OPACITY[away],
+  };
+}
+
+/** A CSS time token ("0.7s" or "700ms") in milliseconds. */
+function tokenMs(element: Element, token: string) {
+  const value = getComputedStyle(element).getPropertyValue(token).trim();
+  return value.endsWith("ms") ? parseFloat(value) : parseFloat(value) * 1000;
 }
 
 /**
- * Four or more circles (AC-4; pages/home.md interactions 1 to 3): loops, and moves on by itself
+ * Two or more circles (AC-4; pages/home.md interactions 1 to 3): loops, and moves on by itself
  * every 3.5 seconds until the first touch or any focus inside, never under reduced motion. The
  * pause button stops and starts it again (WCAG 2.2.2). The yellow button opens the centred one.
+ * A circle that crosses to the other side on a step fades out and back in there instead of
+ * sliding over the centre.
  */
 function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }) {
   const t = useTranslations("Home");
   const count = circles.length;
   const reduced = useReducedMotion();
-  const [centre, setCentre] = useState(0);
+  // `from` is the centre before the last step, so a render knows which circles cross.
+  const [at, setAt] = useState({ centre: 0, from: 0 });
   const [auto, setAuto] = useState(true);
+  const listRef = useRef<HTMLUListElement>(null);
   const pauseRef = useRef<HTMLButtonElement>(null);
   const swipeFrom = useRef<number | null>(null);
   const moving = auto && !reduced;
+  const { centre, from } = at;
+
+  const step = (by: number) =>
+    setAt((now) => ({ centre: (now.centre + by + count) % count, from: now.centre }));
 
   useEffect(() => {
     if (!moving) return;
-    const timer = setInterval(() => setCentre((at) => (at + 1) % count), AUTO_MS);
+    const timer = setInterval(
+      () => setAt((now) => ({ centre: (now.centre + 1) % count, from: now.centre })),
+      AUTO_MS,
+    );
     return () => clearInterval(timer);
   }, [moving, count]);
 
-  const step = (by: number) => setCentre((at) => (at + by + count) % count);
+  // The crossing circles already sit on their new side with no transition; play the fade.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list || reduced || from === centre) return;
+    const end = getComputedStyle(list).direction === "rtl" ? -1 : 1;
+    Array.from(list.children).forEach((item, index) => {
+      const before = circleSteps(index, from, count);
+      const after = circleSteps(index, centre, count);
+      if (!changesSide(before, after)) return;
+      item.getAnimations().forEach((animation) => animation.cancel());
+      const out = placed(before, end);
+      const back = placed(after, end);
+      item.animate(
+        [
+          { ...out, visibility: "visible" },
+          { ...out, opacity: 0, visibility: "visible", offset: 0.5 },
+          { ...back, opacity: 0, offset: 0.5 },
+          back,
+        ],
+        {
+          duration: tokenMs(item, "--dur-carousel-move"),
+          easing: getComputedStyle(item).getPropertyValue("--ease-carousel").trim() || "ease",
+        },
+      );
+    });
+  }, [centre, from, count, reduced]);
   const inPause = (target: EventTarget | null) =>
     target instanceof Node && !!pauseRef.current?.contains(target);
   const stop = (target: EventTarget | null) => {
@@ -168,11 +213,12 @@ function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }
         {t("centredCategory", { n, count: total, name: centred.name })}
       </p>
       <div className="relative h-55.5 w-full touch-pan-y overflow-hidden">
-        <ul>
+        <ul ref={listRef}>
           {circles.map((circle, index) => {
-            const steps = stepsFrom(index, centre, count);
-            const away = Math.min(Math.abs(steps), 3) as 0 | 1 | 2 | 3;
+            const steps = circleSteps(index, centre, count);
+            const away = awayFrom(steps);
             const towardEnd = steps > 0;
+            const crossing = changesSide(circleSteps(index, from, count), steps);
             const style: CSSProperties = {
               width: SIZE,
               insetInlineStart: `calc(50% - ${SIZE / 2}px)`,
@@ -181,6 +227,8 @@ function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }
               transformOrigin: `50% ${SIZE / 2}px`,
               opacity: OPACITY[away],
               zIndex: 10 - away,
+              // It jumps to its new side and the fade above plays instead of a slide.
+              ...(crossing && { transition: "none" }),
             };
             return (
               <li
@@ -263,9 +311,6 @@ function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }
 }
 
 export function CategoryCircles({ circles }: { readonly circles: readonly HomeCircle[] }) {
-  return circles.length >= HOME_LIMITS.carouselFrom ? (
-    <CircleCarousel circles={circles} />
-  ) : (
-    <StillRow circles={circles} />
-  );
+  if (circles.length >= HOME_LIMITS.carouselFrom) return <CircleCarousel circles={circles} />;
+  return circles[0] ? <LoneCircle circle={circles[0]} /> : null;
 }

@@ -3,7 +3,10 @@ import {
   bannerHref,
   buildHomeCircles,
   builtCircleLines,
+  changesSide,
+  circleSteps,
   circleSubline,
+  HOME_LIMITS,
   featuredBadge,
   isStale,
   isTargetLive,
@@ -104,6 +107,40 @@ describe("circleSubline", () => {
       line: null,
     }));
     expect(circleSubline(circles)).toBe("ق0، ق1، ق2، ق3، ق4، ق5");
+  });
+});
+
+describe("the circle carousel", () => {
+  const sides = (centre: number, count: number) =>
+    Array.from({ length: count }, (_, index) => circleSteps(index, centre, count));
+
+  it("starts at two circles; one shows alone", () => {
+    expect(HOME_LIMITS.carouselFrom).toBe(2);
+  });
+
+  it("keeps the other of two circles on the end side, so each step swaps them", () => {
+    expect(sides(0, 2)).toEqual([0, 1]);
+    expect(sides(1, 2)).toEqual([1, 0]);
+  });
+
+  it("puts one of three circles on each side", () => {
+    expect(sides(0, 3)).toEqual([0, 1, -1]);
+    expect(sides(1, 3)).toEqual([-1, 0, 1]);
+    expect(sides(2, 3)).toEqual([1, -1, 0]);
+  });
+
+  it("wraps the far half of a longer list to the start side", () => {
+    expect(sides(0, 4)).toEqual([0, 1, 2, -1]);
+    expect(sides(0, 5)).toEqual([0, 1, 2, -2, -1]);
+  });
+
+  it("fades only a circle that crosses the centre", () => {
+    // Three circles, next: the start side one wraps to the end side.
+    expect(changesSide(circleSteps(2, 0, 3), circleSteps(2, 1, 3))).toBe(true);
+    expect(changesSide(circleSteps(1, 0, 3), circleSteps(1, 1, 3))).toBe(false);
+    // Two circles swap through the centre, never across it.
+    expect(changesSide(circleSteps(0, 0, 2), circleSteps(0, 1, 2))).toBe(false);
+    expect(changesSide(circleSteps(1, 0, 2), circleSteps(1, 1, 2))).toBe(false);
   });
 });
 

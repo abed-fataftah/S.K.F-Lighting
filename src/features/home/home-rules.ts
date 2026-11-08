@@ -15,8 +15,8 @@ export const HOME_LIMITS = {
   maxActiveBanners: 5,
   /** Featured picks (AC-12). */
   maxFeatured: 8,
-  /** Circles at or above this count turn the still row into the carousel (AC-4). */
-  carouselFrom: 4,
+  /** Circles at or above this count form the carousel; a single circle shows alone (AC-4). */
+  carouselFrom: 2,
   /** Circle names the section subline lists (AC-4). */
   sublineNames: 6,
 } as const;
@@ -128,6 +128,19 @@ export function circleSubline(circles: readonly HomeCircle[]): string {
     .map((circle) => circle.name)
     .join("، ");
 }
+
+/**
+ * Where circle `index` sits in the carousel while circle `centre` is in the middle: its signed
+ * steps from the centre, positive toward the inline end. The far half wraps to the start side, so
+ * with 2 circles the other one always waits on the end side and with 3 one sits on each side.
+ */
+export function circleSteps(index: number, centre: number, count: number): number {
+  const raw = (((index - centre) % count) + count) % count;
+  return raw > count / 2 ? raw - count : raw;
+}
+
+/** A step that moves a circle from one side of the centre to the other: it fades across (AC-4). */
+export const changesSide = (before: number, after: number): boolean => before * after < 0;
 
 /** Where "تسوّق الآن" goes: the circles, else the featured products, else nowhere (hidden). */
 export function shopNowTarget(

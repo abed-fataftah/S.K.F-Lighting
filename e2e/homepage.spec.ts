@@ -12,8 +12,9 @@ import { localSql } from "./local-db";
 // the owner adds two banners (one linked to a category), reorders them, unticks one and saves,
 // picks two featured products, unticks a main, and gives a main a photo and a line; a customer
 // sees the banner, follows its link, and sees the circles and the featured cards; with every banner
-// off the hero shows; the circle carousel's pause button stops its movement. Axe runs on Home (both
-// versions) and on the editor. Home is shared by every flow, so this one runs in its own project
+// off the hero shows; the circle carousel's pause button stops its movement, three and two circles
+// still form the carousel, and one circle shows alone. Axe runs on Home (both versions) and on the
+// editor. Home is shared by every flow, so this one runs in its own project
 // after the others (playwright.config.ts) and puts Home back as it found it.
 
 const expect = baseExpect.configure({ timeout: 15_000 });
@@ -32,10 +33,16 @@ const LINKED = `عرض الثريات ${tag}`;
 const PLAIN = `عرض الأباجورات ${tag}`;
 const LINE = `سطر ${tag}`;
 
+// The mains ticked for Home before the flow; the circle steps untick them in the editor.
+let homeMainIds: readonly string[] = [];
+
 /** Four mains, each with a listed product (so four or more circles), and the two picks. */
 async function seed() {
   const sql = localSql();
   try {
+    const ticked = await sql<{ id: string }[]>`
+      select id from categories where parent_id is null and show_on_home`;
+    homeMainIds = ticked.map((main) => main.id);
     await sql`delete from banners`;
     await sql`delete from featured_products`;
     for (const [i, name] of MAINS.entries()) {
@@ -66,6 +73,9 @@ test.afterAll(async () => {
     await sql`delete from featured_products`;
     await sql`delete from products where code like ${`${CODE}-%`}`;
     await sql`delete from categories where slug like ${`hp-e2e-${tag}-%`}`;
+    if (homeMainIds.length) {
+      await sql`update categories set show_on_home = true where id in ${sql(homeMainIds)}`;
+    }
   } finally {
     await sql.end();
   }
@@ -136,6 +146,25 @@ async function saveEditor(page: Page) {
   await expect(page.getByText("تم حفظ التغييرات.")).toBeVisible();
 }
 
+/** Ticks for Home only the named mains (every other main unticked), then saves. */
+async function showOnlyMains(page: Page, names: readonly string[]) {
+  await openEditor(page);
+  for (const item of await page.getByTestId("homepage-mains").getByRole("listitem").all()) {
+    const text = (await item.textContent()) ?? "";
+    const tick = item.getByTestId("main-tick");
+    if (names.some((name) => text.includes(name)) !== (await tick.isChecked())) await tick.click();
+  }
+  await saveEditor(page);
+}
+
+/** True once the circle named `name` has settled on the left of the centred one named `centred`. */
+async function leftOf(circles: ReturnType<Page["getByTestId"]>, name: string, centred: string) {
+  const [side, middle] = await Promise.all(
+    [name, centred].map((n) => circles.locator("li").filter({ hasText: n }).boundingBox()),
+  );
+  return !!side && !!middle && side.x + side.width / 2 < middle.x + middle.width / 2 - 50;
+}
+
 test("the owner runs Home and a customer sees it", async ({ page, browser }, testInfo) => {
   test.skip(testInfo.project.name !== "homepage", "runs once, after the other flows");
   test.setTimeout(300_000);
@@ -197,7 +226,7 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
   await expect(featured).toContainText(FEATURED[1]);
   await checkA11y(customer);
 
-  // With four or more circles the carousel moves; the pause button stops it (AC-4).
+  // The carousel moves by itself; the pause button stops it (AC-4).
   const pause = customer.getByTestId("circles-pause");
   await expect(pause).toHaveAttribute("aria-pressed", "false");
   await pause.click();
@@ -208,6 +237,40 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
 
   await banner.getByTestId("banner-link").click();
   await expect(customer).toHaveURL(new RegExp(`/c/hp-e2e-${tag}-0$`));
+
+  // Three circles still form the carousel: it loops after three steps (AC-4).
+  const browse = customer.getByTestId("circles-browse");
+  await showOnlyMains(page, MAINS.slice(0, 3));
+  await customer.goto("/");
+  await customer.getByTestId("circles-pause").click();
+  const first = await browse.textContent();
+  for (let i = 0; i < 3; i++) await circles.getByRole("button", { name: "القسم التالي" }).click();
+  await expect(browse).toHaveText(first ?? "");
+
+  // Two circles: the other one always waits on the left, and either arrow swaps them (AC-4).
+  await showOnlyMains(page, MAINS.slice(0, 2));
+  await customer.goto("/");
+  await customer.getByTestId("circles-pause").click();
+  const [a, b] = (await browse.textContent())?.includes(MAINS[0])
+    ? [MAINS[0], MAINS[1]]
+    : [MAINS[1], MAINS[0]];
+  await expect.poll(() => leftOf(circles, b, a)).toBe(true);
+  await circles.getByRole("button", { name: "القسم السابق" }).click();
+  await expect(browse).toContainText(b);
+  await expect.poll(() => leftOf(circles, a, b)).toBe(true);
+  await circles.getByRole("button", { name: "القسم التالي" }).click();
+  await expect(browse).toContainText(a);
+  await checkA11y(customer);
+
+  // One circle shows alone as a plain link: no arrows, no pause, no yellow button (AC-4).
+  await showOnlyMains(page, MAINS.slice(0, 1));
+  await customer.goto("/");
+  await expect(circles.getByRole("link")).toHaveCount(1);
+  await expect(circles.getByRole("link")).toContainText(MAINS[0]);
+  await expect(circles.getByRole("button")).toHaveCount(0);
+  await expect(customer.getByTestId("circles-pause")).toHaveCount(0);
+  await expect(browse).toHaveCount(0);
+  await checkA11y(customer);
 
   // Every banner off: the hero comes back with its own h1 (AC-3).
   await openEditor(page);
