@@ -139,6 +139,24 @@
       "skillPath": "skills/sandbox-stable/SKILL.md",
       "computedHash": "ea5794e07e20086db7f40ddf6766af798b712b9a8ad6d0bc5700c5161ac465e4"
     },
+    "sentry-cloudflare-sdk": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "skillPath": "skills-legacy/sentry-cloudflare-sdk/SKILL.md",
+      "computedHash": "dc8ba575eba474bb0a82100e5b5f99f06d7774640bc0c86f4c1fd2dd71465b85"
+    },
+    "sentry-fix-issues": {
+      "source": "getsentry/sentry-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sentry-fix-issues/SKILL.md",
+      "computedHash": "6dcf01ec6a3abb3f6754d1c202437503006cbafae49e99a1f09af3b5ac1069e9"
+    },
+    "sentry-nextjs-sdk": {
+      "source": "getsentry/sentry-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sentry-nextjs-sdk/SKILL.md",
+      "computedHash": "d49bb4f9ad21d8c1ca3562e03cd269ef6d7b90598f05a2d43d594ce661ed4526"
+    },
     "shadcn": {
       "source": "shadcn-ui/ui",
       "sourceType": "github",

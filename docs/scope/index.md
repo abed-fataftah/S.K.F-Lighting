@@ -48,9 +48,9 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 25 | Homepage, banners & featured products | Slice 8 | in-progress |
 | 26 | Shop settings & policy pages | Slice 8 | in-progress |
 | 27 | Sales reports | Slice 8 | in-progress |
-| 28 | Search engine visibility | Slice 8 | planned |
-| 29 | Visitor stats & error alerts | Slice 8 | planned |
-| 30 | Go live | Launch | planned |
+| 28 | Search engine visibility | Slice 8 | in-progress |
+| 29 | Visitor stats & error alerts | Slice 8 | in-progress |
+| 30 | Go live | Launch | in-progress |
 | 31 | Loyalty coins | Slice 9 | planned |
 | 32 | Loyalty rewards | Slice 9 | planned |
 | 33 | Return requests | Slice 10 | planned |
@@ -73,6 +73,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 Out of scope for now, kept so the plan stays honest.
 - **Online card payment at checkout**: pay on the website instead of cash or cheque · needs a decision · GA
 - **Automatic WhatsApp sending**: the site messages you from the shop number by itself, through a business messaging service · needs a decision
+- **Opening hours and map position for search**: shop settings hold hours, location, and social page links, so the home Store block can carry them · from spec 0026 · needs a decision
 - **PDF of a draft or order**: a clean quote electricians can share · needs a decision
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
 - **Owner profile on Home**: your display name and a circle photo, edited in settings and shown on Home · from spec 0025, waits for your approval (O-28)
@@ -89,6 +90,7 @@ Out of scope for now, kept so the plan stays honest.
 - **Sound or browser notification for new orders**: beyond the dot, the sidebar count, and the 60 second refresh · needs a decision · from spec 0014
 - **Correct a customer's email from the dashboard**: change the login email through the Supabase Auth admin API, with a decision on confirming the new address · needs a decision · from spec 0019
 - **Role filter on the customers list**: All, Customers, Electricians chips, if the number of electricians grows · from spec 0019
+- **WhatsApp visits in the stats**: a source marker on share links so WhatsApp traffic stops showing as direct · needs a decision · from spec 0027
 
 ## Open questions to settle in the specs
 
