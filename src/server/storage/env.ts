@@ -23,6 +23,11 @@ export function parseStorageEnv(env: Readonly<Record<string, string | undefined>
   return { url: parsed.NEXT_PUBLIC_SUPABASE_URL, serviceRoleKey: parsed.SUPABASE_SERVICE_ROLE_KEY };
 }
 
+// Read as literals: Next inlines the public URL at build, while the Worker's runtime `process.env`
+// holds only its bindings and secrets, so a dynamic read finds no URL there.
 export function storageEnv(): StorageEnv {
-  return parseStorageEnv(process.env);
+  return parseStorageEnv({
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  });
 }
