@@ -22,8 +22,9 @@ _Steps derived from spec 0011 acceptance criteria. `/check verify` runs these; `
 - [x] Remove every pick and save → Home's "منتجات مختارة" shows the 8 newest sellable products → AC-5
 - [x] In `/admin/categories`, edit a main → "صورة الدائرة" and "السطر تحت الدائرة (اختياري)" with a hint of the line Home would build; edit a sub → neither field shows → AC-11
 - [x] Give a main a square photo and a line → Home's circle shows the photo and the line; a main with no line shows its first three menu subs as "أ، ب و ج" → AC-4, AC-11
-- [x] With four or more circles → the carousel loops, moves every 3.5 s until a touch or a focus inside, the pause button ("إيقاف التمرير التلقائي", `aria-pressed`) stops and restarts it, and with reduced motion it never moves and the pause button is gone → AC-4
-- [x] With one to three circles → a still row of links, no arrows, no pause, no yellow button → AC-4
+- [ ] With two circles → the other circle waits on the left, and back, next, and a swipe either way all swap them; with three → one each side, and the circle that wraps fades across, never sliding over the centre → AC-4
+- [ ] With two or more circles → the carousel loops, moves every 3.5 s until a touch or a focus inside, the pause button ("إيقاف التمرير التلقائي", `aria-pressed`) stops and restarts it, and with reduced motion it never moves and the pause button is gone → AC-4
+- [ ] With one circle → it shows alone and centred as a plain link, no arrows, no pause, no yellow button → AC-4
 - [x] Untick a main for Home and save → its circle is gone; a hidden or empty main ticked in the editor ("(مخفي)", "(فارغ)") does not show until it qualifies → AC-4, AC-8
 - [x] Trust cards → "توصيل لكل مكان" with "الضفة ₪20 · الداخل ₪70", "الدفع عند الاستلام" with its line, "رسالة جاهزة برقم الطلب" with no line, "استلام من المعرض" with "اسأل عن العنوان عبر واتساب" while no address is set → AC-6
 - [x] Open any page other than `/` → no yellow strip → AC-6
