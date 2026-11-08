@@ -251,6 +251,11 @@ test("a new order shows its dot and the count within a minute, and opening it cl
     await page.getByRole("link", { name: "العودة للطلبات" }).click();
     await expect(page).toHaveURL(/\/admin\/orders$/);
     await expect(row.getByTestId("order-unseen")).toHaveCount(0);
+    // The list arrives with the navigation; the layout's count follows with the one refresh that
+    // leaving an order page makes (AC-16).
+    if (onWorkers) {
+      await expect.poll(async () => (await sidebarCount(page)) <= (await unseenInDb())).toBe(true);
+    }
   });
 });
 

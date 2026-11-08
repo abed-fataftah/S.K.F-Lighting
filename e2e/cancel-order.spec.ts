@@ -205,7 +205,8 @@ test("a shipped order and a paid order offer a WhatsApp request instead", async 
 }, testInfo) => {
   const shipped = await insertOrder(sql, { fulfilment: "delivery", status: "out_for_delivery" });
   const paid = await insertOrder(sql, { fulfilment: "pickup", status: "preparing" });
-  await recordPayment(sql, paid, 5_000);
+  // Below the total: the seed's cheapest product is ₪15, and a payment never exceeds the total.
+  await recordPayment(sql, paid, 1_000);
   await page.context().addCookies([
     {
       name: "skf_placed",

@@ -44,7 +44,8 @@ type DemoProduct = {
 const PRODUCTS: readonly DemoProduct[] = [
   {
     code: "DEMO-1",
-    name: "لمبة LED ٩ واط",
+    // Western digits, as the product form saves them (text-schemas.ts).
+    name: "لمبة LED 9 واط",
     category: "إنارة داخلية",
     description: "لمبة موفرة للطاقة بضوء أبيض دافئ.",
     specs: [
@@ -126,6 +127,7 @@ async function seed(tx: Transaction) {
         target: products.code,
         set: {
           name: excluded("name"),
+          slug: excluded("slug"),
           categoryId: excluded("category_id"),
           description: excluded("description"),
           specs: excluded("specs"),

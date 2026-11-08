@@ -9,6 +9,9 @@
   "workers_dev": false,
   // workers_dev off also turns preview URLs off unless they are named on their own.
   "preview_urls": true,
+  // `pnpm preview` and CI: without this, `wrangler dev` takes the route's host as the origin, so
+  // the Worker sees every local request as the production domain (robots, sitemap, host checks).
+  "dev": { "host": "localhost:8787" },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",

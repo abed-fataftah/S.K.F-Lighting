@@ -79,6 +79,8 @@ export async function signInWithPassword(page: Page, email: string, password: st
  * over between making and checking), waits for the next step and tries once more.
  */
 export async function enterCode(page: Page, secret: string, leaves: RegExp) {
+  // Submitted before hydration, the form falls back to a plain GET and the code lands in the URL.
+  await page.waitForLoadState("networkidle");
   const field = page.getByLabel("الرمز من التطبيق");
   await field.fill(totpCode(secret));
   await page.getByTestId("admin-totp-submit").click();

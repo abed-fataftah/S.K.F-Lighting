@@ -10,6 +10,9 @@ parsePublicEnv();
 // Spec 0001: every page renders on each request at launch, so Cache Components
 // stays off. Images resize on Supabase, never on the Worker.
 const nextConfig: NextConfig = {
+  // The dev indicator sits in a phone corner, over the bottom bar or the header in every position,
+  // and swallows taps in local e2e runs. Every route is dynamic anyway; errors still show.
+  devIndicators: false,
   // A customer's order page and its lookup are never kept by a shared cache, so OpenNext never
   // serves one visitor's page or redirect to another (spec 0015 AC-7).
   async headers() {

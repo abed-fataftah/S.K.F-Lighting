@@ -190,6 +190,8 @@ test("the owner imports products and photos from a sheet, then runs the same fil
 
 test("a file the import cannot read shows the notice banner and nothing else", async ({ page }) => {
   await signInAdmin(page, accounts!, "/admin/products/import");
+  // A file chosen before hydration never reaches the change handler.
+  await page.waitForLoadState("networkidle");
   await page.getByTestId("sheet-input").setInputFiles({
     name: "products.xlsx",
     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

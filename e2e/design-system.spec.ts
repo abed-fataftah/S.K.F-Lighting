@@ -271,7 +271,7 @@ test.describe("gallery shell parts", () => {
   }, testInfo) => {
     const frame = page.getByTestId("dashboard-frame");
     const nav = frame.getByRole("navigation", { name: "لوحة التحكم" });
-    await expect(nav.getByRole("link")).toHaveCount(8);
+    await expect(nav.getByRole("link")).toHaveCount(9);
     const current = nav.getByRole("link", { name: "الطلبات" });
     await expect(current).toHaveAttribute("aria-current", "page");
     await expect(nav.locator("[aria-current]")).toHaveCount(1);

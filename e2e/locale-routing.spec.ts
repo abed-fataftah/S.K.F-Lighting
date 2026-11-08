@@ -17,7 +17,7 @@ test.describe("Arabic storefront", () => {
     await expect(
       page.getByRole("heading", { level: 2, name: "لماذا تشتري من S.K.F" }),
     ).toBeVisible();
-    await expect(page).toHaveTitle("S.K.F للإنارة");
+    await expect(page).toHaveTitle("S.K.F للإنارة في الخليل | ثريات وأباجورات ومواد كهربائية");
   });
 
   test.describe("for a phone set to English", () => {
