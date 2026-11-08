@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { ChangePasswordForm } from "@/features/accounts/components/change-password-form";
 import { ProfileForm } from "@/features/accounts/components/profile-form";
 import { SignOutButton } from "@/features/accounts/components/sign-out-button";
-import { getAccountProfile } from "@/features/accounts/server/profile";
+import { getVerifiedAccount } from "@/features/accounts/server/profile";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // with quick order and drafts (spec 0020 AC-2). A signed out visitor goes to sign in and comes back here.
 export default async function AccountPage({ searchParams }: PageProps<"/[locale]/account">) {
   const [account, query, t] = await Promise.all([
-    getAccountProfile(),
+    getVerifiedAccount(),
     searchParams,
     getTranslations("Account"),
   ]);

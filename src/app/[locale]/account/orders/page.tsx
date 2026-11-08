@@ -11,7 +11,7 @@ import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { parsePage } from "@/lib/paging";
 import { routes } from "@/lib/routes";
-import { getClaims } from "@/server/auth/session";
+import { getVerifiedUser } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,20 +20,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // My Orders (spec 0018; docs/design/pages/my-orders.md): every order this account placed, newest
-// first, 20 per step. The account comes only from the session; a signed out visitor goes to sign
+// first, 20 per step. The account comes only from the session, checked with Supabase Auth so a
+// session ended elsewhere is signed out at once (spec 0017 AC-8); a signed out visitor goes to sign
 // in and comes back here. A database failure throws to the shared error card.
 export default async function MyOrdersPage({
   searchParams,
 }: PageProps<"/[locale]/account/orders">) {
-  const [claims, query, t] = await Promise.all([
-    getClaims(),
+  const [user, query, t] = await Promise.all([
+    getVerifiedUser(),
     searchParams,
     getTranslations("MyOrders"),
   ]);
-  if (!claims?.sub) redirect(routes.signInWith({ next: routes.accountOrders }));
+  if (!user) redirect(routes.signInWith({ next: routes.accountOrders }));
 
   const page = parsePage(query.page);
-  const { rows, total } = await readMyOrders(await getDb(), claims.sub, page);
+  const { rows, total } = await readMyOrders(await getDb(), user.id, page);
   const step = myOrdersStep(page, rows.length, total);
 
   return (

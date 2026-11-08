@@ -258,15 +258,14 @@ test("a forgotten password is reset through the emailed link", async ({ page }, 
   await page.goto("/account/reset-password");
   await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
 
-  // The link is used: opening it again lands on the expired message, until a new send.
-  await page.goto(link);
-  await page.getByTestId("confirm-recovery").click();
-  await expect(page).toHaveURL(/\/account\/sign-in\?tab=reset&error=link_expired$/);
-  // Still signed in from the reset, so the page moves on; sign out and look again.
+  // The link is used: opening it again lands on the expired message, until a new send. Signed out
+  // first, since a signed in visitor moves on from the sign in page before the message settles.
   await page.goto("/account");
   await page.getByTestId("sign-out").click();
   await expect(page).toHaveURL(/\/$/);
-  await page.goto("/account/sign-in?tab=reset&error=link_expired");
+  await page.goto(link);
+  await page.getByTestId("confirm-recovery").click();
+  await expect(page).toHaveURL(/\/account\/sign-in\?tab=reset&error=link_expired$/);
   await expect(page.getByTestId("reset-expired")).toHaveText(
     "انتهت صلاحية الرابط أو استُخدم من قبل. اطلب رابطاً جديداً.",
   );
@@ -305,6 +304,43 @@ test("signing out ends an unused reset window", async ({ page, context }) => {
   await expect(page).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
   await page.goto("/account/reset-password");
   await expect(page).toHaveURL(/\/account$/, { timeout: 30_000 });
+});
+
+test("a reset signs the account out of every other browser on its next page", async ({
+  page,
+  browser,
+}, testInfo) => {
+  const email = uniqueEmail("reset-other");
+  personal = new RegExp([email, PASSWORD, NEW_PASSWORD].join("|"));
+  await createCustomer(sql, { email, password: PASSWORD, name: NAME });
+
+  // Another browser signed in first, for example someone who took over the account.
+  const otherContext = await newContext(browser, testInfo);
+  const other = await otherContext.newPage();
+  await other.goto("/account/sign-in");
+  await signInCustomer(other, email, PASSWORD);
+  await expect(other).toHaveURL(/\/account\/orders$/, { timeout: 30_000 });
+
+  await page.goto("/account/sign-in?tab=reset");
+  await page.getByLabel("البريد الإلكتروني").fill(email);
+  await page.getByTestId("reset-submit").click();
+  await expect(page.getByTestId("reset-sent")).toBeVisible();
+  await page.goto(await resetLinkFor(email));
+  await page.getByTestId("confirm-recovery").click();
+  await expect(page).toHaveURL(/\/account\/reset-password$/, { timeout: 30_000 });
+  await page.getByLabel("كلمة المرور الجديدة", { exact: true }).fill(NEW_PASSWORD);
+  await page.getByLabel("تأكيد كلمة المرور الجديدة").fill(NEW_PASSWORD);
+  await page.getByTestId("set-password-submit").click();
+  await expect(page).toHaveURL(/\/account\?notice=password_set$/, { timeout: 30_000 });
+
+  // AC-8: its access token is still unexpired, but the account pages ask Supabase Auth.
+  await other.goto("/account");
+  await expect(other).toHaveURL(/\/account\/sign-in\?next=%2Faccount$/, { timeout: 30_000 });
+  await other.goto("/account/orders");
+  await expect(other).toHaveURL(/\/account\/sign-in\?next=%2Faccount%2Forders$/, {
+    timeout: 30_000,
+  });
+  await otherContext.close();
 });
 
 test("a signed in customer changes their password", async ({ page }, testInfo) => {

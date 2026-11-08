@@ -1,4 +1,5 @@
 import { expect as baseExpect, test, type Page, type TestInfo } from "@playwright/test";
+import { buildSearchText } from "../src/features/catalog/search-text";
 import { createCustomer, removeTestAccounts, signInCustomer, uniqueEmail } from "./accounts";
 import { adminAccounts } from "./admin-auth";
 import {
@@ -182,9 +183,8 @@ test("the drafts list opens and deletes a draft", async ({ page }, testInfo) => 
   await expect(page.getByTestId("draft-card")).toHaveCount(0);
 });
 
-/** `count` sellable products with exactly one option each, so choosing one settles its line. */
-async function singleOptionProducts(count: number) {
-  const found = await sql<{ code: string; name: string }[]>`
+const findSingleOption = (count: number) =>
+  sql<{ code: string; name: string }[]>`
     select p.code, p.name from products p
     join product_variants v on v.product_id = p.id and v.archived_at is null
     join categories c on c.id = p.category_id
@@ -192,8 +192,32 @@ async function singleOptionProducts(count: number) {
     where p.status = 'active' and p.is_available and c.is_visible and coalesce(m.is_visible, true)
     group by p.id having count(*) = 1 and bool_and(v.is_available)
     order by p.code limit ${count}`;
-  if (found.length < count) throw new Error(`Need ${count} single option products: pnpm db:seed`);
-  return found;
+
+/**
+ * `count` sellable products with exactly one option each, so choosing one settles its line. The dev
+ * seed holds one (spec 0002 AC-12), so a fresh database gets the rest here, in their own category.
+ */
+async function singleOptionProducts(count: number) {
+  const found = await findSingleOption(count);
+  const missing = count - found.length;
+  if (missing > 0) {
+    const tag = Date.now().toString(36).toUpperCase();
+    const [category] = await sql<{ id: string }[]>`
+      insert into categories (name, slug) values (${`طلب سريع ${tag}`}, ${`qo-${tag.toLowerCase()}`})
+      returning id`;
+    for (let i = 0; i < missing; i++) {
+      const code = `QO-${tag}-${String(i).padStart(2, "0")}`;
+      const name = `سبوت سقف ${tag} ${i}`;
+      const [product] = await sql<{ id: string }[]>`
+        insert into products (category_id, code, name, slug, search_text)
+        values (${category.id}, ${code}, ${name}, ${code.toLowerCase()}, ${buildSearchText(name, code, [])})
+        returning id`;
+      await sql`
+        insert into product_variants (product_id, price, is_default, sort)
+        values (${product.id}, ${2_000 + i * 100}, true, 0)`;
+    }
+  }
+  return missing > 0 ? findSingleOption(count) : found;
 }
 
 async function newDraftNamed(page: Page, name: string) {

@@ -1,7 +1,7 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { cache } from "react";
-import { getClaims } from "@/server/auth/session";
+import { getClaims, getVerifiedUser } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { accountEvents, profiles } from "@/server/db/schema";
 import type { Database, Transaction } from "@/server/db/types";
@@ -36,6 +36,18 @@ export const getAccountProfile = cache(async (): Promise<Account | null> => {
   const profile = await readAccountProfile(await getDb(), claims.sub);
   const email = typeof claims.email === "string" ? claims.email : null;
   return { userId: claims.sub, email, profile };
+});
+
+/**
+ * The same account, but the user comes from Supabase Auth, so a session ended elsewhere (a reset
+ * signs out every other browser, spec 0017 AC-8) reads as signed out at once, not when its token
+ * expires. For the account pages that show the customer's own details.
+ */
+export const getVerifiedAccount = cache(async (): Promise<Account | null> => {
+  const user = await getVerifiedUser();
+  if (!user) return null;
+  const profile = await readAccountProfile(await getDb(), user.id);
+  return { userId: user.id, email: user.email ?? null, profile };
 });
 
 export async function readAccountProfile(

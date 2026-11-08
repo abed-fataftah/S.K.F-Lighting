@@ -18,8 +18,8 @@ spec [0017](../specs/0017-customer-accounts/index.md) · code in `src/features/a
   - [x] Hardening from the cross check: new password only within 10 minutes of a reset link, owner change password refused early, outage not shown as a wrong password, verified user on owner cancel, no referrer on the confirm page, sign out failure logged (AC-4, AC-5, AC-8, AC-15, AC-17)
   - [x] End the reset window when you leave: clear `skf_recovery` on sign out and after a password change (AC-8, AC-11)
 - [ ] Verify it: `/check verify customer accounts`
-- [ ] Test it: `/test customer accounts`
-- [ ] Review it (fresh model): `/check review customer accounts`
+- [x] Test it: `/test customer accounts`
+- [x] Review it (fresh model): `/check review customer accounts`
 - [ ] Document it: `/document customer accounts`
 
 ### 19. My Orders · in-progress

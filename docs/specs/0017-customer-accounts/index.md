@@ -49,6 +49,7 @@ Customers register with name, phone, email, and password, are signed in at once,
 - Reset links use the `token_hash` template and `verifyOtp` in `/auth/confirm`, so the link works when opened on a different device. Runner up: the PKCE `code` link.
 - The current password is checked with `signInWithPassword` before `updateUser`. Runner up: Supabase's reauthentication code by email.
 - Account writes (profile, passwords) call `getVerifiedUser()`; reads (prefill, order page, placement) use `getClaims()`. Runner up: `getClaims()` everywhere.
+- The pages that show the account's own details (`/account`, `/account/orders`, `/account/reset-password`, and the electrician's `/account/drafts` and `/account/quick-order` through `requireElectricianPage`) and the sign in page's signed in check also call `getVerifiedUser()` (`getVerifiedAccount()` for `/account`), so a session ended by a reset elsewhere (AC-8) is signed out on its next page, not when its token expires up to an hour later. The sign in page must match them, or a revoked session bounces between the two. Found by `/check verify` on 2026-11-04.
 - A new password without the current one is allowed only within 10 minutes of a reset link, checked through the httpOnly `skf_recovery` cookie that `confirmRecovery` sets, bound to the user id (updated 2026-10-31: the first pick, the session's `amr` claim with method `recovery`, does not exist, since Supabase records a recovery as `otp`). Runner up: an `amr` entry with method `otp` at most 600 seconds old (signed, so it cannot be forged, but this spec would then rely on Supabase never adding another `otp` path to a customer account).
 - The honeypot sits on register and reset only, the two forms that create something or send an email. Runner up: on all three forms.
 - The code lives in `src/features/accounts/`, and the admin sign in stays in `admin-auth`. Runner up: one shared `auth` feature.
@@ -120,7 +121,7 @@ Step order inside `registerCustomer`: honeypot, then Zod, then `supabase.auth.si
 | New password page and action | is this a fresh recovery | the `skf_recovery` cookie set by `confirmRecovery` from `verifyOtp`'s `data.user.id` and the server clock (`Math.floor(Date.now() / 1000)`, UTC seconds, read the same way when checking), through `isFreshRecovery` (same user id as `getClaims().sub` on the page, `getVerifiedUser().id` in the action; stamp 0 to 600 seconds old) |
 | Change password | is this the owner (skip the check) | `getAccountProfile().profile.role === "admin"` |
 | Cancel by the owner | the user id | `getVerifiedUser().id` |
-| Account page | email | `getClaims()` claim `email` |
+| Account page | email | `getVerifiedUser()` user `email` |
 | Account page | name, phone, missing phone notice | `getAccountProfile()` (`profiles`) |
 | Account page | success notice after reset | `?notice=password_set` |
 | Change password | the email to check against | `getVerifiedUser().email` |

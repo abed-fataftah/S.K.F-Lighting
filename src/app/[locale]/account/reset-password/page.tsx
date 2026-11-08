@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { SetPasswordForm } from "@/features/accounts/components/set-password-form";
 import { hasFreshRecovery } from "@/features/accounts/server/recovery";
 import { routes } from "@/lib/routes";
-import { getClaims } from "@/server/auth/session";
+import { getVerifiedUser } from "@/server/auth/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // without a session there is nothing to set, so it goes to sign in. More than 10 minutes after the
 // link, the change needs the current password on /account (AC-10).
 export default async function ResetPasswordPage() {
-  const userId = (await getClaims())?.sub;
+  const userId = (await getVerifiedUser())?.id;
   if (!userId) {
     redirect(routes.signInWith({ next: routes.accountResetPassword }));
   }
