@@ -48,7 +48,11 @@ async function checkA11y(page: Page, testInfo: TestInfo) {
   }
 }
 
-/** A sellable product with exactly one option, so choosing it settles the line. */
+/**
+ * A sellable product with exactly one option, so choosing it settles the line. Only the dev seed's
+ * (`DEMO-`) and this spec's own (`QO-`): other specs insert products without search keys, run
+ * alongside, and leave some behind when a cleanup fails, so the search would never find them.
+ */
 async function singleOptionProduct() {
   const [row] = await sql<{ code: string; name: string; price: number }[]>`
     select p.code, p.name, min(v.price)::int as price from products p
@@ -56,6 +60,7 @@ async function singleOptionProduct() {
     join categories c on c.id = p.category_id
     left join categories m on m.id = c.parent_id
     where p.status = 'active' and p.is_available and c.is_visible and coalesce(m.is_visible, true)
+      and (p.code like 'DEMO-%' or p.code like 'QO-%')
     group by p.id having count(*) = 1 and bool_and(v.is_available)
     order by p.code limit 1`;
   if (!row) throw new Error("No single option product: run pnpm db:seed first");
@@ -190,6 +195,7 @@ const findSingleOption = (count: number) =>
     join categories c on c.id = p.category_id
     left join categories m on m.id = c.parent_id
     where p.status = 'active' and p.is_available and c.is_visible and coalesce(m.is_visible, true)
+      and (p.code like 'DEMO-%' or p.code like 'QO-%')
     group by p.id having count(*) = 1 and bool_and(v.is_available)
     order by p.code limit ${count}`;
 

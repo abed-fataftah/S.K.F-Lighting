@@ -78,6 +78,8 @@ async function sizedProduct(): Promise<SizedProduct> {
     left join colours k on k.id = v.colour_id
     where p.status = 'active' and p.is_available and c.is_visible and coalesce(m.is_visible, true)
       and v.size_label is not null
+      -- The dev seed's only: other specs' products carry no search keys, so search misses them.
+      and p.code like 'DEMO-%'
       and (select count(*) from product_variants x
         where x.product_id = p.id and x.archived_at is null) between 2 and 40
     order by p.code, v.sort, v.id limit 1`;
