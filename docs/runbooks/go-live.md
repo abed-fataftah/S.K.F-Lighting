@@ -14,7 +14,7 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 ## 2. First deploy
 
-- [ ] Push to `main`. CI applies the migrations and deploys the Worker. Done when the deploy job is green.
+- [x] Push to `main`. CI applies the migrations and deploys the Worker. Done when the deploy job is green.
 - [ ] Run the RLS check against production once, with `DATABASE_URL_DIRECT` set for that one command only:
   ```
   DATABASE_URL_DIRECT='<session pooler URL>' pnpm db:check-rls
@@ -24,7 +24,7 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 ## 3. Domain on the Worker (AC-1, AC-2)
 
-- [ ] In `wrangler.jsonc`, add the custom domain and turn off the `workers.dev` address, as its own commit (committing it before the domain is bought breaks the deploy):
+- [x] In `wrangler.jsonc`, add the custom domain and turn off the `workers.dev` address, as its own commit (committing it before the domain is bought breaks the deploy):
   ```jsonc
   "routes": [{ "pattern": "<domain>", "custom_domain": true }],
   "workers_dev": false,
