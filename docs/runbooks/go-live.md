@@ -32,13 +32,13 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
   "preview_urls": true,
   ```
   Deploy. Done when `https://<domain>/` shows the shop with a valid padlock.
-- [ ] DNS: a proxied (orange cloud) record `www`, type `AAAA`, value `100::`.
-- [ ] **Rules → Redirect Rules → Single Redirects**: when the hostname equals `www.<domain>`, redirect dynamically to `concat("https://<domain>", http.request.uri.path)`, status **301**, **Preserve query string** on.
-- [ ] **SSL/TLS → Edge Certificates**: **Always Use HTTPS** on, **Minimum TLS Version** 1.2. Leave HSTS off until step 9.
-- [ ] GitHub `production` variable `NEXT_PUBLIC_SITE_URL` = `https://<domain>` (no trailing slash). Deploy again so the build picks it up.
-- [ ] Supabase **Authentication → URL Configuration**: Site URL `https://<domain>`, and `https://<domain>/**` in the redirect URLs.
-- [ ] Google Cloud OAuth client: authorized origin `https://<domain>`. The callback stays Supabase's own (`https://<project ref>.supabase.co/auth/v1/callback`).
-- [ ] Check from a terminal. Done when all three hold:
+- [x] DNS: a proxied (orange cloud) record `www`, type `AAAA`, value `100::`.
+- [x] **Rules → Redirect Rules → Single Redirects**: when the hostname equals `www.<domain>`, redirect dynamically to `concat("https://<domain>", http.request.uri.path)`, status **301**, **Preserve query string** on.
+- [x] **SSL/TLS → Edge Certificates**: **Always Use HTTPS** on, **Minimum TLS Version** 1.2. Leave HSTS off until step 9.
+- [x] GitHub `production` variable `NEXT_PUBLIC_SITE_URL` = `https://<domain>` (no trailing slash). Deploy again so the build picks it up.
+- [x] Supabase **Authentication → URL Configuration**: Site URL `https://<domain>`, and `https://<domain>/**` in the redirect URLs.
+- [x] Google Cloud OAuth client: authorized origin `https://<domain>`. The callback stays Supabase's own (`https://<project ref>.supabase.co/auth/v1/callback`). Not needed at launch: spec 0017 leaves Google sign in out, and the provider is off.
+- [x] Check from a terminal. Done when all three hold:
   ```
   curl -I http://<domain>/                     # 301 to https://<domain>/
   curl -I "https://www.<domain>/c?page=2"      # 301 to https://<domain>/c?page=2
