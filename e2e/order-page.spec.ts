@@ -212,12 +212,14 @@ test("the lookup page, its misses, and its format errors", async ({ page }, test
   expect(await linkText(fab(page))).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
   await checkA11y(page, testInfo);
 
-  // AC-5: a wrong phone, a wrong number, and an unknown number get the same box, values kept.
+  // AC-5: a wrong phone, a wrong number, and an unknown number get the same box, values kept. The
+  // wrong number keeps this order's sequence under another year, so it is never a real order: the
+  // limit counts tries per number, and a neighbour's number would spend another flow's tries.
   const box = page.getByTestId("lookup-error");
   const misses = [
     [order.number, "0598000001"],
-    [order.number.replace(/\d$/, (d) => String((Number(d) + 1) % 10)), phone.local],
-    ["99-99999", phone.local],
+    [order.number.replace(/^\d{2}/, "98"), phone.local],
+    [order.number.replace(/^\d{2}-\d/, "99-9"), phone.local],
   ] as const;
   for (const [typedNumber, typedPhone] of misses) {
     await lookUp(page, typedNumber, typedPhone);
