@@ -9,6 +9,7 @@ import {
   usePhoneWidth,
 } from "./a11y";
 import { localSql } from "./local-db";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-1 to AC-4, AC-6 to AC-13, AC-15, AC-16, AC-18, AC-20 (spec 0020). Quick order on a
 // phone sized (390) and a computer sized (1280) right to left screen, as an electrician: name a
@@ -26,6 +27,7 @@ const PASSWORD = "quick order 123";
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(!accounts, "needs the local Supabase (pnpm db:start) and the dev seed");
   test.setTimeout(180_000);
+  await page.context().setExtraHTTPHeaders(ownIpHeaders());
   await page
     .context()
     .route("https://wa.me/**", (route) =>

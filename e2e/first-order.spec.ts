@@ -7,6 +7,7 @@ import {
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-2, AC-7, AC-11, AC-13, AC-16 (spec 0004); AC-8, AC-9, AC-11, AC-14 (spec 0005);
 // AC-2, AC-17 (spec 0006);
@@ -86,6 +87,7 @@ test("the owner adds a product, a guest orders it, and the owner sees the order 
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
+    extraHTTPHeaders: ownIpHeaders(),
   });
   const guest = await guestContext.newPage();
   await guest.goto("/");

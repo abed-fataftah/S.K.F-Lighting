@@ -86,6 +86,9 @@ export async function sellableVariant(sql: postgres.Sql): Promise<string> {
     left join categories m on m.id = c.parent_id
     where p.status = 'active' and p.is_available and v.is_available and v.archived_at is null
       and c.is_visible and coalesce(m.is_visible, true)
+      -- The dev seed's only: other specs delete their own products when they end, which an order
+      -- line pointing at one would block.
+      and p.code like 'DEMO-%'
     order by p.code limit 1`;
   if (!row) throw new Error("No sellable product: run pnpm db:seed first");
   return row.id;

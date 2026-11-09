@@ -15,6 +15,7 @@ import {
 } from "./a11y";
 import { localSql } from "./local-db";
 import { insertOrder, recordPayment, uniquePhone, type InsertedOrder } from "./orders";
+import { ownIp } from "./own-ip";
 
 // covers: AC-2 to AC-11 (spec 0016). A customer cancels their own order from its page on a phone
 // sized (390) and a computer sized (1280) right to left screen, and the owner sees it flagged in
@@ -28,9 +29,6 @@ const REASON = "وجدت الثريا أرخص في مكان آخر";
 // What `insertOrder` saves as the customer's details, and the reason; none may reach the console.
 const PERSONAL = /زبون لوحة التحكم|بناية 12|شارع فيصل|\+970|599123456|وجدت الثريا/;
 let logged: string[] = [];
-
-const octet = () => 1 + Math.floor(Math.random() * 250);
-const ownIp = () => `198.18.${octet()}.${octet()}`;
 
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(!accounts, "needs the local Supabase (pnpm db:start) and the dev seed");

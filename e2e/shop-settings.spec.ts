@@ -8,6 +8,7 @@ import {
   usePhoneWidth,
 } from "./a11y";
 import { localSql } from "./local-db";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-1 to AC-8, AC-10, AC-11, AC-15 (spec 0025). On a phone sized right to left screen the
 // owner saves a WhatsApp number and every storefront link follows (and the env number comes back
@@ -74,6 +75,7 @@ test.afterAll(async () => {
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(!accounts, "needs the local Supabase (pnpm db:start) and the dev seed");
   test.setTimeout(240_000);
+  await page.context().setExtraHTTPHeaders(ownIpHeaders());
   await usePhoneWidth(page, testInfo);
 });
 

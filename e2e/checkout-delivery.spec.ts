@@ -5,6 +5,7 @@ import {
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-6, AC-7, AC-8, AC-10, AC-12 (spec 0012). Checkout on the dev seed (`pnpm db:seed`),
 // phone sized and right to left. The WhatsApp text is built from the saved order, so its fee and
@@ -26,6 +27,7 @@ const ADDRESS = "شارع الإرسال، بناية 12";
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "phone", "the checkout flows run on the phone project");
   test.setTimeout(120_000);
+  await page.context().setExtraHTTPHeaders(ownIpHeaders());
   await usePhoneWidth(page, testInfo);
 });
 

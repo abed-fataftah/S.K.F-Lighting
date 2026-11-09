@@ -23,6 +23,7 @@ import {
 } from "./a11y";
 import { localSql } from "./local-db";
 import { uniquePhone } from "./orders";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-1 to AC-18 (spec 0017). Customer accounts on a phone sized (390) and a computer sized
 // (1280) right to left screen: register, sign out and in, a taken email, a reset through the local
@@ -42,6 +43,7 @@ let personal: RegExp = /$^/;
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(!accounts, "needs the local Supabase (pnpm db:start) and the dev seed");
   test.setTimeout(180_000);
+  await page.context().setExtraHTTPHeaders(ownIpHeaders());
   await page
     .context()
     .route("https://wa.me/**", (route) =>
@@ -74,7 +76,10 @@ async function checkA11y(page: Page, testInfo: TestInfo) {
 const heading = (page: Page) => page.getByTestId("sign-in-heading");
 
 async function newContext(browser: Browser, testInfo: TestInfo) {
-  const context = await browser.newContext(testInfo.project.use);
+  const context = await browser.newContext({
+    ...testInfo.project.use,
+    extraHTTPHeaders: ownIpHeaders(),
+  });
   await context.route("https://wa.me/**", (route) =>
     route.fulfill({ status: 200, contentType: "text/html", body: "" }),
   );

@@ -14,6 +14,7 @@ import {
 } from "./a11y";
 import { localSql } from "./local-db";
 import { cancelAsCustomer, insertOrder, uniquePhone, type InsertedOrder } from "./orders";
+import { ownIp } from "./own-ip";
 
 // covers: AC-1 to AC-17 (spec 0015). A guest looks an order up with its number and
 // phone, written a different way each time, and follows it on a phone sized (390) and a computer
@@ -29,11 +30,6 @@ const sql = accounts ? localSql() : (null as never);
 const PERSONAL = /زبون لوحة التحكم|بناية 12|\+970/;
 const NOT_FOUND = "لم نجد طلباً بهذه البيانات. تأكد من الرقمين وحاول مرة أخرى.";
 let logged: string[] = [];
-
-// The lookup limit is 5 tries a minute per IP (AC-6), and every local request shares one IP. Each
-// test sends its own `cf-connecting-ip`, so the flows never spend each other's tries.
-const octet = () => 1 + Math.floor(Math.random() * 250);
-const ownIp = () => `198.18.${octet()}.${octet()}`;
 
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(!accounts, "needs the local Supabase (pnpm db:start) and the dev seed");

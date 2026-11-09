@@ -7,6 +7,7 @@ import {
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-1, AC-2, AC-4, AC-5, AC-6, AC-8, AC-10, AC-11, AC-12, AC-14, AC-17 (spec 0006);
 // AC-17 (spec 0008: the category is made on the categories page first).
@@ -68,6 +69,7 @@ async function orderAsGuest(browser: Browser, slug: string) {
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
+    extraHTTPHeaders: ownIpHeaders(),
   });
   const guest = await context.newPage();
   await guest.goto(`/p/${encodeURIComponent(slug)}`);

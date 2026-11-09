@@ -5,6 +5,7 @@ import { adminAccounts } from "./admin-auth";
 import { seededChandelier, type SeededProduct } from "./categories";
 import { localSql } from "./local-db";
 import { uniquePhone } from "./orders";
+import { ownIp } from "./own-ip";
 
 // covers: AC-15 (spec 0028). The seven launch pages pass axe (WCAG 2.1 A and AA, zero violations)
 // on a phone sized right to left screen, on every CI run: home, a category, a product, search, the
@@ -13,11 +14,6 @@ import { uniquePhone } from "./orders";
 
 const expect = baseExpect.configure({ timeout: 15_000 });
 const accounts = adminAccounts();
-
-// The order and lookup limits count per IP, and every local request shares one: this flow sends
-// its own, so it never spends another flow's allowance.
-const octet = () => 1 + Math.floor(Math.random() * 250);
-const ownIp = () => `198.18.${octet()}.${octet()}`;
 
 let seeded: SeededProduct;
 

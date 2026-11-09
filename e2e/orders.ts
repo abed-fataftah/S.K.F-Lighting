@@ -39,7 +39,9 @@ export async function insertOrder(sql: Sql, order: TestOrder = {}): Promise<Inse
     const [variant] = await tx<{ id: string; product_id: string; price: number }[]>`
       select v.id, v.product_id, v.price from product_variants v
       join products p on p.id = v.product_id
-      where p.status = 'active' order by p.code limit 1`;
+      -- The dev seed's only: other specs delete their own products when they end, which this
+      -- order's line would block.
+      where p.status = 'active' and p.code like 'DEMO-%' order by p.code limit 1`;
     if (!variant) throw new Error("No product: run pnpm db:seed first");
     const [zone] =
       fulfilment === "delivery"

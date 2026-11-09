@@ -12,6 +12,7 @@ import {
   usePhoneWidth,
 } from "./a11y";
 import { localSql } from "./local-db";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-2 to AC-13 (spec 0013). The confirmation page after a real order on the dev seed
 // (`pnpm db:seed`), on a phone (390) and a computer (1280). Two orders a project, to stay under the
@@ -28,6 +29,7 @@ const ZONE = "الضفة الغربية";
 
 test.beforeEach(async ({ page }, testInfo) => {
   test.setTimeout(150_000);
+  await page.context().setExtraHTTPHeaders(ownIpHeaders());
   await usePhoneWidth(page, testInfo);
 });
 

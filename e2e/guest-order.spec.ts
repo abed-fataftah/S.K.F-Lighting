@@ -5,6 +5,7 @@ import {
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-3 to AC-9, AC-11, AC-12, AC-14 (spec 0004); AC-9, AC-14 (spec 0005).
 // One guest order on the dev seed (`pnpm db:seed`), from `/` to the WhatsApp link, phone sized.
@@ -15,6 +16,7 @@ const expect = baseExpect.configure({ timeout: 15_000 });
 test.beforeEach(async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "phone", "the guest flow runs on the phone project");
   test.setTimeout(90_000);
+  await page.context().setExtraHTTPHeaders(ownIpHeaders());
   await usePhoneWidth(page, testInfo);
 });
 

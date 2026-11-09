@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { usePhoneWidth } from "./a11y";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-1, AC-3, AC-9, AC-14, AC-16 (spec 0005). The gallery's numbers and dates read the
 // same whatever the browser's language and time zone. Needs DESIGN_SYSTEM_PAGE=1.
@@ -63,6 +64,7 @@ test.describe("storefront in an ar-PS browser on America/New_York time", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "phone", "the storefront flow runs on the phone project");
     test.setTimeout(90_000);
+    await page.context().setExtraHTTPHeaders(ownIpHeaders());
     await usePhoneWidth(page, testInfo);
   });
 
