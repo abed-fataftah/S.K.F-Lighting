@@ -47,8 +47,8 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 ## 4. Email (AC-2)
 
-- [ ] Resend: add the domain, then add its SPF and DKIM records in Cloudflare DNS (not proxied). Add a DMARC record: `TXT _dmarc` = `v=DMARC1; p=none; rua=mailto:<your address>`. Done when Resend shows the domain verified.
-- [ ] Supabase custom SMTP through Resend, and the raised auth email rate limit, per [supabase-production.md](supabase-production.md) (Auth).
+- [x] Resend: add the domain, then add its SPF and DKIM records in Cloudflare DNS (not proxied). Add a DMARC record: `TXT _dmarc` = `v=DMARC1; p=none; rua=mailto:<your address>`. Done when Resend shows the domain verified.
+- [x] Supabase custom SMTP through Resend, and the raised auth email rate limit, per [supabase-production.md](supabase-production.md) (Auth).
 - [ ] Ask for a password reset on `https://<domain>` with your own account. Done when the email arrives and its link starts `https://<domain>/auth/confirm`.
 
 ## 5. Monitoring (AC-8, AC-19)
