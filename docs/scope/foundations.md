@@ -4,7 +4,7 @@ Part of the [S.K.F Lighting scope](index.md). The ground every later feature sta
 
 ## Foundation
 
-### 1. Stack & architecture · in-progress
+### 1. Stack & architecture · done
 Choose the tools, hosting, and sign in approach, then set up a project that runs, so every slice builds on real structure.
 **Done when:** the stack (including how sign in, photo and video storage, and hosting work) is recorded in a spec, and the empty project starts locally and builds cleanly.
 spec [0001](../specs/0001-stack-architecture/index.md) · code in `src/`, `wrangler.jsonc`, `supabase/`
@@ -20,7 +20,7 @@ code in `.prettierrc.json`, `eslint.config.mjs`, `lint-staged.config.mjs`, `.hus
 - [x] Capture conventions and tooling choices: `/audit`
 - [x] Install the tooling: `/develop tooling`
 
-### 3. Data model · in-progress
+### 3. Data model · done
 The shape of everything the shop stores: products with size and colour options (each with its own price and availability), categories, users and roles, orders (guest, customer, and electrician on behalf of a customer), drafts, payments, coins, and returns.
 **Done when:** the model supports every later slice without a breaking change, order lines keep the price at the time of ordering, and one line's price can be adjusted without touching the catalog.
 spec [0002](../specs/0002-data-model/index.md) · code in `src/server/db/`, `src/features/orders/`, `drizzle/`, `scripts/`
@@ -34,7 +34,7 @@ spec [0002](../specs/0002-data-model/index.md) · code in `src/server/db/`, `src
 - [x] Test it: `/test data model`
 - [x] Review it: `/check review data model`
 
-### 4. Design system & UI foundation · in-progress
+### 4. Design system & UI foundation · done
 A visual language and base components built right to left first, for phones first, and meeting a common accessibility standard (WCAG AA).
 **Done when:** `design.md` covers type, colour, spacing, and components; base components work in Arabic, right to left, with clear focus and keyboard use.
 spec [0003](../specs/0003-design-system-ui-foundation/index.md) · design in `docs/design/` · code in `src/app/`, `src/components/`, `src/features/shell/`
@@ -47,7 +47,7 @@ spec [0003](../specs/0003-design-system-ui-foundation/index.md) · design in `do
 - [x] Verify it: `/check verify design system & UI foundation`
 - [x] Test it: `/test design system & UI foundation`
 
-### 5. Arabic language · in-progress
+### 5. Arabic language · done
 The shop is Arabic only, right to left, for both the interface and product content. What is left to decide: digit style (Arabic or Western numerals), how prices and dates read, and Arabic text rules for product content.
 **Done when:** every screen reads cleanly in Arabic, right to left, from one messages file; digit style and price and date formats are decided and applied; and Arabic is required for product content.
 spec [0005](../specs/0005-arabic-language/index.md) · code in `src/lib/` (`format.ts`, `money.ts`, `arabic.ts`, `text-schemas.ts`), `src/language-rules.test.ts`
@@ -62,7 +62,7 @@ spec [0005](../specs/0005-arabic-language/index.md) · code in `src/lib/` (`form
 
 ## Slice 1: First order end to end
 
-### 6. First order end to end · in-progress
+### 6. First order end to end · done
 The thinnest real path through the whole shop: you sign in to the dashboard and add one simple product; a guest sees it, adds it to a cart, fills a short form, and sends the order. The order is saved, WhatsApp opens with the order message, and it appears in your dashboard. Rests on the foundation specs; no options, search, or accounts yet.
 **Done when:** one real order goes from a product page to the dashboard and to a prefilled WhatsApp message with its order number, on a phone, in Arabic.
 spec [0004](../specs/0004-first-order-end-to-end/index.md) · code in `src/features/cart/`, `src/features/checkout/`, `src/features/catalog/`, `src/features/orders/`, `src/features/admin-auth/`, `src/server/auth/admin.ts`, `src/app/[locale]/`, `src/app/admin/`, `scripts/admin-*.ts`, `drizzle/0004_first_order.sql`

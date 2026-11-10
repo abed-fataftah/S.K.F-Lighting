@@ -21,16 +21,16 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
-| 1 | Stack & architecture | Foundation | in-progress |
+| 1 | Stack & architecture | Foundation | done |
 | 2 | Coding standards & tooling | Foundation | done |
-| 3 | Data model | Foundation | in-progress |
-| 4 | Design system & UI foundation | Foundation | in-progress |
-| 5 | Arabic language | Foundation | in-progress |
-| 6 | First order end to end | Slice 1 | in-progress |
-| 7 | Product management | Slice 2 | in-progress |
-| 8 | Spreadsheet import & bulk photos | Slice 2 | in-progress |
+| 3 | Data model | Foundation | done |
+| 4 | Design system & UI foundation | Foundation | done |
+| 5 | Arabic language | Foundation | done |
+| 6 | First order end to end | Slice 1 | done |
+| 7 | Product management | Slice 2 | done |
+| 8 | Spreadsheet import & bulk photos | Slice 2 | done |
 | 9 | Categories & browsing | Slice 2 | in-progress |
-| 10 | Product page | Slice 2 | in-progress |
+| 10 | Product page | Slice 2 | done |
 | 11 | Search & filters | Slice 2 | in-progress |
 | 12 | Cart | Slice 3 | done |
 | 13 | Checkout & delivery | Slice 3 | in-progress |
@@ -45,7 +45,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 22 | Add to draft from the catalog | Slice 6 | in-progress |
 | 23 | Electrician price adjustments | Slice 6 | in-progress |
 | 24 | Payments & balances | Slice 7 | in-progress |
-| 25 | Homepage, banners & featured products | Slice 8 | in-progress |
+| 25 | Homepage, banners & featured products | Slice 8 | done |
 | 26 | Shop settings & policy pages | Slice 8 | in-progress |
 | 27 | Sales reports | Slice 8 | in-progress |
 | 28 | Search engine visibility | Slice 8 | in-progress |
@@ -56,15 +56,16 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 33 | Return requests | Slice 10 | planned |
 | 34 | Returns & exchanges | Slice 10 | planned |
 | 35 | Dashboard home | Slice 4 | planned |
+| 36 | Storefront desktop & tablet layout | Slice 8 | in-progress |
 
 ## Areas
 
-- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 1 of 6 done.
-- [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 0 of 6 done.
+- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 6 of 6 done.
+- [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 4 of 6 done.
 - [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
-- [Site & launch](site.md): features 26, 28 to 30 (settings and policies, search visibility, stats, go live). 0 of 4 done.
+- [Site & launch](site.md): features 26, 28 to 30, and 36 (settings and policies, search visibility, stats, desktop and tablet layout, go live). 0 of 5 done.
 - [Loyalty](loyalty.md): features 31 and 32, after launch. 0 of 2 done.
 - [Returns](returns.md): features 33 and 34, after launch. 0 of 2 done.
 
@@ -77,13 +78,14 @@ Out of scope for now, kept so the plan stays honest.
 - **PDF of a draft or order**: a clean quote electricians can share · needs a decision
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
 - **Owner profile on Home**: your display name and a circle photo, edited in settings and shown on Home · from spec 0025, waits for your approval (O-28)
-- **Quick order on computers**: a wide table layout for building drafts at a desk, once design O-1 is drawn · from spec 0020
 - **Copy an order into a new draft**: start a new draft from one of an electrician's past orders, for repeat jobs · from spec 0020
 - **JSON export of an order** · needs a decision
 - **Cheques list**: a dashboard page of live cheques sorted by due date, optionally with a "cleared" mark; the data is already stored · from spec 0023
 - **Colour tagged product photos**: choosing a colour on the product page jumps to its photos (a `colour_id` on `product_media`, the editor, and the import) · needs a decision · from spec 0009
 - **Cloudflare Turnstile at checkout**: a stronger bot check, only if the honeypot and rate limit logs show real spam · needs a decision · from spec 0012
-- **Product page desktop layout and loading skeleton**: a designed wide screen layout (O-1) and a skeleton that keeps the real 404 · needs a decision · from spec 0009
+- **Product page loading skeleton**: a skeleton that keeps the real 404 (the desktop layout half moved into feature 36) · needs a decision · from spec 0009
+- **Wide banner image**: a wider banner variant if the 16:9 carousel at two thirds width looks short on large monitors · from spec 0029
+- **Designer pass on desktop layouts**: review the built tablet and desktop pages from real screenshots, since they are specified in words, not drawn · from spec 0029
 - **Edit customer details on an order**: fix a typo in the name, phone, city, or address after placing · needs a decision · from spec 0014
 - **Printable order slip**: a print friendly view for packing or the driver · needs a decision · from spec 0014
 - **Private owner notes on an order**: short notes saved as `note` events and shown in the history · needs a decision · from spec 0014

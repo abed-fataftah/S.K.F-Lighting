@@ -4,7 +4,7 @@ Part of the [S.K.F Lighting scope](index.md). Getting products in, and helping c
 
 ## Slice 2: Catalog
 
-### 7. Product management · in-progress
+### 7. Product management · done
 Add and edit products in the dashboard: photos, optional videos, description, dimensions, technical specifications (such as wattage and light colour), size and colour options with a price per size, and availability per product and per option.
 **Done when:** you can create a product with or without options, set prices per size, mark the product or any single option out of stock, and see the change on the site right away.
 spec [0006](../specs/0006-product-management/index.md) · code in `src/features/catalog/`, `src/app/admin/(dashboard)/products/`
@@ -18,7 +18,7 @@ spec [0006](../specs/0006-product-management/index.md) · code in `src/features/
 - [x] Verify it: `/check verify product management`
 - [x] Test it: `/test product management`
 
-### 8. Spreadsheet import & bulk photos · in-progress
+### 8. Spreadsheet import & bulk photos · done
 A ready made spreadsheet template you (or a helper) fill in, uploaded once to create many products, then photos uploaded in bulk and matched by product code in the file name.
 **Done when:** a filled template creates products with options and prices, any bad rows are listed clearly without breaking the rest, and bulk photos attach to the right products.
 spec [0007](../specs/0007-spreadsheet-import-bulk-photos/index.md) · code in `src/features/catalog/` (import files `import-*.ts`, `photo-names.ts`, `components/import/`, `server/import-*.ts`)
@@ -46,7 +46,7 @@ spec [0008](../specs/0008-categories-browsing/index.md) · code in `src/features
 - [x] Verify it: `/check verify categories & browsing`
 - [ ] Test it: `/test categories & browsing`
 
-### 10. Product page · in-progress
+### 10. Product page · done
 The full product page: photo gallery, optional video, description, dimensions, specifications, size and colour pickers, the price for the chosen size, and add to cart.
 **Done when:** choosing a size updates the price, out of stock options cannot be added, and the page works well on a phone in both languages.
 spec [0009](../specs/0009-product-page/index.md) · code in `src/features/catalog/` (product view, gallery, selection), `src/app/[locale]/p/[slug]/`
@@ -75,7 +75,7 @@ spec [0010](../specs/0010-search-filters/index.md) · code in `src/features/cata
 
 ## Slice 8: Shop content
 
-### 25. Homepage, banners & featured products · in-progress
+### 25. Homepage, banners & featured products · done
 A homepage you control: banners and featured products chosen in the dashboard, plus quick links to the main categories.
 **Done when:** you can add, order, and remove banners and featured products, and the homepage shows them in Arabic.
 spec [0011](../specs/0011-homepage-banners-featured/index.md) · code in `src/features/home/`, `src/app/[locale]/(home)/`, `src/app/admin/(dashboard)/homepage/`, the category dialog in `src/features/catalog/`
