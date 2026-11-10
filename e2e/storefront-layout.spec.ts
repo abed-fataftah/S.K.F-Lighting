@@ -1,5 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { buildSearchText, sizeKey } from "../src/features/catalog/search-text";
+import { createCustomer, removeTestAccounts, signInCustomer, uniqueEmail } from "./accounts";
 import { adminAccounts } from "./admin-auth";
 import {
   expectNoAxeViolations,
@@ -9,11 +10,13 @@ import {
 } from "./a11y";
 import { seededChandelier } from "./categories";
 import { localSql } from "./local-db";
+import { insertOrder, uniquePhone } from "./orders";
 import { ownIpHeaders } from "./own-ip";
 
-// covers: AC-1, AC-3, AC-9 to AC-14, AC-17, AC-19 to AC-22 (spec 0029): the storefront pages that
-// are converted to their tablet and desktop layouts, on all three projects: the category page with
-// its filter column, search, /c, product, Home, cart, checkout, and the narrow pages.
+// covers: AC-1, AC-3, AC-9 to AC-22 (spec 0029): the storefront pages that are converted to their
+// tablet and desktop layouts, on all three projects: the category page with its filter column,
+// search, /c, product, Home, cart, checkout, the narrow pages, the order page, the account lists,
+// quick order, and the add to draft sheet.
 
 const accounts = adminAccounts();
 
@@ -466,5 +469,203 @@ test.describe("home", () => {
     }
     await expectNoAxeViolations(page);
     await expectNoSidewaysScroll(page);
+  });
+});
+
+// covers: AC-11, AC-15, AC-16, AC-18 (spec 0029): the order page in two columns from lg, the
+// account lists two across from md, the quick order table, and the add to draft dialog.
+test.describe("accounts", () => {
+  const PASSWORD = "layout e2e 123";
+
+  test.beforeEach(async ({ page }) => {
+    // Lookups and saves count per IP (spec 0015 AC-6); this flow keeps an allowance of its own.
+    await page.context().setExtraHTTPHeaders(ownIpHeaders());
+  });
+
+  test.afterAll(async () => {
+    if (!accounts) return;
+    const sql = localSql();
+    try {
+      await removeTestAccounts(sql);
+    } finally {
+      await sql.end();
+    }
+  });
+
+  /** A signed in electrician with two orders and two drafts, the first draft holding one line. */
+  async function signInElectrician(page: Page) {
+    const sql = localSql();
+    const email = uniqueEmail("layout");
+    try {
+      const userId = await createCustomer(sql, { email, password: PASSWORD, name: "سامي حداد" });
+      await sql`update profiles set role = 'electrician' where id = ${userId}`;
+      await insertOrder(sql, { userId, role: "electrician" });
+      await insertOrder(sql, { userId, role: "electrician" });
+      const [variant] = await sql<{ id: string; product_id: string }[]>`
+        select v.id, v.product_id from product_variants v
+        join products p on p.id = v.product_id
+        where p.code like 'DEMO-%' and p.status = 'active' and v.archived_at is null
+        order by p.code limit 1`;
+      const [draft] = await sql<{ id: string }[]>`
+        insert into drafts (owner_user_id, name) values (${userId}, 'site a') returning id`;
+      await sql`insert into drafts (owner_user_id, name) values (${userId}, 'site b')`;
+      await sql`
+        insert into draft_lines (draft_id, product_id, variant_id, quantity, sort)
+        values (${draft.id}, ${variant.product_id}, ${variant.id}, 2, 0)`;
+      await page.goto("/account/sign-in?next=/account");
+      await page.waitForLoadState("networkidle");
+      await signInCustomer(page, email, PASSWORD);
+      await page.waitForURL((url) => url.pathname === "/account", { timeout: 15_000 });
+      return { draftId: draft.id };
+    } finally {
+      await sql.end();
+    }
+  }
+
+  test("puts the timeline and buttons at the end of the order page from lg", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000);
+    const sql = localSql();
+    const phone = uniquePhone();
+    try {
+      const order = await insertOrder(sql, { fulfilment: "delivery", national: phone.national });
+      await page.goto("/orders/track");
+      await page.waitForLoadState("networkidle");
+      await page.getByLabel("رقم الطلب").fill(order.number);
+      await page.getByLabel("رقم الهاتف").fill(phone.local);
+      const answered = page.waitForResponse((response) => response.request().method() === "POST");
+      await page.getByTestId("lookup-submit").click();
+      await answered;
+      await expect(page).toHaveURL(`/orders/${order.number}`, { timeout: 15_000 });
+    } finally {
+      await sql.end();
+    }
+    const box = async (id: string) => (await page.getByTestId(id).boundingBox())!;
+    const [timeline, summary, payment, actions] = await Promise.all(
+      ["order-timeline", "order-summary", "order-payment", "order-actions"].map(box),
+    );
+    if (isDesktop(testInfo)) {
+      // Right to left: products and payment on the right, the timeline and buttons on the left.
+      expect(timeline.x + timeline.width).toBeLessThanOrEqual(summary.x + 1);
+      expect(Math.abs(timeline.y - summary.y)).toBeLessThan(2);
+      expect(Math.round(timeline.width)).toBe(360);
+      expect(actions.y).toBeGreaterThan(timeline.y + timeline.height);
+      expect(Math.abs(actions.x - timeline.x)).toBeLessThan(2);
+      expect(payment.y).toBeGreaterThan(summary.y + summary.height);
+    } else {
+      // Phone order: status, products, payment, buttons.
+      expect(summary.y).toBeGreaterThan(timeline.y);
+      expect(payment.y).toBeGreaterThan(summary.y);
+      expect(actions.y).toBeGreaterThan(payment.y);
+    }
+    await expectNoAxeViolations(page);
+    await expectNoSidewaysScroll(page);
+  });
+
+  test("lists my orders and drafts two across from md", async ({ page }, testInfo) => {
+    test.setTimeout(90_000);
+    await signInElectrician(page);
+    for (const [path, list] of [
+      ["/account/orders", "my-orders"],
+      ["/account/drafts", "drafts-list"],
+    ] as const) {
+      await page.goto(path);
+      const items = page.getByTestId(list).locator(":scope > li");
+      await expect(items).toHaveCount(2, { timeout: 15_000 });
+      const first = (await items.nth(0).boundingBox())!;
+      const second = (await items.nth(1).boundingBox())!;
+      if (testInfo.project.name === "phone") expect(second.y).toBeGreaterThan(first.y);
+      else expect(Math.abs(second.y - first.y)).toBeLessThan(2);
+      await expectNoAxeViolations(page);
+      await expectNoSidewaysScroll(page);
+    }
+  });
+
+  test("lays quick order out as a table from lg, each field keeping its label", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000);
+    const { draftId } = await signInElectrician(page);
+    await page.goto(`/account/quick-order?draft=${draftId}`);
+    await page.waitForLoadState("networkidle");
+    const line = page.getByTestId("quick-order-line").first();
+    const quantity = line.getByTestId("line-quantity");
+    const remove = line.getByTestId("remove-line");
+    await expect(quantity).toHaveValue("2", { timeout: 15_000 });
+
+    // Every field keeps its own label (visually hidden at lg), and the delete button comes after
+    // the line's fields in tab order.
+    await expect(line.getByLabel("الكمية")).toHaveCount(1);
+    await expect(line.getByLabel("الكود أو اسم المنتج")).toHaveCount(1);
+    await quantity.focus();
+    await page.keyboard.press("Tab");
+    await expect(remove).toBeFocused();
+
+    const header = page.getByTestId("quick-order-header");
+    const totals = (await page.getByTestId("totals-card").boundingBox())!;
+    const row = (await quantity.boundingBox())!;
+    const bin = (await remove.boundingBox())!;
+    if (isDesktop(testInfo)) {
+      await expect(header).toBeVisible();
+      await expect(header).toHaveAttribute("aria-hidden", "true");
+      // One row: the delete button at the row's end (left), level with the quantity.
+      expect(bin.x + bin.width).toBeLessThan(row.x);
+      expect(Math.abs(bin.y + bin.height / 2 - (row.y + row.height / 2))).toBeLessThan(4);
+      expect(Math.round(totals.width)).toBe(360);
+      const content = (await page.getByTestId("quick-order-lines").boundingBox())!;
+      expect(Math.round(totals.x)).toBe(Math.round(content.x));
+    } else {
+      await expect(header).toBeHidden();
+      // The card's top corner, above the quantity, as before.
+      expect(bin.y + bin.height).toBeLessThan(row.y);
+    }
+    await expectNoAxeViolations(page);
+    await expectNoSidewaysScroll(page);
+  });
+
+  test("shows the add to draft sheet as a centred dialog from lg, open across the line", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000);
+    await signInElectrician(page);
+    const sql = localSql();
+    try {
+      const { product } = await seededChandelier(sql);
+      await page.goto(`/p/${encodeURIComponent(product)}`);
+    } finally {
+      await sql.end();
+    }
+    await page.waitForLoadState("networkidle");
+    await page.getByTestId("product-add-to-draft").click({ timeout: 15_000 });
+    const sheet = page.getByTestId("draft-picker");
+    await expect(sheet.getByRole("heading", { name: "أضف إلى مسودة" })).toBeVisible();
+    // Let the open transition settle before measuring.
+    await expect(sheet).not.toHaveAttribute("data-starting-style");
+
+    const placed = async () => {
+      const box = (await sheet.boundingBox())!;
+      const { width, height } = page.viewportSize()!;
+      return { box, width, height };
+    };
+    let { box, width, height } = await placed();
+    if (isDesktop(testInfo)) {
+      expect(Math.round(box.width)).toBe(560);
+      expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(2);
+      expect(Math.abs(box.y + box.height / 2 - height / 2)).toBeLessThan(2);
+      // Narrowed below lg while open, it stays open as the bottom sheet (AC-11).
+      await page.setViewportSize({ width: 900, height: 800 });
+      await expect(sheet).toBeVisible();
+      ({ box, width, height } = await placed());
+    }
+    // The sheet slides up (or changes look) over --dur-sheet; wait for it to rest on the bottom.
+    await expect
+      .poll(async () => {
+        ({ box, width, height } = await placed());
+        return Math.abs(box.y + box.height - height);
+      })
+      .toBeLessThan(2);
+    expect(box.width).toBeLessThanOrEqual(480);
+    await expectNoAxeViolations(page);
   });
 });

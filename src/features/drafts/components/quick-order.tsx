@@ -11,6 +11,7 @@ import { useRouter } from "@/i18n/navigation";
 import type { FieldErrors } from "@/lib/form-errors";
 import { formatNumber } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
+import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 import {
   draftTotals,
@@ -43,7 +44,7 @@ import {
   CustomerCard,
   type CustomerField,
 } from "./customer-card";
-import { LineCard, lineFieldId, type LineRefusal } from "./line-card";
+import { LineCard, lineColumns, lineFieldId, type LineRefusal } from "./line-card";
 import { DraftNameCard } from "./name-card";
 import { useSaveQueue, type SaveOutcome } from "./use-save-queue";
 
@@ -425,7 +426,23 @@ export function QuickOrder({
           </Alert>
         ) : null}
 
-        <ol className="flex flex-col gap-2.5" data-testid="quick-order-lines">
+        {/* From lg the lines are a table (spec 0029 AC-16): line number, product, size, colour,
+            quantity, unit price, line total, delete. The header row and every line card share
+            `lineColumns`; the header is for the eye only, every field keeps its own label. */}
+        <ol className="flex flex-col gap-2.5 lg:gap-2" data-testid="quick-order-lines">
+          <li
+            aria-hidden
+            className={cn(
+              "hidden gap-x-3 border border-transparent px-3.5 type-small text-muted lg:grid",
+              lineColumns,
+            )}
+            data-testid="quick-order-header"
+          >
+            <span className="col-start-2">{t("product")}</span>
+            <span>{t("size")}</span>
+            <span>{t("colour")}</span>
+            <span>{t("quantity")}</span>
+          </li>
           {lines.map((line, index) => (
             <li key={line.id}>
               <LineCard
@@ -471,7 +488,7 @@ export function QuickOrder({
         onFillMine={fillMine}
       />
 
-      <Card data-testid="totals-card">
+      <Card className="lg:w-(--summary-col) lg:self-end" data-testid="totals-card">
         {noticeText ? (
           <Alert id="quick-order-notice" data-testid="send-notice">
             <AlertDescription>{noticeText}</AlertDescription>

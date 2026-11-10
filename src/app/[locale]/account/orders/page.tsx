@@ -39,7 +39,7 @@ export default async function MyOrdersPage({
   const step = myOrdersStep(page, rows.length, total);
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="wide" className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
       <div className="flex flex-col items-start gap-1 pb-1">
         <h1 className="type-title-l">{t("title")}</h1>
         <ButtonLink
@@ -54,7 +54,11 @@ export default async function MyOrdersPage({
         <MyOrdersEmpty />
       ) : (
         <>
-          <ol className="flex flex-col gap-2.5" data-testid="my-orders">
+          {/* One card across on a phone, two from md (spec 0029 AC-15). */}
+          <ol
+            className="flex flex-col gap-2.5 md:grid md:grid-cols-2 md:gap-3"
+            data-testid="my-orders"
+          >
             {rows.map((order) => (
               <li key={order.number}>
                 <MyOrderCard order={order} />

@@ -7,26 +7,28 @@ import { PageFrame } from "@/components/page-frame";
 export default async function DraftsLoading() {
   const t = await getTranslations("Drafts");
   return (
-    <PageFrame width="phone">
+    <PageFrame width="wide">
       <LoadingStatus
         label={t("loading")}
         className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8"
       >
         <Skeleton className="h-8 w-28" />
         <Skeleton className="h-5 w-64" />
-        {Array.from({ length: 3 }, (_, i) => (
-          <div
-            key={i}
-            className="flex flex-col gap-3 rounded-card border border-border bg-white p-3.5"
-          >
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-4 w-44" />
-            <div className="flex gap-2">
-              <Skeleton className="h-11 flex-1 rounded-btn" />
-              <Skeleton className="size-11 rounded-btn" />
+        <div className="flex flex-col gap-2.5 md:grid md:grid-cols-2 md:gap-3">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div
+              key={i}
+              className="flex flex-col gap-3 rounded-card border border-border bg-white p-3.5"
+            >
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-44" />
+              <div className="flex gap-2">
+                <Skeleton className="h-11 flex-1 rounded-btn" />
+                <Skeleton className="size-11 rounded-btn" />
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </LoadingStatus>
     </PageFrame>
   );

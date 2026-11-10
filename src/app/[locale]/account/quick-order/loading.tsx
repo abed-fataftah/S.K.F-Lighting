@@ -7,7 +7,7 @@ import { PageFrame } from "@/components/page-frame";
 export default async function QuickOrderLoading() {
   const t = await getTranslations("QuickOrder");
   return (
-    <PageFrame width="phone">
+    <PageFrame width="wide">
       <LoadingStatus label={t("loading")} className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
         <Skeleton className="h-8 w-28" />
         <Skeleton className="h-5 w-64" />

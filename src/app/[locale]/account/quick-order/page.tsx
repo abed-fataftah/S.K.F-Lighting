@@ -37,7 +37,7 @@ export default async function QuickOrderPage({
   if (draftId !== null && !draft) redirect(routes.drafts);
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="wide" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <div className="flex flex-col gap-1">
         <h1 className="type-title-l">{t("title")}</h1>
         <p className="text-muted">{t("intro")}</p>
