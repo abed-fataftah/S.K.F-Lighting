@@ -46,6 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // The categories page (spec 0008 AC-15): every main in navigation, with its count and its
 // navigation subs. Not on the design boards; it reuses the card and link sizes of the others.
+// The cards run 1 across, 2 from md, and 3 from lg (spec 0029 AC-9).
 export default async function CategoriesPage() {
   const [t, shell, result] = await Promise.all([
     getTranslations("Categories"),
@@ -56,7 +57,7 @@ export default async function CategoriesPage() {
   if (!result.ok) await reportError("navigation_read_failed", failureOf(result));
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
       <h1 className="type-title-l">{t("title")}</h1>
       {!result.ok ? (
         <PageErrorState title={t("categoriesErrorTitle")} whatsappNumber={whatsappNumber} />
@@ -79,10 +80,13 @@ export default async function CategoriesPage() {
           }
         />
       ) : (
-        <ul className="flex flex-col gap-3" data-testid="category-list">
+        <ul
+          className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3"
+          data-testid="category-list"
+        >
           {result.data.map((main) => (
-            <li key={main.slug}>
-              <Card className="gap-1">
+            <li key={main.slug} className="flex">
+              <Card className="w-full gap-1 hover:border-ink">
                 <h2 className="flex flex-wrap items-baseline justify-between gap-2">
                   <Link
                     href={routes.category(main.slug)}

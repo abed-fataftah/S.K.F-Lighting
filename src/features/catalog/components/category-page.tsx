@@ -44,6 +44,7 @@ import {
 import { breadcrumbJsonLd, serializeJsonLd } from "../seo";
 import { AppliedChips } from "./applied-chips";
 import { FilterChipLink } from "./filter-chip-link";
+import { FiltersPanel } from "./filters-panel";
 import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
 import { canAddToDraft } from "@/features/drafts/server/guard";
@@ -315,69 +316,80 @@ async function CategoryList({
   const mainSlug = pageHead.main.slug;
   const subSlug = pageHead.sub?.slug ?? null;
   const applied = toListFilters(list.filters);
+  const scope = { kind: "category", main: mainSlug, sub: subSlug } as const;
   const hrefFor = (filters: ListFilters) => routes.categoryPage(mainSlug, subSlug, 1, filters);
   const shown = Math.min(list.page * CATEGORY_PAGE_SIZE, list.total);
   const hasMore = shown < list.total;
 
+  // From lg the filter column stands at the start of the list, the results beside it (AC-10).
   return (
-    <>
-      <div className="flex items-center justify-between gap-2">
-        <FiltersScreen
-          scope={{ kind: "category", main: mainSlug, sub: subSlug }}
-          choices={list.choices}
-          applied={applied}
-          badge={appliedChips(list.filters).length}
-          total={list.total}
-        />
-        <p role="status" className="type-small text-muted" data-testid="category-count">
-          {t("count", { shown: formatNumber(list.total) })}
-        </p>
-      </div>
-      <AppliedChips filters={list.filters} hrefFor={hrefFor} />
+    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[var(--filter-col)_minmax(0,1fr)] lg:items-start lg:gap-6">
+      <FiltersPanel
+        scope={scope}
+        choices={list.choices}
+        applied={applied}
+        className="hidden lg:flex"
+      />
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <FiltersScreen
+            scope={scope}
+            choices={list.choices}
+            applied={applied}
+            badge={appliedChips(list.filters).length}
+            total={list.total}
+          />
+          <p role="status" className="type-small text-muted" data-testid="category-count">
+            {t("count", { shown: formatNumber(list.total) })}
+          </p>
+        </div>
+        <AppliedChips filters={list.filters} hrefFor={hrefFor} />
 
-      {list.total > 0 ? (
-        <>
-          <ProductGrid
-            wide
-            products={list.products}
-            page={list.page}
-            whatsappNumber={whatsappNumber}
-            siteUrl={siteUrl}
-            testId="category-products"
-            canAddToDraft={draftButtons}
-          />
-          <ListMore
-            shownText={t("shownOf", {
-              shown: formatNumber(shown),
-              total: formatNumber(list.total),
-            })}
-            moreText={t("loadMore")}
-            moreHref={
-              hasMore
-                ? routes.categoryMore(mainSlug, subSlug, list.page + 1, shown + 1, applied)
-                : null
+        {list.total > 0 ? (
+          <>
+            <ProductGrid
+              wide
+              besideFilters
+              products={list.products}
+              page={list.page}
+              whatsappNumber={whatsappNumber}
+              siteUrl={siteUrl}
+              testId="category-products"
+              canAddToDraft={draftButtons}
+            />
+            <ListMore
+              shownText={t("shownOf", {
+                shown: formatNumber(shown),
+                total: formatNumber(list.total),
+              })}
+              moreText={t("loadMore")}
+              moreHref={
+                hasMore
+                  ? routes.categoryMore(mainSlug, subSlug, list.page + 1, shown + 1, applied)
+                  : null
+              }
+              testId="category"
+            />
+          </>
+        ) : (
+          <EmptyState
+            icon={SearchX}
+            title={filtersText("emptyTitle")}
+            text={filtersText("emptyText")}
+            actions={
+              <>
+                <ButtonLink size="lg" render={<Link href={`${hrefFor(EMPTY_FILTERS)}#filters`} />}>
+                  {filtersText("clearFilters")}
+                </ButtonLink>
+                <ButtonLink variant="whatsapp" size="lg" href={help} target="_blank" rel="noopener">
+                  <WhatsAppIcon />
+                  {t("emptyAsk")}
+                </ButtonLink>
+              </>
             }
-            testId="category"
           />
-        </>
-      ) : (
-        <EmptyState
-          icon={SearchX}
-          title={filtersText("emptyTitle")}
-          text={filtersText("emptyText")}
-          actions={
-            <>
-              <ButtonLink size="lg" render={<Link href={`${hrefFor(EMPTY_FILTERS)}#filters`} />}>
-                {filtersText("clearFilters")}
-              </ButtonLink>
-              <ButtonLink variant="whatsapp" size="lg" href={help} target="_blank" rel="noopener">
-                <WhatsAppIcon />
-                {t("emptyAsk")}
-              </ButtonLink>
-            </>
-          }
-        />
-      )}
-    </>
+        )}
+      </div>
+    </div>
   );
 }

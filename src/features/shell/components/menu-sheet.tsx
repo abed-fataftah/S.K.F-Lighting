@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
+import { useCloseAtDesktop } from "@/lib/use-close-at-desktop";
 import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { policyLinks, storefrontTabs } from "../nav";
@@ -35,6 +36,8 @@ export function MenuSheet({
   const t = useTranslations("Shell");
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  // Its button is hidden from lg, where the category bar stands in (spec 0029 AC-11).
+  useCloseAtDesktop(open, setOpen);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

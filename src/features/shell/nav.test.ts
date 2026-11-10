@@ -3,6 +3,7 @@ import {
   activeAdminLink,
   activeTab,
   adminLinks,
+  fitCount,
   isCurrentCategory,
   splitCategories,
   storefrontTabs,
@@ -116,5 +117,34 @@ describe("splitCategories", () => {
 
   it("moves them all to more when none fit", () => {
     expect(splitCategories(list, -1)).toEqual({ shown: [], more: list });
+  });
+});
+
+// covers: AC-5 (spec 0029)
+describe("fitCount", () => {
+  const widths = [100, 80, 120, 90] as const;
+
+  it("shows every link when they fit alone, with no room kept for more", () => {
+    // 390 of links and 3 gaps of 4.
+    expect(fitCount(widths, 402, 70, 4)).toBe(4);
+  });
+
+  it("keeps room for the more button once the links overflow", () => {
+    // more (70) + 100 + 80 + 120 and three gaps = 382; the fourth link needs 94 more.
+    expect(fitCount(widths, 401, 70, 4)).toBe(3);
+    expect(fitCount(widths, 381, 70, 4)).toBe(2);
+  });
+
+  it("puts every link in more when not even the first fits beside it", () => {
+    expect(fitCount(widths, 150, 70, 4)).toBe(0);
+  });
+
+  it("fits nothing into no room and everything of an empty list", () => {
+    expect(fitCount(widths, 0, 70, 4)).toBe(0);
+    expect(fitCount([], 0, 70, 4)).toBe(0);
+  });
+
+  it("never skips a long link to fit a shorter one after it", () => {
+    expect(fitCount([50, 300, 40], 200, 60, 0)).toBe(1);
   });
 });

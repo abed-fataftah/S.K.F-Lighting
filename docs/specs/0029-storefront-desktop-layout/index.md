@@ -164,11 +164,11 @@ Tracer Bullet: the first slice runs one real page (category) through the new she
 7. [x] Playwright `tablet` project; update desktop shell assertions in `e2e/shell.spec.ts` and `e2e/design-system.spec.ts`; desktop and tablet runs for the category page, satisfies **AC-1**, **AC-21**, **AC-22**
 
 **Slice 2: browsing**
-8. `CategoryBar` overflow measuring with `ResizeObserver`, the 1024 overflow e2e, satisfies **AC-5**, **AC-22**
-9. Extract `FilterFields` and `useFiltersForm`; build `FiltersPanel`; wire category and search pages at `lg`; `useCloseAtDesktop` on `FiltersScreen` and `MenuSheet`; unit tests for the extracted pure parts, satisfies **AC-10**, **AC-11**
-10. Search page and `/c` index on `wide`, satisfies **AC-9**
-11. Product page two columns, sticky purchase box, gallery height and `sizes`, satisfies **AC-12**, **AC-20**
-12. Home: hero wide, banner row with `HomeSideCard`, `CircleRow`, trust grid, banner `sizes`, satisfies **AC-13**, **AC-20**
+8. [x] `CategoryBar` overflow measuring with `ResizeObserver`, the 1024 overflow e2e, satisfies **AC-5**, **AC-22**
+9. [x] Extract `FilterFields` and `useFiltersForm`; build `FiltersPanel`; wire category and search pages at `lg`; `useCloseAtDesktop` on `FiltersScreen` and `MenuSheet`; unit tests for the extracted pure parts, satisfies **AC-10**, **AC-11**
+10. [x] Search page and `/c` index on `wide`, satisfies **AC-9**
+11. [x] Product page two columns, sticky purchase box, gallery height and `sizes`, satisfies **AC-12**, **AC-20**
+12. [x] Home: hero wide, banner row with `HomeSideCard`, `CircleRow`, trust grid, banner `sizes`, satisfies **AC-13**, **AC-20**
 
 **Slice 3: buying**
 13. Cart and checkout two columns with sticky summary; check checkout tab order and submit, satisfies **AC-14**

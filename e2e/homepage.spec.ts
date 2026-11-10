@@ -235,6 +235,33 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
   await customer.waitForTimeout(4000);
   await expect(customer.getByTestId("circles-browse")).toHaveText(centred ?? "");
 
+  // At md the banner is centred at most 720 wide; at lg it takes the start two thirds and the side
+  // card the end third, its headline an h2 under the hidden h1 (spec 0029 AC-13b, AC-13c).
+  const wide = await browser.newContext({ viewport: { width: 820, height: 1180 } });
+  const tablet = await wide.newPage();
+  await tablet.goto("/");
+  const tabletBanner = await tablet
+    .getByTestId("home-banners")
+    .locator("img")
+    .first()
+    .boundingBox();
+  expect(tabletBanner!.width).toBeLessThanOrEqual(720);
+  await expect(tablet.getByTestId("home-side-card")).toBeHidden();
+  await expect(tablet.getByTestId("home-circle-row")).toBeVisible();
+  await expect(tablet.getByTestId("circles-pause")).toBeHidden();
+  await tablet.setViewportSize({ width: 1280, height: 800 });
+  const side = tablet.getByTestId("home-side-card");
+  await expect(side).toBeVisible();
+  await expect(side.getByRole("heading", { level: 2 })).toBeVisible();
+  await expect(tablet.locator("h1")).toHaveText("S.K.F للإنارة");
+  const desktopBanner = await tablet.getByTestId("home-banners").boundingBox();
+  const sideBox = await side.boundingBox();
+  // Right to left: the banners at the start (right), the card at the end (left).
+  expect(sideBox!.x + sideBox!.width).toBeLessThanOrEqual(desktopBanner!.x + 1);
+  expect(desktopBanner!.width).toBeGreaterThan(sideBox!.width * 1.8);
+  await checkA11y(tablet);
+  await wide.close();
+
   await banner.getByTestId("banner-link").click();
   await expect(customer).toHaveURL(new RegExp(`/c/hp-e2e-${tag}-0$`));
 

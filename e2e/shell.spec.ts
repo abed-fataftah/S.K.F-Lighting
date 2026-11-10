@@ -6,6 +6,8 @@ import {
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
+import { adminAccounts } from "./admin-auth";
+import { localSql } from "./local-db";
 
 // covers: AC-11 to AC-17, AC-20 (spec 0003): the storefront shell on the real home page.
 // covers: AC-1, AC-3 to AC-8, AC-22 (spec 0029): the same shell at 820 (tablet) and 1280 (desktop).
@@ -313,6 +315,8 @@ test.describe("desktop shell", () => {
   test("opens المزيد by keyboard, ends it with كل الأقسام, and closes it with Escape", async ({
     page,
   }) => {
+    // Before it fits the row, the bar shows المزيد with every category.
+    await expect(page.getByTestId("category-bar")).toHaveAttribute("data-fitted", "");
     const more = page.getByTestId("category-bar-more");
     test.skip((await more.count()) === 0, "needs more categories than fit in the bar");
     await more.focus();
@@ -324,6 +328,97 @@ test.describe("desktop shell", () => {
     await page.keyboard.press("Escape");
     await expect(menu).toBeHidden();
     await expect(more).toBeFocused();
+  });
+});
+
+// covers: AC-5, AC-22 (spec 0029): at 1024, with ten more mains than the seed has, the bar keeps
+// the links that fit and moves the rest, in order, into المزيد.
+test.describe("category bar at 1024", () => {
+  const tag = Date.now().toString(36);
+  const CODE = `BAR-E2E-${tag.toUpperCase()}`;
+  const MAINS = 10;
+  const ready = (testInfo: TestInfo) => isDesktop(testInfo) && !!adminAccounts();
+
+  test.beforeAll(async ({}, testInfo) => {
+    if (!ready(testInfo)) return;
+    const sql = localSql();
+    try {
+      for (let i = 0; i < MAINS; i += 1) {
+        // Last in the order and off Home, so the other flows see the seed first as before.
+        const [main] = await sql<{ id: string }[]>`
+          insert into categories (name, slug, sort, show_on_home)
+          values (${`قسم الشريط ${i + 1} ${tag}`}, ${`bar-e2e-${tag}-${i}`}, ${1000 + i}, false)
+          returning id`;
+        const [product] = await sql<{ id: string }[]>`
+          insert into products (category_id, code, name, slug, created_at)
+          values (${main.id}, ${`${CODE}-${i}`}, ${`منتج الشريط ${tag} ${i}`},
+                  ${`bar-e2e-${tag}-p${i}`}, now() - interval '10 years')
+          returning id`;
+        await sql`
+          insert into product_variants (product_id, price, is_default)
+          values (${product.id}, ${10_000}, true)`;
+      }
+    } finally {
+      await sql.end();
+    }
+  });
+
+  test.afterAll(async ({}, testInfo) => {
+    if (!ready(testInfo)) return;
+    const sql = localSql();
+    try {
+      await sql`delete from products where code like ${`${CODE}%`}`;
+      await sql`delete from categories where slug like ${`bar-e2e-${tag}-%`}`;
+    } finally {
+      await sql.end();
+    }
+  });
+
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(!ready(testInfo), "desktop, with the local Supabase and the dev seed");
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await page.goto("/");
+    await expect(page.getByTestId("category-bar")).toHaveAttribute("data-fitted", "");
+  });
+
+  const bar = (page: Page) => page.getByRole("navigation", { name: "الأقسام" });
+
+  test("keeps the links that fit in the row and lists the rest in المزيد, in order", async ({
+    page,
+  }) => {
+    const names = (await bar(page).locator("li").allTextContents()).map((name) => name.trim());
+    expect(names.length).toBeGreaterThanOrEqual(MAINS);
+    const more = page.getByTestId("category-bar-more");
+    await expect(more).toBeVisible();
+
+    const links = bar(page).getByRole("link");
+    const shown = await links.count();
+    expect(shown).toBeGreaterThan(0);
+    expect(shown).toBeLessThan(names.length);
+    expect((await links.allTextContents()).map((name) => name.trim())).toEqual(
+      names.slice(0, shown),
+    );
+    // The last link in the row ends before the button: nothing is clipped or covered.
+    const last = await box(links.last());
+    const button = await box(more);
+    expect(last.x).toBeGreaterThanOrEqual(button.x + button.width);
+
+    await more.focus();
+    await page.keyboard.press("Space");
+    const items = page.getByRole("menu").getByRole("menuitem");
+    expect((await items.allTextContents()).map((name) => name.trim())).toEqual([
+      ...names.slice(shown),
+      "كل الأقسام",
+    ]);
+    await page.keyboard.press("Escape");
+    await expect(more).toBeFocused();
+  });
+
+  test("fits more links into a wider window", async ({ page }) => {
+    const links = bar(page).getByRole("link");
+    const narrow = await links.count();
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect.poll(() => links.count()).toBeGreaterThan(narrow);
   });
 });
 

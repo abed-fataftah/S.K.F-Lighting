@@ -1242,6 +1242,7 @@
     "colour": "اللون",
     "available": "المتوفر فقط",
     "clearAll": "مسح الكل",
+    "applyPrice": "تطبيق",
     "apply": "عرض {count} منتج",
     "applySearch": "عرض {count} نتيجة",
     "applyFallback": "عرض النتائج",

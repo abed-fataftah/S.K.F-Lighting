@@ -52,6 +52,23 @@ function useReducedMotion() {
   );
 }
 
+const phoneQuery = "(width < 48rem)";
+
+function subscribePhoneWidth(onChange: () => void) {
+  const query = window.matchMedia(phoneQuery);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/** True below md (spec 0029 AC-13c); false on the server, so nothing moves before it knows. */
+function usePhoneWidth() {
+  return useSyncExternalStore(
+    subscribePhoneWidth,
+    () => window.matchMedia(phoneQuery).matches,
+    () => false,
+  );
+}
+
 function CirclePicture({
   circle,
   className,
@@ -131,7 +148,9 @@ function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }
   const listRef = useRef<HTMLUListElement>(null);
   const pauseRef = useRef<HTMLButtonElement>(null);
   const swipeFrom = useRef<number | null>(null);
-  const moving = auto && !reduced;
+  // From md the carousel is hidden behind the still row, so it never moves there.
+  const phone = usePhoneWidth();
+  const moving = auto && !reduced && phone;
   const { centre, from } = at;
 
   const step = (by: number) =>
@@ -307,6 +326,31 @@ function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }
         {t("browse", { name: centred.name })}
       </ButtonLink>
     </div>
+  );
+}
+
+/** From md (spec 0029 AC-13c): every circle as a link in a still, centred, wrapping row. */
+export function CircleRow({
+  circles,
+  className,
+}: {
+  readonly circles: readonly HomeCircle[];
+  readonly className?: string;
+}) {
+  return (
+    <ul
+      className={cn("flex-wrap justify-center gap-6 px-(--page-pad)", className)}
+      data-testid="home-circle-row"
+    >
+      {circles.map((circle) => (
+        <li key={circle.slug} className="w-33">
+          <Link href={routes.category(circle.slug)} className="block rounded-btn text-center">
+            <CirclePicture circle={circle} />
+            <CircleWords circle={circle} />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

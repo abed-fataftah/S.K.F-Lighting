@@ -6,7 +6,7 @@ import { ProductCard } from "@/features/catalog/components/product-card";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 import { circleSubline, type HomeCircle } from "../home-rules";
-import { CategoryCircles } from "./category-circles";
+import { CategoryCircles, CircleRow } from "./category-circles";
 import { sectionHeadingId } from "../section-ids";
 
 // Home's sections under the banners (spec 0011 AC-4 to AC-6; pages/home.md layout 4, 6, 7). Each
@@ -39,7 +39,11 @@ export function CategoriesSection({ circles }: { readonly circles: readonly Home
         <SectionHeading section="categories">{t("categoriesTitle")}</SectionHeading>
         <p className="type-small text-muted">{circleSubline(circles)}</p>
       </div>
-      <CategoryCircles circles={circles} />
+      {/* The moving carousel on phones; from md a still row of every circle (spec 0029 AC-13c). */}
+      <div className="md:hidden">
+        <CategoryCircles circles={circles} />
+      </div>
+      <CircleRow circles={circles} className="hidden md:flex" />
     </section>
   );
 }
@@ -73,7 +77,10 @@ export function FeaturedSection({
           {t("viewAll")}
         </Link>
       </div>
-      <ul className="grid grid-cols-2 gap-2.5" data-testid="home-products">
+      <ul
+        className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 lg:grid-cols-4 lg:gap-4"
+        data-testid="home-products"
+      >
         {products.map((product, index) => (
           <li key={product.slug} className="flex">
             <ProductCard
@@ -128,7 +135,7 @@ export function TrustSection({
       <h2 id="trust-title" className="type-title-m">
         {t("trustTitle")}
       </h2>
-      <ul className="grid grid-cols-2 gap-2.5" data-testid="home-trust">
+      <ul className="grid grid-cols-2 gap-2.5 lg:grid-cols-4" data-testid="home-trust">
         <TrustCard icon={Truck} title={t("trustDelivery")} line={zoneLine} />
         <TrustCard icon={Banknote} title={t("trustPay")} line={t("trustPayText")} />
         <TrustCard icon={MessageCircle} title={t("trustMessage")} line={null} />

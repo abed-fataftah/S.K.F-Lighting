@@ -88,6 +88,25 @@ export function splitCategories<T>(
   return { shown: categories.slice(0, count), more: categories.slice(count) };
 }
 
+/**
+ * How many category bar links fit in one row of `room` pixels (spec 0029 AC-5): all of them when
+ * they fit alone, else the most that fit, in order, beside the "more" button. Each link after the
+ * first, and the button, sits `gap` pixels from the one before it.
+ */
+export function fitCount(
+  widths: readonly number[],
+  room: number,
+  moreWidth: number,
+  gap: number,
+): number {
+  const total = widths.reduce((sum, width) => sum + width, 0);
+  if (total + gap * Math.max(0, widths.length - 1) <= room) return widths.length;
+  const fits = (count: number) =>
+    widths.slice(0, count).reduce((sum, width) => sum + width + gap, moreWidth) <= room;
+  const firstMiss = widths.findIndex((_, index) => !fits(index + 1));
+  return firstMiss === -1 ? widths.length : firstMiss;
+}
+
 /** The dashboard link for an admin path: the longest matching one; `/admin` only exactly. */
 export function activeAdminLink(pathname: string): AdminLinkId | null {
   const matches = adminLinks.filter(({ href }) =>

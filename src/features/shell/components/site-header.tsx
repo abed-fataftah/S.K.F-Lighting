@@ -77,7 +77,12 @@ export function SiteHeader({
         </Link>
         <CartButton count={cartCount} className="hidden lg:inline-flex" />
       </div>
-      {categories.length ? <CategoryBar categories={categories} /> : null}
+      {categories.length ? (
+        <CategoryBar
+          key={categories.map((category) => `${category.slug}:${category.name}`).join(" ")}
+          categories={categories}
+        />
+      ) : null}
     </header>
   );
 }

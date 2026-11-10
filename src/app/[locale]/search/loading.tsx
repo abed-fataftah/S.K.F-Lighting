@@ -7,12 +7,12 @@ import { PageFrame } from "@/components/page-frame";
 export default async function SearchLoading() {
   const t = await getTranslations("Search");
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="wide" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <div className="flex flex-col gap-1">
         <h1 className="type-title-l">{t("title")}</h1>
         <Skeleton className="h-4 w-40" />
       </div>
-      <GridSkeleton label={t("loading")} />
+      <GridSkeleton wide label={t("loading")} />
     </PageFrame>
   );
 }

@@ -13,6 +13,7 @@ import { formatNumber } from "@/lib/format";
 import { parsePage } from "@/lib/paging";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { withTimeLimit } from "@/server/db/time-limit";
 import {
@@ -25,6 +26,7 @@ import {
 import { readSearchRequest, type SearchTerms } from "../search-text";
 import { CATEGORY_PAGE_SIZE, getSearchList } from "../server/queries";
 import { AppliedChips } from "./applied-chips";
+import { FiltersPanel } from "./filters-panel";
 import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
 import { canAddToDraft } from "@/features/drafts/server/guard";
@@ -71,7 +73,7 @@ export async function SearchPage({ params }: { readonly params: Params }) {
 async function SearchPrompt({ short, help }: { readonly short: boolean; readonly help: string }) {
   const t = await getTranslations("Search");
   return (
-    <PageFrame width="phone" className="flex flex-col gap-2 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="wide" className="flex flex-col gap-2 px-(--page-pad) pt-5 pb-8">
       <h1 className="type-title-l">{t("promptTitle")}</h1>
       <p className="type-body text-muted">{t("promptHint")}</p>
       {short ? (
@@ -107,7 +109,7 @@ async function SearchResults({
     // Never the query: a shopper might type a phone number into search.
     await reportError("search_read_failed", result.error);
     return (
-      <PageFrame width="phone" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+      <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <h1 className="type-title-l">{t("title")}</h1>
         <PageErrorState title={t("errorTitle")} whatsappNumber={whatsappNumber} />
       </PageFrame>
@@ -117,11 +119,14 @@ async function SearchResults({
   const data = result.data;
   const filters = toListFilters(data.filters);
   const hrefFor = (next: ListFilters) => routes.searchPage(terms.text, next);
+  const scope = { kind: "search", q: terms.text } as const;
+  // A list with no products offers no filters (AC-10), so no filter column either.
+  const filterable = data.choices.price !== null;
   const shown = Math.min(data.page * CATEGORY_PAGE_SIZE, data.total);
   const hasMore = shown < data.total;
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="wide" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <header className="flex flex-col gap-1">
         <h1 className="type-title-l">{t("title")}</h1>
         <p role="status" className="type-small text-muted" data-testid="search-count">
@@ -132,65 +137,91 @@ async function SearchResults({
         </p>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {/* A list with no products offers no filters (AC-10). */}
-        {data.choices.price ? (
-          <FiltersScreen
-            scope={{ kind: "search", q: terms.text }}
+      {/* From lg the filter column stands at the start of the list (spec 0029 AC-10). */}
+      <div
+        className={cn(
+          "flex flex-col gap-3",
+          filterable &&
+            "lg:grid lg:grid-cols-[var(--filter-col)_minmax(0,1fr)] lg:items-start lg:gap-6",
+        )}
+      >
+        {filterable ? (
+          <FiltersPanel
+            scope={scope}
             choices={data.choices}
             applied={filters}
-            badge={appliedChips(data.filters).length}
-            total={data.total}
+            className="hidden lg:flex"
           />
         ) : null}
-        <RemoveChipLink
-          href={routes.search()}
-          label={terms.text}
-          removeLabel={t("removeQuery", { query: terms.text })}
-        />
-      </div>
-      <AppliedChips filters={data.filters} hrefFor={hrefFor} />
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {filterable ? (
+              <FiltersScreen
+                scope={scope}
+                choices={data.choices}
+                applied={filters}
+                badge={appliedChips(data.filters).length}
+                total={data.total}
+              />
+            ) : null}
+            <RemoveChipLink
+              href={routes.search()}
+              label={terms.text}
+              removeLabel={t("removeQuery", { query: terms.text })}
+            />
+          </div>
+          <AppliedChips filters={data.filters} hrefFor={hrefFor} />
 
-      {data.total > 0 ? (
-        <>
-          <ProductGrid
-            products={data.products}
-            page={data.page}
-            whatsappNumber={whatsappNumber}
-            siteUrl={siteUrl}
-            testId="search-products"
-            canAddToDraft={draftButtons}
-          />
-          <ListMore
-            shownText={t("shownOf", {
-              shown: formatNumber(shown),
-              total: formatNumber(data.total),
-            })}
-            moreText={t("loadMore")}
-            moreHref={
-              hasMore ? routes.searchMore(terms.text, filters, data.page + 1, shown + 1) : null
-            }
-            testId="search"
-          />
-        </>
-      ) : (
-        <EmptyState
-          icon={SearchX}
-          title={t.rich("noResultsTitle", { query: () => query(terms.text) })}
-          text={t("emptyText")}
-          actions={
+          {data.total > 0 ? (
             <>
-              {isFiltered(filters) ? (
-                <ClearFiltersLink href={`${routes.searchPage(terms.text)}#filters`} />
-              ) : null}
-              <ButtonLink variant="whatsapp" size="lg" href={help} target="_blank" rel="noopener">
-                <WhatsAppIcon />
-                {t("emptyAsk")}
-              </ButtonLink>
+              <ProductGrid
+                wide
+                besideFilters={filterable}
+                products={data.products}
+                page={data.page}
+                whatsappNumber={whatsappNumber}
+                siteUrl={siteUrl}
+                testId="search-products"
+                canAddToDraft={draftButtons}
+              />
+              <ListMore
+                shownText={t("shownOf", {
+                  shown: formatNumber(shown),
+                  total: formatNumber(data.total),
+                })}
+                moreText={t("loadMore")}
+                moreHref={
+                  hasMore ? routes.searchMore(terms.text, filters, data.page + 1, shown + 1) : null
+                }
+                testId="search"
+              />
             </>
-          }
-        />
-      )}
+          ) : (
+            <EmptyState
+              icon={SearchX}
+              title={t.rich("noResultsTitle", { query: () => query(terms.text) })}
+              text={t("emptyText")}
+              actions={
+                <>
+                  {isFiltered(filters) ? (
+                    <ClearFiltersLink href={`${routes.searchPage(terms.text)}#filters`} />
+                  ) : null}
+                  <ButtonLink
+                    variant="whatsapp"
+                    size="lg"
+                    href={help}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    <WhatsAppIcon />
+                    {t("emptyAsk")}
+                  </ButtonLink>
+                </>
+              }
+            />
+          )}
+        </div>
+      </div>
       <HelpCard href={help} />
     </PageFrame>
   );

@@ -52,7 +52,7 @@ spec [0029](../specs/0029-storefront-desktop-layout/index.md) · code in `src/co
 - [x] Design it (spec): `/architect storefront desktop & tablet layout`
 - [ ] Build it: `/develop storefront desktop & tablet layout`
   - [x] Thin thread: tokens and breakpoint lock, `PageFrame`, full width shell, desktop header and category bar, wide category page, tablet Playwright project (AC-1 to AC-9, AC-19 to AC-22)
-  - [ ] Browsing: category bar overflow, filter column, search and `/c` wide, product page two columns, wide Home (AC-5, AC-9 to AC-13, AC-20)
+  - [x] Browsing: category bar overflow, filter column, search and `/c` wide, product page two columns, wide Home (AC-5, AC-9 to AC-13, AC-20)
   - [ ] Buying: cart and checkout two columns, form and prose pages (AC-14, AC-17)
   - [ ] Accounts: order details, my orders and drafts, quick order table, responsive sheet (AC-11, AC-15, AC-16, AC-18)
   - [ ] Finish: drop `width="phone"`, axe and 200% zoom on all three widths, design docs updated (AC-21, AC-23)

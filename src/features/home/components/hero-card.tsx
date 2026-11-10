@@ -8,7 +8,8 @@ import { SectionJump } from "./section-jump";
 // The hero card (spec 0011 AC-3; pages/home.md layout 3): shown when no banner is on. Black,
 // radius 20, the chandelier hanging from the top edge on the physical left (the inline end in
 // right to left), the page's one `h1`, and the two buttons. "تسوّق الآن" goes to the circles, or
-// to the featured products when there are none, and is hidden when both are.
+// to the featured products when there are none, and is hidden when both are. From md it spans
+// the content width, the words at the start and the chandelier at the end (spec 0029 AC-13a).
 export function HeroCard({
   whatsappNumber,
   jumpTo,
@@ -33,7 +34,7 @@ export function HeroCard({
         </h1>
         <p className="mt-2.5 type-body text-on-dark-muted">{t("heroText")}</p>
       </div>
-      <div className="relative mt-5 flex gap-2.5">
+      <div className="relative mt-5 flex gap-2.5 md:w-(--form-max) md:max-w-full">
         {jumpTo ? (
           <SectionJump section={jumpTo} className="flex-1">
             {t("shopNow")}

@@ -10,6 +10,7 @@ import {
   pickWhatsappNumber,
 } from "@/features/shell/server/shop-contact";
 import { BannerCarousel } from "@/features/home/components/banner-carousel";
+import { HomeSideCard } from "@/features/home/components/home-side-card";
 import { HeroCard } from "@/features/home/components/hero-card";
 import {
   CategoriesSection,
@@ -72,7 +73,7 @@ export default async function HomePage() {
   });
 
   return (
-    <PageFrame width="phone" className="flex flex-col pt-3.5 pb-8">
+    <PageFrame width="wide" className="flex flex-col pt-3.5 pb-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(store) }}
@@ -80,7 +81,18 @@ export default async function HomePage() {
       {banners.length ? (
         <>
           <h1 className="sr-only">{t("title")}</h1>
-          <BannerCarousel banners={banners} />
+          {/* At md the banners sit centred at most 720 wide; from lg in the start two thirds of a
+              row, the side card in the end third (spec 0029 AC-13b). */}
+          <div className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:px-(--page-pad)">
+            <div className="md:mx-auto md:w-full md:max-w-(--prose-max) lg:max-w-none">
+              <BannerCarousel banners={banners} />
+            </div>
+            <HomeSideCard
+              whatsappNumber={whatsappNumber}
+              jumpTo={shopNowTarget(circles.length, featured.length)}
+              className="hidden self-stretch lg:flex"
+            />
+          </div>
         </>
       ) : (
         <HeroCard
