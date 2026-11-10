@@ -46,6 +46,19 @@ _Steps derived from spec 0029 acceptance criteria. `/check verify` runs these; `
 - [ ] Open an unknown address such as `/no-such-page` → known gap: the 404 is still the bare placeholder outside the shell (its designed page was never built), so this part of AC-17 is not met yet → AC-17
 - [ ] At 390, cart, checkout, the narrow pages, and policies → exactly as before (480 column) → AC-1
 
+### Slice 4: accounts
+- [ ] Look up an order at `/orders/track`, then view it at 820 → one centred column at most 720 wide, in phone order: status, products, payment, buttons → AC-15
+- [ ] The same order at 1280 → products and payment on the right, the timeline (360 wide) and the WhatsApp and cancel buttons on the left; payment sits right under products when the products card is the taller one; Tab still goes status badge, products, payment, then the buttons → AC-15, AC-21
+- [ ] Known look: with a one line order the timeline is taller than products, so a gap shows above the payment card at 1280 (both columns share row lines); worth a look in the designer pass → AC-15
+- [ ] Sign in as an electrician with two orders and two drafts; `/account/orders` and `/account/drafts` at 390 → cards one across; at 820 and 1280 → two across → AC-15
+- [ ] Open a draft in quick order at 1280 → a header row (product, size, colour, quantity) over rows of line number, product, size, colour, quantity, unit price, line total, delete; every row lines up with the header, also for a product with no size or colour; the totals card 360 wide on the left under the table → AC-16
+- [ ] In a row at 1280, focus the quantity and press Tab → focus moves to that row's delete button; a screen reader still reads each field's own label (`الكود أو اسم المنتج`, `الحجم`, `اللون`, `الكمية`) and not the header row → AC-16, AC-21
+- [ ] Clear a line's quantity and press send → the error shows under that row, the quantity has `aria-invalid` and `aria-describedby` pointing at it → AC-16
+- [ ] Build 30 lines at 1280 → add line is held at 30; save and send work as on a phone → AC-16
+- [ ] At 390, quick order → the line cards look as before, the delete button in each card's top corner; Tab now reaches it after the line's fields → AC-1, AC-16
+- [ ] As an electrician, open add to draft on a product at 1280 → a centred dialog 560 wide with a border and rounded corners, fading in; narrow the window to 900 while it is open → it stays open and becomes the bottom sheet → AC-18, AC-11
+- [ ] Open an admin sheet (the dashboard menu) at 1280 → unchanged, still a side panel → AC-18
+
 ## Value sourcing
 - [ ] Category bar names, slugs, order: reorder or hide a main in `/admin/categories` → the bar follows the menu sheet's list exactly → AC-5
 - [ ] Current category: open a sub (`/c/<main>/<sub>`) and an Arabic slug main → the parent main is marked; a product page marks none → AC-5
@@ -59,10 +72,10 @@ _Steps derived from spec 0029 acceptance criteria. `/check verify` runs these; `
 
 ## Commands
 - [ ] `pnpm exec vitest run src/app/tailwind-lock.test.ts src/design-rules.test.ts src/components/page-frame.test.ts src/features/shell/nav.test.ts src/features/catalog/filters-form.test.ts` → all pass → AC-2, AC-3, AC-5, AC-10
-- [ ] `pnpm exec playwright test e2e/shell.spec.ts e2e/storefront-layout.spec.ts --project=phone --project=tablet --project=desktop` → all pass → AC-1, AC-3 to AC-14, AC-17, AC-19 to AC-22
+- [ ] `pnpm exec playwright test e2e/shell.spec.ts e2e/storefront-layout.spec.ts --project=phone --project=tablet --project=desktop` → all pass → AC-1, AC-3 to AC-22
 - [ ] `pnpm exec playwright test --project=phone` → passes with no phone assertion changed → AC-1
 - [ ] `pnpm exec playwright test e2e/homepage.spec.ts --project=homepage --no-deps` → passes, including the banner Home at 820 and 1280 → AC-13
 
 ## Acceptance-criteria coverage
-- AC-1 phone steps, full phone run · AC-2 breakpoint step, lock test · AC-3 shell width steps · AC-4 header steps · AC-5 category bar and overflow steps · AC-6 bottom bar step · AC-7 float step · AC-8 footer step · AC-9 category, search, `/c`, and Home grid steps · AC-10 filter column steps · AC-11 crossing lg step · AC-12 product page steps · AC-13 Home steps · AC-14 cart and checkout steps · AC-17 narrow page steps (the 404 is a known gap) · AC-19 hover steps · AC-20 card, gallery, and banner sizes steps · AC-21, AC-22 partly (the pages converted so far)
-- Not yet built: AC-15, AC-16, AC-18, AC-23, and the rest of AC-21, AC-22 (slice 4 and the finish)
+- AC-1 phone steps, full phone run · AC-2 breakpoint step, lock test · AC-3 shell width steps · AC-4 header steps · AC-5 category bar and overflow steps · AC-6 bottom bar step · AC-7 float step · AC-8 footer step · AC-9 category, search, `/c`, and Home grid steps · AC-10 filter column steps · AC-11 crossing lg steps (filters, menu, add to draft) · AC-12 product page steps · AC-13 Home steps · AC-14 cart and checkout steps · AC-15 order page and list steps · AC-16 quick order steps · AC-17 narrow page steps (the 404 is a known gap) · AC-18 add to draft dialog steps · AC-19 hover steps · AC-20 card, gallery, and banner sizes steps · AC-21, AC-22 partly (the pages converted so far)
+- Not yet built: AC-23, and the rest of AC-21, AC-22 (the finish)

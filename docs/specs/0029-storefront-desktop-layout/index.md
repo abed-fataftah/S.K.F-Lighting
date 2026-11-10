@@ -175,9 +175,9 @@ Tracer Bullet: the first slice runs one real page (category) through the new she
 14. [x] Order confirmation, order lookup, sign in, password reset, account index, 404, and error page on `form`; policies on `prose`, satisfies **AC-17**
 
 **Slice 4: accounts**
-15. Order details grid areas; my orders and drafts two across, satisfies **AC-15**
-16. Quick order table at `lg`, satisfies **AC-16**
-17. `Sheet` `variant="responsive"`, used by the add to draft sheet, satisfies **AC-18**, **AC-11**
+15. [x] Order details grid areas; my orders and drafts two across, satisfies **AC-15**
+16. [x] Quick order table at `lg`, satisfies **AC-16**
+17. [x] `Sheet` `variant="responsive"`, used by the add to draft sheet, satisfies **AC-18**, **AC-11**
 
 **Finish**
 18. Remove `width="phone"` from `PageFrame` (no page uses it); axe and 200% zoom sweep on all three projects, satisfies **AC-21**
