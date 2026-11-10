@@ -17,6 +17,7 @@ import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { withTimeLimit } from "@/server/db/time-limit";
+import { PageFrame } from "@/components/page-frame";
 
 const CATEGORIES_READ_TIMEOUT_MS = 3000;
 
@@ -55,7 +56,7 @@ export default async function CategoriesPage() {
   if (!result.ok) await reportError("navigation_read_failed", failureOf(result));
 
   return (
-    <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
       <h1 className="type-title-l">{t("title")}</h1>
       {!result.ok ? (
         <PageErrorState title={t("categoriesErrorTitle")} whatsappNumber={whatsappNumber} />
@@ -112,6 +113,6 @@ export default async function CategoriesPage() {
           ))}
         </ul>
       )}
-    </div>
+    </PageFrame>
   );
 }

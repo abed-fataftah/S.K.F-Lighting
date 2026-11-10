@@ -57,4 +57,26 @@ function DropdownMenuItem({ className, ...props }: MenuPrimitive.Item.Props) {
   );
 }
 
-export { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger };
+// A link in the menu (spec 0029 AC-5: the category bar's "المزيد"), styled as an item; it
+// closes the menu when followed. Pass the app's Link through `render`.
+function DropdownMenuLinkItem({ className, ...props }: MenuPrimitive.LinkItem.Props) {
+  return (
+    <MenuPrimitive.LinkItem
+      data-slot="dropdown-menu-link-item"
+      closeOnClick
+      className={cn(
+        "flex min-h-11 items-center gap-2 rounded-btn px-3 type-body text-ink select-none data-highlighted:bg-fill-muted",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLinkItem,
+  DropdownMenuTrigger,
+};

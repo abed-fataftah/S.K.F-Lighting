@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { activeAdminLink, activeTab, adminLinks, storefrontTabs } from "./nav";
+import {
+  activeAdminLink,
+  activeTab,
+  adminLinks,
+  isCurrentCategory,
+  splitCategories,
+  storefrontTabs,
+} from "./nav";
 
 // covers: AC-16, AC-18 (spec 0003, Value sourcing)
 describe("activeTab", () => {
@@ -77,5 +84,37 @@ describe("activeAdminLink", () => {
       "homepage",
       "settings",
     ]);
+  });
+});
+
+// covers: AC-5 (spec 0029)
+describe("isCurrentCategory", () => {
+  it.each([
+    ["/c/chandeliers", "chandeliers", true],
+    ["/c/chandeliers/crystal", "chandeliers", true],
+    ["/c/chandeliers-big", "chandeliers", false],
+    ["/c", "chandeliers", false],
+    ["/p/chandeliers", "chandeliers", false],
+    ["/c/ثريات", "ثريات", true],
+    [`/c/${encodeURIComponent("ثريات")}/كريستال`, "ثريات", true],
+    ["/c/إنارة", "ثريات", false],
+  ])("%s is %s's page: %s", (pathname, slug, expected) => {
+    expect(isCurrentCategory(pathname, slug)).toBe(expected);
+  });
+});
+
+describe("splitCategories", () => {
+  const list = ["a", "b", "c", "d"] as const;
+
+  it("shows the first ones in order and moves the rest to more", () => {
+    expect(splitCategories(list, 3)).toEqual({ shown: ["a", "b", "c"], more: ["d"] });
+  });
+
+  it("shows them all when they fit", () => {
+    expect(splitCategories(list, 6)).toEqual({ shown: list, more: [] });
+  });
+
+  it("moves them all to more when none fit", () => {
+    expect(splitCategories(list, -1)).toEqual({ shown: [], more: list });
   });
 });

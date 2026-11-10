@@ -24,13 +24,26 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
       testIgnore: /(rate-limit|homepage|shop-settings)\.spec\.ts/,
     },
+    // A touch tablet in portrait, between md and lg: the phone header and bar on a wide page
+    // (spec 0029 AC-22). It runs the shell, grid, filter, product, cart, and checkout flows.
+    {
+      name: "tablet",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 820, height: 1180 },
+        isMobile: true,
+        hasTouch: true,
+      },
+      testMatch:
+        /(shell|storefront-layout|categories|search-filters|product-page|cart|checkout-delivery)\.spec\.ts/,
+    },
     // After them, alone: it changes Home's banners and featured products, which other flows read
     // (spec 0011 AC-16), and puts them back when it ends.
     {
       name: "homepage",
       use: { ...devices["Pixel 7"] },
       testMatch: /homepage\.spec\.ts/,
-      dependencies: ["phone", "desktop"],
+      dependencies: ["phone", "desktop", "tablet"],
     },
     // After Home, alone: it changes the WhatsApp number, the delivery zones, and the policy pages
     // every flow reads (spec 0025), and puts them back when it ends.

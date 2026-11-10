@@ -21,6 +21,7 @@ import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { getDb } from "@/server/db";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -42,7 +43,7 @@ export default async function CartPage() {
 
   if (cart.lines.length === 0) {
     return (
-      <div className="px-(--page-pad) pt-7 pb-8">
+      <PageFrame width="phone" className="px-(--page-pad) pt-7 pb-8">
         <StateCard
           icon={ShoppingCart}
           heading="h1"
@@ -66,7 +67,7 @@ export default async function CartPage() {
             </>
           }
         />
-      </div>
+      </PageFrame>
     );
   }
 
@@ -74,7 +75,7 @@ export default async function CartPage() {
   const count = cart.lines.length;
 
   return (
-    <div className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
       <header className="flex items-baseline justify-between gap-3 pb-1">
         <h1 className="type-title-l">{t("title")}</h1>
         <p className="type-small text-muted">{t("count", { count, shown: formatNumber(count) })}</p>
@@ -195,6 +196,6 @@ export default async function CartPage() {
           </ButtonLink>
         </div>
       </Card>
-    </div>
+    </PageFrame>
   );
 }

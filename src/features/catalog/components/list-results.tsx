@@ -3,6 +3,7 @@ import { LoadingStatus } from "@/components/loading-status";
 import { ButtonLink } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import type { CardProduct } from "../card-view";
 import { FocusNewCard } from "./focus-new-card";
 import { ProductCard } from "./product-card";
@@ -10,6 +11,10 @@ import { ProductCard } from "./product-card";
 // The product list parts shared by the category page and search (spec 0008 AC-11 to AC-13, spec
 // 0010 AC-5, AC-6): the two column grid with `p-<position>` cards, the "shown N of M" line with
 // "load more", and the six skeleton cards. Each page passes its own words and links.
+// A `wide` page (spec 0029 AC-9) grows the grid to 3 columns from md and 4 from lg.
+
+const gridClass = (wide: boolean) =>
+  cn("grid grid-cols-2 gap-2.5", wide && "md:grid-cols-3 md:gap-3 lg:grid-cols-4 lg:gap-4");
 
 export function ProductGrid({
   products,
@@ -18,6 +23,7 @@ export function ProductGrid({
   siteUrl,
   testId,
   canAddToDraft,
+  wide = false,
 }: {
   readonly products: readonly CardProduct[];
   /** The current page, so focus moves to the first new card after "load more". */
@@ -27,11 +33,13 @@ export function ProductGrid({
   readonly testId: string;
   /** Electricians get "add to draft" on each card (spec 0021 AC-1). */
   readonly canAddToDraft: boolean;
+  /** The page sits on PageFrame width="wide". */
+  readonly wide?: boolean;
 }) {
   return (
     <>
       <FocusNewCard page={page} />
-      <ul className="grid grid-cols-2 gap-2.5" data-testid={testId}>
+      <ul className={gridClass(wide)} data-testid={testId}>
         {products.map((product, index) => (
           <li key={product.slug} className="flex">
             <ProductCard
@@ -83,10 +91,16 @@ export function ListMore({
 }
 
 /** Six skeleton cards while the products load, announced with `label`. */
-export async function GridSkeleton({ label }: { readonly label?: string }) {
+export async function GridSkeleton({
+  label,
+  wide = false,
+}: {
+  readonly label?: string;
+  readonly wide?: boolean;
+}) {
   const t = await getTranslations("Categories");
   return (
-    <LoadingStatus label={label ?? t("loading")} className="grid grid-cols-2 gap-2.5">
+    <LoadingStatus label={label ?? t("loading")} className={gridClass(wide)}>
       {Array.from({ length: 6 }, (_, i) => (
         <div
           key={i}

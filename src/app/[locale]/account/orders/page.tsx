@@ -13,6 +13,7 @@ import { parsePage } from "@/lib/paging";
 import { routes } from "@/lib/routes";
 import { getVerifiedUser } from "@/server/auth/session";
 import { getDb } from "@/server/db";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -38,7 +39,7 @@ export default async function MyOrdersPage({
   const step = myOrdersStep(page, rows.length, total);
 
   return (
-    <div className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
       <div className="flex flex-col items-start gap-1 pb-1">
         <h1 className="type-title-l">{t("title")}</h1>
         <ButtonLink
@@ -73,6 +74,6 @@ export default async function MyOrdersPage({
           ) : null}
         </>
       )}
-    </div>
+    </PageFrame>
   );
 }

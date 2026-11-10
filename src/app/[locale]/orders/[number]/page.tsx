@@ -22,6 +22,7 @@ import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { getAdminAccess } from "@/server/auth/admin";
 import { getClaims } from "@/server/auth/session";
+import { PageFrame } from "@/components/page-frame";
 
 // A broken `%` in the segment counts as a number the lookup does not accept (spec 0015 AC-7).
 function decodeSegment(raw: string): string | null {
@@ -87,7 +88,7 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
       : t("delivery", { zone: order.deliveryZoneName ?? "" });
 
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <header className="flex flex-col gap-1.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="type-title-l" data-testid="order-heading">
@@ -164,6 +165,6 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
         <CancelBlocked reason={cancelState} requestUrl={message("cancelRequest")} />
       ) : null}
       <RefreshOnRestore />
-    </div>
+    </PageFrame>
   );
 }

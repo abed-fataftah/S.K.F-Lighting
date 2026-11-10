@@ -111,8 +111,15 @@
   --sp-28: 28px;
   --sp-34: 34px;
   --sp-48: 48px;
-  --page-pad: 16px; /* side padding of every storefront page */
-  --page-max: 480px; /* storefront column width, centered */
+  --page-pad: 16px; /* side padding of every storefront page; 24px from md, 32px from lg (spec 0029) */
+  --page-max: 480px; /* storefront phone column below md, centered; dialogs and sheets below lg */
+  /* Added in spec 0029 for the tablet and desktop storefront. */
+  --content-max: 1280px; /* the storefront content box from md */
+  --form-max: 560px; /* narrow pages, and the add to draft dialog at lg */
+  --prose-max: 720px; /* policies; product, cart, checkout, and banners at md */
+  --filter-col: 260px; /* filter column at lg */
+  --summary-col: 360px; /* cart, checkout, and quick order totals at lg */
+  --sticky-top: 16px; /* top offset of the sticky summary and purchase boxes */
   --admin-sidebar-max: 260px; /* sidebar flex-basis 220px, max 260px */
   --admin-sidebar-basis: 220px; /* sidebar flex-basis (design.md section 4; added in spec 0003) */
   --admin-content-basis: 560px; /* below this the sidebar wraps above the content */
@@ -150,10 +157,27 @@
   --size-thumb: 56px; /* product gallery thumbnails */
   --h-card-image: 128px; /* product card image area */
   --h-gallery: 300px; /* product page main image area */
+  --gallery-h-lg: 520px; /* product page main image area at lg (spec 0029) */
+  --h-cat-bar: 48px; /* desktop category bar row (spec 0029) */
   /* Added in spec 0003 for the fixed shell parts. */
   --h-bottom-bar: 64px; /* bottom bar height, without the safe area */
-  --fab-bottom: 84px; /* WhatsApp float offset above the bottom */
+  --fab-bottom: 84px; /* WhatsApp float offset above the bottom; 24px from lg (spec 0029) */
+  --fab-inset: 14px; /* WhatsApp float distance from the screen's end edge; 24px from md (spec 0029) */
   --w-sheet: 320px; /* menu sheet width (capped at 85vw where used) */
+}
+
+/* Tablet (md, 48rem) and desktop (lg, 64rem) values (spec 0029). Below md every value above holds. */
+@media (width >= 48rem) {
+  :root {
+    --page-pad: 24px;
+    --fab-inset: 24px;
+  }
+}
+@media (width >= 64rem) {
+  :root {
+    --page-pad: 32px;
+    --fab-bottom: 24px;
+  }
 }
 
 /* ---- 8. Focus ------------------------------------------------------------ */
@@ -254,9 +278,11 @@
 }
 
 /* ---- 10. Breakpoints (CSS variables cannot hold these; use them in Tailwind config / media queries) */
-/* Storefront: one column, max 480px, any width. Desktop layout NOT designed (open item O-1).
+/* Storefront (spec 0029): two breakpoints only, Tailwind's md (768px, tablet) and lg (1024px, desktop);
+   sm, xl, and 2xl are removed in section 12. Below md the 480px phone column; from md the content box
+   (--content-max) with --page-pad. lg-tall (lg and at least 720px high) gates the sticky boxes.
    Dashboard: designed at 1280. Sidebar wraps above content below (220 + 560) = 780px of available width (flex-wrap, no media query).
-   Test widths: 390 (phone), 1280 (desktop). */
+   Test widths: 390 (phone), 820 (tablet), 1280 (desktop). */
 
 /* ---- 11. Right to left --------------------------------------------------- */
 html {
@@ -283,12 +309,19 @@ html {
   --blur-*: initial;
   --ease-*: initial;
   --animate-*: initial;
+  /* Only md and lg (spec 0029 AC-2). */
+  --breakpoint-sm: initial;
+  --breakpoint-xl: initial;
+  --breakpoint-2xl: initial;
   /* Almarai has three weights; only they exist. */
   --font-weight-*: initial;
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
   --font-weight-normal: 400;
 }
+
+/* Desktop with a window tall enough for a sticky box (spec 0029 AC-12, AC-14). */
+@custom-variant lg-tall (@media (width >= 64rem) and (height >= 45rem));
 
 @theme inline {
   --font-sans: var(--skf-font);

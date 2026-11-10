@@ -15,6 +15,7 @@ import { formatDate } from "@/lib/format";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { PageFrame } from "@/components/page-frame";
 
 async function loadPage(slug: string) {
   if (!isPolicySlug(slug)) notFound();
@@ -62,7 +63,7 @@ export default async function PolicyPage({ params }: PageProps<"/[locale]/polici
   ]);
 
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <h1 className="py-3 type-title-l">{page.title}</h1>
       <nav aria-label={t("tabsLabel")} className="-mx-(--page-pad) overflow-x-auto px-(--page-pad)">
         <ul className="flex gap-2">
@@ -95,6 +96,6 @@ export default async function PolicyPage({ params }: PageProps<"/[locale]/polici
           {shell("menuWhatsapp")}
         </ButtonLink>
       </Card>
-    </div>
+    </PageFrame>
   );
 }

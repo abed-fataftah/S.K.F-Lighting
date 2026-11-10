@@ -48,6 +48,7 @@ import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
 import { canAddToDraft } from "@/features/drafts/server/guard";
 import { GridSkeleton, ListMore, ProductGrid } from "./list-results";
+import { PageFrame } from "@/components/page-frame";
 
 // The category page (spec 0008 AC-8 to AC-13, AC-16; spec 0010 AC-13, AC-14; docs/design/pages/
 // category.md) for `/c/<main>` and `/c/<main>/<sub>`. Both routes render this one server view.
@@ -178,9 +179,9 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   if (!result.ok) {
     await reportError("category_head_read_failed", result.error);
     return (
-      <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+      <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <PageErrorState heading="h1" title={t("errorTitle")} whatsappNumber={whatsappNumber} />
-      </div>
+      </PageFrame>
     );
   }
   const data = result.data;
@@ -191,7 +192,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   const jsonLd = serializeJsonLd(breadcrumbJsonLd(breadcrumbItems(data, catalog("home"), siteUrl)));
 
   return (
-    <div className="flex flex-col pb-8">
+    <PageFrame width="wide" className="flex flex-col pb-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
 
       <Breadcrumb aria-label={catalog("breadcrumb")} className="px-(--page-pad) pt-2">
@@ -228,8 +229,11 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
       </header>
 
       {data.chipSubs.length ? (
-        <nav aria-label={t("subsLabel")} className="overflow-x-auto px-(--page-pad) pb-1">
-          <ul className="flex gap-2">
+        <nav
+          aria-label={t("subsLabel")}
+          className="overflow-x-auto px-(--page-pad) pb-1 md:overflow-visible"
+        >
+          <ul className="flex gap-2 md:flex-wrap">
             <li>
               <FilterChipLink
                 href={routes.categoryPage(mainSlug, null, 1, parsed)}
@@ -256,7 +260,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
 
       <div className="flex flex-col gap-3 px-(--page-pad) pt-3">
         {data.total > 0 ? (
-          <Suspense fallback={<GridSkeleton />}>
+          <Suspense fallback={<GridSkeleton wide />}>
             <CategoryList address={address} pageHead={data} page={page} query={query} help={help} />
           </Suspense>
         ) : (
@@ -274,7 +278,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
         )}
         <HelpCard href={help} />
       </div>
-    </div>
+    </PageFrame>
   );
 }
 
@@ -334,6 +338,7 @@ async function CategoryList({
       {list.total > 0 ? (
         <>
           <ProductGrid
+            wide
             products={list.products}
             page={list.page}
             whatsappNumber={whatsappNumber}

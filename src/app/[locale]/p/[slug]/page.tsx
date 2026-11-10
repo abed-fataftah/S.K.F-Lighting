@@ -38,6 +38,7 @@ import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { supabaseEnv } from "@/server/auth/env";
+import { PageFrame } from "@/components/page-frame";
 
 // The page and its metadata share one read per request, keyed on the decoded slug (AC-16).
 // Arabic slugs arrive percent encoded (spec 0004, Value sourcing: slug lookup).
@@ -129,7 +130,7 @@ export default async function ProductPage({
           __html: serializeJsonLd(structuredData(data, t("home"), siteUrl)),
         }}
       />
-      <div className="flex flex-col px-(--page-pad) pt-2 pb-8">
+      <PageFrame width="phone" className="flex flex-col px-(--page-pad) pt-2 pb-8">
         <Breadcrumb aria-label={t("breadcrumb")}>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -228,7 +229,7 @@ export default async function ProductPage({
             <ProductWhatsApp place="help" whatsappNumber={whatsappNumber} siteUrl={siteUrl} />
           </Card>
         </div>
-      </div>
+      </PageFrame>
     </ProductSelectionProvider>
   );
 }

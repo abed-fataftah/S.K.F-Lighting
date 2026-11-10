@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { policyLinks, storefrontTabs } from "../nav";
 import { tabIcons } from "./nav-icons";
@@ -24,9 +25,12 @@ export type MenuCategory = { readonly slug: string; readonly name: string };
 export function MenuSheet({
   whatsappNumber,
   categories = [],
+  triggerClassName,
 }: {
   readonly whatsappNumber: string;
   readonly categories?: readonly MenuCategory[];
+  /** The header hides the menu button from lg, where the category bar lists them (spec 0029 AC-4). */
+  readonly triggerClassName?: string;
 }) {
   const t = useTranslations("Shell");
   const [open, setOpen] = useState(false);
@@ -35,7 +39,9 @@ export function MenuSheet({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
-        render={<Button variant="ghost" size="icon" className="text-white" />}
+        render={
+          <Button variant="ghost" size="icon" className={cn("text-white", triggerClassName)} />
+        }
         aria-label={t("menu")}
       >
         <Menu aria-hidden className="size-6.5" />

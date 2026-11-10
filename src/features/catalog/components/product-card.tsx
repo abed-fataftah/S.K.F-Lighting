@@ -20,7 +20,8 @@ const tones = [1, 2, 3, 4] as const;
 // category pages. The name link covers the photo and text; the add and WhatsApp buttons sit below
 // it. Out of stock: the photo at 45%, the black label, a disabled button, the price muted, and the
 // WhatsApp button asks about availability (W4) instead of the product (W3). Electricians also get
-// the "add to draft" button in the photo's end corner (spec 0021 AC-3).
+// the "add to draft" button in the photo's end corner (spec 0021 AC-3). On a device that can hover
+// the border turns ink (spec 0029 AC-19; Tailwind's hover: applies only there).
 export function ProductCard({
   product,
   index,
@@ -51,7 +52,7 @@ export function ProductCard({
     <article
       id={id}
       data-testid="product-card"
-      className="flex w-full scroll-mt-4 flex-col overflow-hidden rounded-card border border-border bg-white"
+      className="flex w-full scroll-mt-4 flex-col overflow-hidden rounded-card border border-border bg-white hover:border-ink"
     >
       <div className="relative flex flex-1 flex-col">
         <div className="relative h-(--h-card-image)">
@@ -60,7 +61,7 @@ export function ProductCard({
               src={product.imageKey}
               alt={product.name}
               fill
-              sizes="(max-width: 480px) 50vw, 240px"
+              sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, (min-width: 480px) 240px, 50vw"
               className={cn("bg-product-1 object-cover", !product.inStock && "opacity-45")}
             />
           ) : (

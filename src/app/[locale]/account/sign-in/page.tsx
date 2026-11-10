@@ -5,6 +5,7 @@ import { GuestCard } from "@/features/accounts/components/guest-card";
 import { SignInTabs, type SignInTab } from "@/features/accounts/components/sign-in-tabs";
 import { safeStorefrontNext } from "@/features/accounts/next-path";
 import { getVerifiedUser } from "@/server/auth/session";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -31,13 +32,13 @@ export default async function SignInPage({ searchParams }: PageProps<"/[locale]/
   const next = rawNext && safeStorefrontNext(rawNext) === rawNext ? rawNext : undefined;
 
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <SignInTabs
         initialTab={initialTab}
         next={next}
         linkExpired={firstParam(query.error) === "link_expired"}
       />
       <GuestCard />
-    </div>
+    </PageFrame>
   );
 }

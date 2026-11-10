@@ -149,7 +149,7 @@ export async function ColoursSection() {
 
   return (
     <GallerySection id="colours" title={t("title")} text={t("text")}>
-      <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
         {textPairs.map((pair) => (
           <li
             key={pair.id}

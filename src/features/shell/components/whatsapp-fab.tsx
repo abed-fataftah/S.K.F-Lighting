@@ -6,7 +6,8 @@ import { FabLink } from "./fab-link";
 
 // The floating WhatsApp button (handoff section 6, spec 0003 AC-17): a 52px green circle
 // with a white border, 14px from the inline end edge of the 480 column and 84px above the
-// bottom (clear of the bottom bar and the home indicator). Opens W1 in a new tab, or W7 with
+// bottom (clear of the bottom bar and the home indicator); from md 24px from the screen's end edge, and
+// from lg 24px above the bottom, with no bar (spec 0029 AC-7). Opens W1 in a new tab, or W7 with
 // the order number on a confirmation page (spec 0013 AC-9).
 // `static` puts it in the page flow (the gallery, outside `[locale]`), always with W1.
 export function WhatsAppFab({
@@ -21,7 +22,7 @@ export function WhatsAppFab({
     "flex size-(--size-fab) items-center justify-center rounded-full border-2 border-white bg-whatsapp text-white",
     inFlow
       ? "relative"
-      : "fixed end-[max(var(--sp-14),calc((100vw-var(--page-max))/2+var(--sp-14)))] bottom-[calc(var(--fab-bottom)+env(safe-area-inset-bottom))] z-(--z-fab)",
+      : "fixed end-[max(var(--sp-14),calc((100vw-var(--page-max))/2+var(--sp-14)))] bottom-[calc(var(--fab-bottom)+env(safe-area-inset-bottom))] z-(--z-fab) md:end-(--fab-inset)",
   );
   const icon = <WhatsAppIcon className="size-6.5" />;
 

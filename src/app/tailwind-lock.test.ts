@@ -39,6 +39,10 @@ describe("Tailwind lock", () => {
     "ease-in",
     "animate-pulse",
     "animate-spin",
+    // Only md and lg (spec 0029 AC-2).
+    "sm:flex",
+    "xl:flex",
+    "2xl:flex",
   ])("removes %s", (cls) => {
     expect(produces(cls)).toBe(false);
   });
@@ -62,6 +66,10 @@ describe("Tailwind lock", () => {
     "animate-skeleton",
     "max-w-(--page-max)",
     "h-13",
+    "md:flex",
+    "lg:flex",
+    "lg-tall:sticky",
+    "max-w-(--content-max)",
   ])("keeps %s", (cls) => {
     expect(produces(cls)).toBe(true);
   });
@@ -71,6 +79,13 @@ describe("Tailwind lock", () => {
     expect(css).toContain("font-size: var(--fs-title-m)");
     expect(css).toContain("font-weight: var(--fw-heavy)");
     expect(css).toContain("line-height: var(--lh-card-title)");
+  });
+
+  // covers: AC-2, AC-12 (spec 0029)
+  it("puts md at 48rem, lg at 64rem, and lg-tall at 64rem wide and 45rem high", () => {
+    expect(build(["md:flex"])).toContain("(width >= 48rem)");
+    expect(build(["lg:flex"])).toContain("(width >= 64rem)");
+    expect(build(["lg-tall:sticky"])).toMatch(/\(width >= 64rem\) and \(height >= 45rem\)/);
   });
 
   it("lets a weight class override a type role's weight", () => {

@@ -42,6 +42,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
 // The storefront shell (spec 0003, AC-11): one centered 480px column on the page colour.
 // The bottom bar and the WhatsApp float are fixed, so the column keeps room under its last
 // line (bar height plus the safe area), and the page scrolls a focused field clear of the bar.
+// From md the shell spans the screen and each page sets its own width with PageFrame; from lg
+// there is no bottom bar, so no room is kept for it (spec 0029 AC-3, AC-6).
 export default async function StorefrontLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -59,9 +61,9 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   const strip = buildStripText(fees, (zones) => home("strip", { zones }));
 
   return (
-    <HtmlDocument className="scroll-pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))]">
+    <HtmlDocument className="scroll-pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))] lg:scroll-pb-0">
       <NextIntlClientProvider>
-        <div className="mx-auto flex min-h-dvh w-full max-w-(--page-max) flex-col pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))]">
+        <div className="mx-auto flex min-h-dvh w-full max-w-(--page-max) flex-col pb-[calc(var(--h-bottom-bar)+env(safe-area-inset-bottom))] md:max-w-none lg:pb-0">
           <SkipLink />
           <InfoStrip text={strip} />
           <SiteHeader

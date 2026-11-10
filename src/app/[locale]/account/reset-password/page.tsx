@@ -6,6 +6,7 @@ import { SetPasswordForm } from "@/features/accounts/components/set-password-for
 import { hasFreshRecovery } from "@/features/accounts/server/recovery";
 import { routes } from "@/lib/routes";
 import { getVerifiedUser } from "@/server/auth/session";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -23,11 +24,11 @@ export default async function ResetPasswordPage() {
   if (!(await hasFreshRecovery(userId))) redirect(routes.account);
   const t = await getTranslations("Account");
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <h1 className="type-title-l">{t("newPasswordTitle")}</h1>
       <Card>
         <SetPasswordForm />
       </Card>
-    </div>
+    </PageFrame>
   );
 }

@@ -17,6 +17,7 @@ import { Link } from "@/i18n/navigation";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -58,7 +59,7 @@ export default async function ConfirmationPage({
   const url = whatsappUrl(whatsappNumber, text);
 
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <WhatsAppHandoff orderId={order.id} url={url} autoOpen={query.wa === "1"} />
 
       <Card className="items-center gap-3 px-5 py-7 text-center">
@@ -129,6 +130,6 @@ export default async function ConfirmationPage({
         deliveryFee={order.deliveryFee}
         total={order.total}
       />
-    </div>
+    </PageFrame>
   );
 }

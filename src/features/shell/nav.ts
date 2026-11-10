@@ -65,6 +65,29 @@ export function activeTab(pathname: string): TabId {
   return match ? match[0] : "home";
 }
 
+// Pathnames may arrive percent encoded or decoded (Arabic slugs); compare them decoded.
+function decoded(path: string): string {
+  try {
+    return decodeURI(path);
+  } catch {
+    return path;
+  }
+}
+
+/** True when `pathname` is the category page of `slug` or one of its subs (spec 0029 AC-5). */
+export function isCurrentCategory(pathname: string, slug: string): boolean {
+  return under(decoded(pathname), decoded(routes.category(slug)));
+}
+
+/** The first `visible` categories for the bar, the rest for its "more" menu (spec 0029 AC-5). */
+export function splitCategories<T>(
+  categories: readonly T[],
+  visible: number,
+): { readonly shown: readonly T[]; readonly more: readonly T[] } {
+  const count = Math.max(0, Math.min(visible, categories.length));
+  return { shown: categories.slice(0, count), more: categories.slice(count) };
+}
+
 /** The dashboard link for an admin path: the longest matching one; `/admin` only exactly. */
 export function activeAdminLink(pathname: string): AdminLinkId | null {
   const matches = adminLinks.filter(({ href }) =>

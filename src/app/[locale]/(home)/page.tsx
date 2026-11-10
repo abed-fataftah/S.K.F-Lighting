@@ -22,6 +22,7 @@ import { canAddToDraft } from "@/features/drafts/server/guard";
 import { getDeliveryFees, getHomeSections } from "@/features/home/server/home";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
+import { PageFrame } from "@/components/page-frame";
 
 // Home's own title names the town; its share tags use the shop image (spec 0026 AC-8).
 export async function generateMetadata(): Promise<Metadata> {
@@ -71,7 +72,7 @@ export default async function HomePage() {
   });
 
   return (
-    <div className="flex flex-col pt-3.5 pb-8">
+    <PageFrame width="phone" className="flex flex-col pt-3.5 pb-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(store) }}
@@ -97,6 +98,6 @@ export default async function HomePage() {
         />
       ) : null}
       <TrustSection zoneLine={buildZoneLine(fees)} address={address} />
-    </div>
+    </PageFrame>
   );
 }

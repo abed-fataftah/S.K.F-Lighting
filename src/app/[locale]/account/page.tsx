@@ -12,6 +12,7 @@ import { SignOutButton } from "@/features/accounts/components/sign-out-button";
 import { getVerifiedAccount } from "@/features/accounts/server/profile";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -35,18 +36,18 @@ export default async function AccountPage({ searchParams }: PageProps<"/[locale]
   // The owner started removing this account (spec 0019 AC-12): only the message and sign out.
   if (profile?.removalPending) {
     return (
-      <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+      <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
         <h1 className="type-title-l">{t("accountTitle")}</h1>
         <Alert data-testid="account-removed">
           <AlertDescription>{t("accountRemoved")}</AlertDescription>
         </Alert>
         <SignOutButton />
-      </div>
+      </PageFrame>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <div className="flex flex-col items-start gap-1">
         <h1 className="type-title-l">{t("accountTitle")}</h1>
         {profile?.role === "electrician" ? (
@@ -107,6 +108,6 @@ export default async function AccountPage({ searchParams }: PageProps<"/[locale]
         <ChangePasswordForm />
       </Card>
       <SignOutButton />
-    </div>
+    </PageFrame>
   );
 }

@@ -16,7 +16,10 @@ export function InfoStrip({
   const pathname = usePathname();
   if (text === null || (!show && pathname !== routes.home)) return null;
 
+  // Full width from md, its words inside the content box (spec 0029 AC-3).
   return (
-    <p className="bg-yellow px-3 py-2 text-center type-caption font-extrabold text-ink">{text}</p>
+    <p className="bg-yellow px-3 py-2 text-center type-caption font-extrabold text-ink md:px-(--page-pad)">
+      <span className="mx-auto block max-w-(--content-max)">{text}</span>
+    </p>
   );
 }

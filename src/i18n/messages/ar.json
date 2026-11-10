@@ -92,7 +92,9 @@
       "returns": "سياسة الإرجاع"
     },
     "menuCategories": "الأقسام",
-    "footerTrack": "تتبّع طلبك"
+    "footerTrack": "تتبّع طلبك",
+    "more": "المزيد",
+    "allCategories": "كل الأقسام"
   },
   "AdminShell": {
     "caption": "لوحة التحكم",

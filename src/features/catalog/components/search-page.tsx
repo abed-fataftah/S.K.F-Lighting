@@ -30,6 +30,7 @@ import { HelpCard } from "./help-card";
 import { canAddToDraft } from "@/features/drafts/server/guard";
 import { ListMore, ProductGrid } from "./list-results";
 import { RemoveChipLink } from "./remove-chip-link";
+import { PageFrame } from "@/components/page-frame";
 
 // The search page (spec 0010 AC-1 to AC-6, AC-14; docs/design/pages/search.md) for `/search`.
 // Without a searchable `q` it is the prompt and reads nothing. Otherwise the list view inside a 3
@@ -70,7 +71,7 @@ export async function SearchPage({ params }: { readonly params: Params }) {
 async function SearchPrompt({ short, help }: { readonly short: boolean; readonly help: string }) {
   const t = await getTranslations("Search");
   return (
-    <div className="flex flex-col gap-2 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-2 px-(--page-pad) pt-5 pb-8">
       <h1 className="type-title-l">{t("promptTitle")}</h1>
       <p className="type-body text-muted">{t("promptHint")}</p>
       {short ? (
@@ -79,7 +80,7 @@ async function SearchPrompt({ short, help }: { readonly short: boolean; readonly
         </p>
       ) : null}
       <HelpCard href={help} />
-    </div>
+    </PageFrame>
   );
 }
 
@@ -106,10 +107,10 @@ async function SearchResults({
     // Never the query: a shopper might type a phone number into search.
     await reportError("search_read_failed", result.error);
     return (
-      <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+      <PageFrame width="phone" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <h1 className="type-title-l">{t("title")}</h1>
         <PageErrorState title={t("errorTitle")} whatsappNumber={whatsappNumber} />
-      </div>
+      </PageFrame>
     );
   }
 
@@ -120,7 +121,7 @@ async function SearchResults({
   const hasMore = shown < data.total;
 
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <header className="flex flex-col gap-1">
         <h1 className="type-title-l">{t("title")}</h1>
         <p role="status" className="type-small text-muted" data-testid="search-count">
@@ -191,7 +192,7 @@ async function SearchResults({
         />
       )}
       <HelpCard href={help} />
-    </div>
+    </PageFrame>
   );
 }
 
