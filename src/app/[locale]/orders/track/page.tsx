@@ -18,7 +18,7 @@ export default async function OrderTrackPage({
   const number = typeof query.number === "string" ? parseOrderNumberInput(query.number) : null;
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="form" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <div className="flex flex-col gap-1.5">
         <h1 className="type-title-l">{t("title")}</h1>
         <p className="text-muted">{t("intro")}</p>

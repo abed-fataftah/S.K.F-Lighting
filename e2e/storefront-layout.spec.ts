@@ -9,10 +9,11 @@ import {
 } from "./a11y";
 import { seededChandelier } from "./categories";
 import { localSql } from "./local-db";
+import { ownIpHeaders } from "./own-ip";
 
-// covers: AC-1, AC-3, AC-9 to AC-11, AC-19 to AC-22 (spec 0029): the storefront pages that are
-// converted to their tablet and desktop layouts, on all three projects: the category page with its
-// filter column, search, and /c.
+// covers: AC-1, AC-3, AC-9 to AC-14, AC-17, AC-19 to AC-22 (spec 0029): the storefront pages that
+// are converted to their tablet and desktop layouts, on all three projects: the category page with
+// its filter column, search, /c, product, Home, cart, checkout, and the narrow pages.
 
 const accounts = adminAccounts();
 
@@ -145,15 +146,114 @@ test.describe("category page", () => {
   });
 });
 
-// covers: AC-1 (spec 0029): pages not yet converted keep the 480 column at every width.
-test("keeps an unconverted page on the 480 column", async ({ page }) => {
-  await page.goto("/orders/track");
-  const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
-  const width = page.viewportSize()!.width;
-  const column = Math.min(width, 480);
-  expect(Math.round((width + column) / 2 - (heading!.x + heading!.width))).toBe(
-    width >= 1024 ? 32 : width >= 768 ? 24 : 16,
-  );
+// covers: AC-1, AC-17 (spec 0029): forms in a centred 560 column, policies in a 720 one; on a
+// phone both are the 480 column as before.
+test.describe("narrow pages", () => {
+  const cases = [
+    { path: "/orders/track", max: 560 },
+    { path: "/account/sign-in", max: 560 },
+    { path: "/policies/terms", max: 720 },
+  ] as const;
+
+  for (const { path, max } of cases) {
+    test(`centres ${path} in a ${max} column`, async ({ page }, testInfo) => {
+      await page.goto(path);
+      const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+      const width = page.viewportSize()!.width;
+      const column = Math.min(width, testInfo.project.name === "phone" ? 480 : max);
+      // Right to left: the heading starts at the column's right edge, inside the side padding.
+      expect(Math.round((width + column) / 2 - (heading!.x + heading!.width))).toBe(
+        pad[testInfo.project.name],
+      );
+      await expectNoAxeViolations(page);
+      await expectNoSidewaysScroll(page);
+    });
+  }
+});
+
+// covers: AC-14 (spec 0029): one centred column below lg; from lg the lines or form cards at the
+// start and the summary at the end, sticky only in a tall enough window.
+test.describe("cart and checkout", () => {
+  test.beforeEach(async ({ page }) => {
+    // Checkout sends count per IP (spec 0004 AC-10); this flow keeps an allowance of its own.
+    await page.context().setExtraHTTPHeaders(ownIpHeaders());
+    const sql = localSql();
+    try {
+      const { product } = await seededChandelier(sql);
+      await page.goto(`/p/${encodeURIComponent(product)}`);
+    } finally {
+      await sql.end();
+    }
+    await page.getByTestId("add-to-cart").click({ timeout: 15_000 });
+    await expect(page.getByRole("link", { name: "عرض السلة" })).toBeVisible({ timeout: 15_000 });
+  });
+
+  /** The summary sits beside the start column from lg, under it below lg. */
+  async function expectColumns(page: Page, testInfo: TestInfo, start: string, summary: string) {
+    const lines = await page.getByTestId(start).boundingBox();
+    const box = await page.getByTestId(summary).boundingBox();
+    if (isDesktop(testInfo)) {
+      // Right to left: the start column is on the right.
+      expect(box!.x + box!.width).toBeLessThanOrEqual(lines!.x + 1);
+      expect(Math.abs(box!.y - lines!.y)).toBeLessThan(40);
+      expect(Math.round(box!.width)).toBe(360);
+    } else {
+      expect(box!.y).toBeGreaterThan(lines!.y);
+      expect(box!.width).toBeLessThanOrEqual(720);
+    }
+  }
+
+  test("puts the cart lines at the start and the summary at the end from lg", async ({
+    page,
+  }, testInfo) => {
+    await page.goto("/cart");
+    await expect(page.getByTestId("cart-lines")).toBeVisible({ timeout: 15_000 });
+    await expectColumns(page, testInfo, "cart-lines", "cart-summary");
+    await expectNoAxeViolations(page);
+    await expectTouchTargets(page);
+    await expectNoSidewaysScroll(page);
+  });
+
+  test("puts the checkout fields at the start and the summary at the end from lg", async ({
+    page,
+  }, testInfo) => {
+    await page.goto("/checkout");
+    await expect(page.getByTestId("checkout-fields")).toBeVisible({ timeout: 15_000 });
+    await expectColumns(page, testInfo, "checkout-fields", "checkout-summary");
+    await expectNoAxeViolations(page);
+    await expectTouchTargets(page);
+    await expectNoSidewaysScroll(page);
+  });
+
+  test("tabs from the last field to the summary's button, which sends the form", async ({
+    page,
+  }) => {
+    await page.goto("/checkout");
+    await page.getByLabel("ملاحظات (اختياري)").focus({ timeout: 15_000 });
+    await page.keyboard.press("Tab");
+    const send = page.getByTestId("place-order");
+    await expect(send).toBeFocused();
+    // An empty name is refused by the server and focus goes back to the first field.
+    await page.getByLabel("الاسم الكامل").fill("");
+    await send.click();
+    await expect(page.getByLabel("الاسم الكامل")).toBeFocused({ timeout: 15_000 });
+  });
+
+  test("keeps the summaries in view only in a tall enough window", async ({ page }, testInfo) => {
+    test.skip(!isDesktop(testInfo), "sticky from lg only");
+    for (const [path, summary] of [
+      ["/cart", "cart-summary"],
+      ["/checkout", "checkout-summary"],
+    ] as const) {
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.goto(path);
+      const box = page.getByTestId(summary);
+      await expect(box).toHaveCSS("position", "sticky", { timeout: 15_000 });
+      await expect(box).toHaveCSS("top", "16px");
+      await page.setViewportSize({ width: 1280, height: 640 });
+      await expect(box).toHaveCSS("position", "static");
+    }
+  });
 });
 
 // covers: AC-10 (spec 0029): from lg the filters stand beside the grid, always open.

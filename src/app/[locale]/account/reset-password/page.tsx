@@ -24,7 +24,7 @@ export default async function ResetPasswordPage() {
   if (!(await hasFreshRecovery(userId))) redirect(routes.account);
   const t = await getTranslations("Account");
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="form" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <h1 className="type-title-l">{t("newPasswordTitle")}</h1>
       <Card>
         <SetPasswordForm />

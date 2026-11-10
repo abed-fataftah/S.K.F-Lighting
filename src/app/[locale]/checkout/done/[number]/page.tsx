@@ -59,7 +59,7 @@ export default async function ConfirmationPage({
   const url = whatsappUrl(whatsappNumber, text);
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="form" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <WhatsAppHandoff orderId={order.id} url={url} autoOpen={query.wa === "1"} />
 
       <Card className="items-center gap-3 px-5 py-7 text-center">

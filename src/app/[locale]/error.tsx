@@ -18,7 +18,7 @@ export default function StorefrontError({
   const { whatsappNumber } = parsePublicEnv();
 
   return (
-    <PageFrame width="phone" className="px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="form" className="px-(--page-pad) pt-5 pb-8">
       <ErrorState onRetry={retry} whatsappNumber={whatsappNumber} />
       <ReportToSentry error={error} />
     </PageFrame>

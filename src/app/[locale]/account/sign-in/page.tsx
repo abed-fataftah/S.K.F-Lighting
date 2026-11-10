@@ -32,7 +32,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/[locale]/
   const next = rawNext && safeStorefrontNext(rawNext) === rawNext ? rawNext : undefined;
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="form" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <SignInTabs
         initialTab={initialTab}
         next={next}

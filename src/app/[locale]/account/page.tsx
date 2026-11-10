@@ -36,7 +36,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/[locale]
   // The owner started removing this account (spec 0019 AC-12): only the message and sign out.
   if (profile?.removalPending) {
     return (
-      <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+      <PageFrame width="form" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
         <h1 className="type-title-l">{t("accountTitle")}</h1>
         <Alert data-testid="account-removed">
           <AlertDescription>{t("accountRemoved")}</AlertDescription>
@@ -47,7 +47,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/[locale]
   }
 
   return (
-    <PageFrame width="phone" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="form" className="flex flex-col gap-3 px-(--page-pad) pt-3 pb-8">
       <div className="flex flex-col items-start gap-1">
         <h1 className="type-title-l">{t("accountTitle")}</h1>
         {profile?.role === "electrician" ? (
