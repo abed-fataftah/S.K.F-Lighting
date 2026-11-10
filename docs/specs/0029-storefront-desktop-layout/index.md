@@ -171,8 +171,8 @@ Tracer Bullet: the first slice runs one real page (category) through the new she
 12. [x] Home: hero wide, banner row with `HomeSideCard`, `CircleRow`, trust grid, banner `sizes`, satisfies **AC-13**, **AC-20**
 
 **Slice 3: buying**
-13. Cart and checkout two columns with sticky summary; check checkout tab order and submit, satisfies **AC-14**
-14. Order confirmation, order lookup, sign in, password reset, account index, 404, and error page on `form`; policies on `prose`, satisfies **AC-17**
+13. [x] Cart and checkout two columns with sticky summary; check checkout tab order and submit, satisfies **AC-14**
+14. [x] Order confirmation, order lookup, sign in, password reset, account index, 404, and error page on `form`; policies on `prose`, satisfies **AC-17**
 
 **Slice 4: accounts**
 15. Order details grid areas; my orders and drafts two across, satisfies **AC-15**

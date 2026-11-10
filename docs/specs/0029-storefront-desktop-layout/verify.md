@@ -34,6 +34,18 @@ _Steps derived from spec 0029 acceptance criteria. `/check verify` runs these; `
 - [ ] Home with a banner at 820 → the banner centred at most 720 wide; at 1280 → the banner in the right two thirds, a black side card in the left third with an `h2` headline, `تسوّق الآن`, and WhatsApp; the page `h1` is still the hidden shop name → AC-13
 - [ ] Inspect the gallery photo and a banner → `sizes` are `(min-width: 1024px) 680px, (min-width: 768px) 672px, (min-width: 480px) 448px, 100vw` and `(min-width: 1024px) 830px, (min-width: 768px) 720px, (min-width: 480px) 448px, 100vw` → AC-20
 
+### Slice 3: buying
+- [ ] Add a product, open `/cart` at 820 → one centred column at most 720 wide, the summary under the lines → AC-14
+- [ ] `/cart` at 1280 by 800 → lines on the right, a 360 wide summary on the left, side by side; add enough lines to scroll → the summary stays 16px from the top; at 1280 by 640 → it scrolls away → AC-14
+- [ ] `/checkout` at 820 → one centred column at most 720 wide, the summary card last → AC-14
+- [ ] `/checkout` at 1280 by 800 → contact, method, and pay cards on the right, the 360 wide summary on the left, sticky; at 1280 by 640 → not sticky → AC-14
+- [ ] On `/checkout` at 1280, focus `ملاحظات (اختياري)` and press Tab → focus lands on `تأكيد وإرسال عبر واتساب` in the summary; clear the name and press it → the form is refused and focus goes back to `الاسم الكامل` → AC-14
+- [ ] At 1280, open `/orders/track`, `/account/sign-in`, `/account/reset-password`, `/account` (signed in), and an order confirmation `/checkout/done/<number>` → each is a centred column 560 wide inside the full shell → AC-17
+- [ ] Break a storefront read (stop the local database) and open a category at 1280 → the error card sits in the centred 560 column → AC-17
+- [ ] `/policies/terms` at 1280 → a centred column 720 wide → AC-17
+- [ ] Open an unknown address such as `/no-such-page` → known gap: the 404 is still the bare placeholder outside the shell (its designed page was never built), so this part of AC-17 is not met yet → AC-17
+- [ ] At 390, cart, checkout, the narrow pages, and policies → exactly as before (480 column) → AC-1
+
 ## Value sourcing
 - [ ] Category bar names, slugs, order: reorder or hide a main in `/admin/categories` → the bar follows the menu sheet's list exactly → AC-5
 - [ ] Current category: open a sub (`/c/<main>/<sub>`) and an Arabic slug main → the parent main is marked; a product page marks none → AC-5
@@ -47,10 +59,10 @@ _Steps derived from spec 0029 acceptance criteria. `/check verify` runs these; `
 
 ## Commands
 - [ ] `pnpm exec vitest run src/app/tailwind-lock.test.ts src/design-rules.test.ts src/components/page-frame.test.ts src/features/shell/nav.test.ts src/features/catalog/filters-form.test.ts` → all pass → AC-2, AC-3, AC-5, AC-10
-- [ ] `pnpm exec playwright test e2e/shell.spec.ts e2e/storefront-layout.spec.ts --project=phone --project=tablet --project=desktop` → all pass → AC-1, AC-3 to AC-13, AC-19 to AC-22
+- [ ] `pnpm exec playwright test e2e/shell.spec.ts e2e/storefront-layout.spec.ts --project=phone --project=tablet --project=desktop` → all pass → AC-1, AC-3 to AC-14, AC-17, AC-19 to AC-22
 - [ ] `pnpm exec playwright test --project=phone` → passes with no phone assertion changed → AC-1
 - [ ] `pnpm exec playwright test e2e/homepage.spec.ts --project=homepage --no-deps` → passes, including the banner Home at 820 and 1280 → AC-13
 
 ## Acceptance-criteria coverage
-- AC-1 phone steps, full phone run · AC-2 breakpoint step, lock test · AC-3 shell width steps · AC-4 header steps · AC-5 category bar and overflow steps · AC-6 bottom bar step · AC-7 float step · AC-8 footer step · AC-9 category, search, `/c`, and Home grid steps · AC-10 filter column steps · AC-11 crossing lg step · AC-12 product page steps · AC-13 Home steps · AC-19 hover steps · AC-20 card, gallery, and banner sizes steps · AC-21, AC-22 partly (the pages converted so far)
-- Not yet built: AC-14 to AC-18, AC-23, and the rest of AC-21, AC-22 (slices 3 and 4 and the finish)
+- AC-1 phone steps, full phone run · AC-2 breakpoint step, lock test · AC-3 shell width steps · AC-4 header steps · AC-5 category bar and overflow steps · AC-6 bottom bar step · AC-7 float step · AC-8 footer step · AC-9 category, search, `/c`, and Home grid steps · AC-10 filter column steps · AC-11 crossing lg step · AC-12 product page steps · AC-13 Home steps · AC-14 cart and checkout steps · AC-17 narrow page steps (the 404 is a known gap) · AC-19 hover steps · AC-20 card, gallery, and banner sizes steps · AC-21, AC-22 partly (the pages converted so far)
+- Not yet built: AC-15, AC-16, AC-18, AC-23, and the rest of AC-21, AC-22 (slice 4 and the finish)
