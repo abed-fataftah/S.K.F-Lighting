@@ -2,14 +2,12 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * How wide a storefront page may grow (spec 0029): `phone` keeps the 480 column at every width
- * (the rollout default for a page not yet converted), `wide` the content box, `form` the narrow
+ * How wide a storefront page may grow (spec 0029): `wide` the content box, `form` the narrow
  * pages, `prose` the policy pages. Below 768 the layout already caps every page at 480.
  */
-export type PageWidth = "phone" | "wide" | "form" | "prose";
+export type PageWidth = "wide" | "form" | "prose";
 
 const maxWidths: Readonly<Record<PageWidth, string>> = {
-  phone: "max-w-(--page-max)",
   wide: "max-w-(--content-max)",
   form: "max-w-(--form-max)",
   prose: "max-w-(--prose-max)",

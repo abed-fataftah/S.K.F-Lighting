@@ -4,7 +4,6 @@ import { PageFrame, pageFrameClass } from "./page-frame";
 // covers: AC-1, AC-3, AC-17 (spec 0029): each page width maps to its one max width token.
 describe("pageFrameClass", () => {
   it.each([
-    ["phone", "max-w-(--page-max)"],
     ["wide", "max-w-(--content-max)"],
     ["form", "max-w-(--form-max)"],
     ["prose", "max-w-(--prose-max)"],

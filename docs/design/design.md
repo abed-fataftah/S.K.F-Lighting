@@ -65,10 +65,10 @@ Numerals: the boards use Western digits (0 to 9). The decision (Arabic-Indic or 
 Scale (px): 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 34, 48 (`--sp-N`).
 
 Storefront:
-- One column, `max-width: 480px` (`--page-max`), centered, page background on both sides. Side padding 16px (`--page-pad`).
+- Phone (below 768px): one column, `max-width: 480px` (`--page-max`), centered, page background on both sides. Side padding 16px (`--page-pad`).
 - Vertical rhythm: cards separated by 12px (`--sp-12`), product grid gap 10px, chip row gap 8px, form field gap 12px, section gap 24px to 34px.
-- Product grid: 2 columns of `minmax(0,1fr)`, gap 10px.
-- Desktop and tablet layouts: NOT designed (O-1). Interim: the same column, centered.
+- Product grid: 2 columns of `minmax(0,1fr)`, gap 10px; 3 at tablet, 4 at desktop (3 beside the filter column).
+- Tablet (`md`, 768px) and desktop (`lg`, 1024px): specified in spec 0029 ([storefront desktop and tablet layout](../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Each page sits in a centered box of its width (`--content-max`, `--form-max`, or `--prose-max`), side padding 24px at tablet and 32px at desktop; desktop has the one row header with the category bar and no bottom bar. These layouts are written in words, not drawn on the board.
 
 Dashboard (designed at 1280):
 - Flex row, wrap. Sidebar: `flex: 1 1 220px; max-width: 260px`, black. Content: `flex: 999 1 560px; min-width: 0`, padding `24px 28px 48px`. The sidebar wraps above the content below 780px with no media query. The sidebar is not sticky and not 100vh.

@@ -173,7 +173,7 @@ Samples on the boards that are NOT real: order numbers like `26-00123`, status n
 
 | ID | Item | Interim rule |
 |---|---|---|
-| O-1 | Desktop and tablet layouts of every storefront page are not designed | One centered column, max 480px |
+| O-1 | Desktop and tablet layouts of every storefront page are not designed | Closed by spec 0029 (`docs/specs/0029-storefront-desktop-layout/index.md`): tablet and desktop layouts specified in words |
 | O-2 | Digit style (Arabic-Indic or Western), price and date formats, Arabic search matching | Western digits, `₪20`, comma thousands, dates as placeholder; search: ignore diacritics and treat أ إ آ ا as one letter (my suggestion) |
 | O-3 | Final order status names and their order | Use: جديد، قيد التجهيز، جاهز، تم التسليم، ملغي |
 | O-4 | Official logo files | Use the traced SVG on black only |
@@ -217,7 +217,7 @@ Samples on the boards that are NOT real: order numbers like `26-00123`, status n
 Recorded by spec 0003 (the build follows these, not the boards):
 
 9. The header search button is 44x44, not 42x42 (the 44px rule wins).
-10. BottomBar and the WhatsApp float show at every width inside the 480px column (interim for O-1; section 6 said phone only).
+10. BottomBar shows below 1024px and the WhatsApp float at every width (spec 0029 closed O-1; section 6 said phone only).
 11. The footer hides a missing phone or address instead of showing a bracket placeholder (overrides the O-6 interim rule for customer facing text).
 12. The product image placeholder icon uses `--skf-on-dark-muted` on the product background (the muted grey fails contrast there).
 13. AdminSide is built and shown in the design system gallery inside a dashboard frame (the flex layout from `design.md` section 4). The `/admin` layout itself, with its guard, is built by the first feature that ships a dashboard page.

@@ -84,7 +84,7 @@ Top to bottom, all inside the 480px column:
 9. Bottom bar and WhatsApp float.
 Section side padding is 16 (the board has 14 in places: build 16).
 
-Desktop (1280) and tablet: NOT designed (open item O-1). Interim: render the mobile layout in one centered column, `max-width: 480px` (`--page-max`), page background on both sides.
+Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
 
 Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: home) and the WhatsApp float are shared parts defined once in `handoff.md` section 6. They are not repeated below.
 

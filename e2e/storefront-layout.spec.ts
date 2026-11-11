@@ -582,6 +582,17 @@ test.describe("accounts", () => {
     }
   });
 
+  test("keeps every signed in page accessible at this width and at 200% zoom", async ({ page }) => {
+    test.setTimeout(120_000);
+    const { draftId } = await signInElectrician(page);
+    await sweep(page, [
+      "/account",
+      "/account/orders",
+      "/account/drafts",
+      `/account/quick-order?draft=${draftId}`,
+    ]);
+  });
+
   test("lays quick order out as a table from lg, each field keeping its label", async ({
     page,
   }, testInfo) => {
@@ -667,5 +678,79 @@ test.describe("accounts", () => {
       .toBeLessThan(2);
     expect(box.width).toBeLessThanOrEqual(480);
     await expectNoAxeViolations(page);
+  });
+});
+
+// covers: AC-21 (spec 0029): every storefront page passes axe, keeps its targets at 44, shows a
+// focus outline on each tab stop, and never scrolls sideways, on all three projects; at 200% zoom
+// on a 1280 window (640 CSS px) it shows the phone layout, still with no sideways scroll.
+
+/**
+ * The first tab stops of the page, each with a visible 3px solid outline: on the element, or on
+ * the box around it (the search field outlines its box, spec 0003).
+ */
+async function expectFocusOnTabStops(page: Page, stops = 6) {
+  await page.locator("body").focus();
+  for (let i = 0; i < stops; i++) {
+    await page.keyboard.press("Tab");
+    const unringed = await page.evaluate(() => {
+      const el = document.activeElement;
+      // The Next dev tools button (`pnpm dev` only) is not part of the shop.
+      if (!el || el === document.body || el.tagName === "NEXTJS-PORTAL") return null;
+      const ringed = (node: Element | null, depth: number): boolean => {
+        if (!node || depth > 2) return false;
+        const style = getComputedStyle(node);
+        if (style.outlineStyle === "solid" && style.outlineWidth === "3px") return true;
+        return ringed(node.parentElement, depth + 1);
+      };
+      if (ringed(el, 0)) return null;
+      return `${el.tagName.toLowerCase()} "${(el.textContent ?? "").trim().slice(0, 30)}"`;
+    });
+    expect(unringed).toBeNull();
+  }
+}
+
+/** Each page at the project's width, then at 640 CSS px with the phone header and bottom bar. */
+async function sweep(page: Page, paths: readonly string[]) {
+  const viewport = page.viewportSize()!;
+  for (const path of paths) {
+    await test.step(path, async () => {
+      await page.setViewportSize(viewport);
+      await page.goto(path);
+      await expect(page.locator("main")).toBeVisible({ timeout: 15_000 });
+      await expectNoAxeViolations(page);
+      await expectTouchTargets(page);
+      await expectNoSidewaysScroll(page);
+      await expectFocusOnTabStops(page);
+
+      await page.setViewportSize({ width: 640, height: 400 });
+      await expect(page.getByRole("button", { name: "القائمة" })).toBeVisible();
+      await expect(page.getByRole("navigation", { name: "التنقل الرئيسي" })).toBeVisible();
+      await expectNoSidewaysScroll(page);
+    });
+  }
+  await page.setViewportSize(viewport);
+}
+
+test.describe("every page", () => {
+  test("passes axe, keeps targets and focus, and holds at 200% zoom", async ({ page }) => {
+    test.setTimeout(180_000);
+    const sql = localSql();
+    const seeded = await seededChandelier(sql).finally(() => sql.end());
+    await sweep(page, [
+      "/",
+      "/c",
+      `/c/${encodeURIComponent(seeded.category)}`,
+      `/c/${SLUG}`,
+      `/p/${encodeURIComponent(seeded.product)}`,
+      `/search?q=${encodeURIComponent(WORD)}`,
+      "/cart",
+      "/checkout",
+      "/orders/track",
+      "/account/sign-in",
+      "/account/reset-password",
+      "/policies/terms",
+      "/p/no-such-product-layout-e2e",
+    ]);
   });
 });

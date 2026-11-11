@@ -92,7 +92,7 @@ Mobile (390) (designed):
 10. Footer, bottom bar (tab: الأقسام), float.
 Filters screen (replaces the whole page while open): black top bar (close button 44x44 at the start, h1 "تصفية المنتجات" 18/800 white); body padding 16 with three white cards (السعر: two number fields "من" and "إلى", each with a 13px label; الحجم: toggle chips; اللون: toggle chips with a color dot 18px and a check when selected); bottom action bar (white, 1px top border, padding 12 16): outline button "مسح الكل" (flex 1) and yellow button "عرض N منتج" (flex 1.6), both 52 high.
 
-Desktop (1280) and tablet: NOT designed (open item O-1). Interim: render the mobile layout in one centered column, `max-width: 480px` (`--page-max`), page background on both sides.
+Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
 
 Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: cats) and the WhatsApp float are shared parts defined once in `handoff.md` section 6. They are not repeated below.
 

@@ -40,7 +40,7 @@ Mobile (390) (designed):
 4. Card (margin-top 12): "تفضّل الطلب بدون حساب؟", line 13 muted, outline large "المتابعة كضيف", outline large "تتبّع طلب".
 5. Footer, bottom bar (tab: حسابي), float.
 
-Desktop (1280) and tablet: NOT designed (open item O-1). Interim: render the mobile layout in one centered column, `max-width: 480px` (`--page-max`), page background on both sides.
+Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
 
 Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: account) and the WhatsApp float are shared parts defined once in `handoff.md` section 6. They are not repeated below.
 

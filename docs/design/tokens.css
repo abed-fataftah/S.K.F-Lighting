@@ -135,7 +135,7 @@
   --sp-14: 14px; --sp-16: 16px; --sp-18: 18px; --sp-20: 20px; --sp-24: 24px; --sp-28: 28px;
   --sp-34: 34px; --sp-48: 48px;
   --page-pad: 16px;               /* side padding of every storefront page */
-  --page-max: 480px;              /* storefront column width, centered */
+  --page-max: 480px;              /* storefront phone column below md, centered */
   --admin-sidebar-max: 260px;     /* sidebar flex-basis 220px, max 260px */
   --admin-content-basis: 560px;   /* below this the sidebar wraps above the content */
   --admin-pad: 24px 28px 48px;    /* dashboard content padding (top, sides, bottom) */
@@ -194,9 +194,11 @@
 }
 
 /* ---- 10. Breakpoints (CSS variables cannot hold these; use them in Tailwind config / media queries) */
-/* Storefront: one column, max 480px, any width. Desktop layout NOT designed (open item O-1).
+/* Storefront (spec 0029, closes O-1): two breakpoints only, md (768px, tablet) and lg (1024px, desktop).
+   Below md the 480px phone column; from md the content box (--content-max) with --page-pad.
+   lg-tall (lg and at least 720px high) gates the sticky boxes. The app's src/app/tokens.css holds the values.
    Dashboard: designed at 1280. Sidebar wraps above content below (220 + 560) = 780px of available width (flex-wrap, no media query).
-   Test widths: 390 (phone), 1280 (desktop). */
+   Test widths: 390 (phone), 820 (tablet), 1280 (desktop). */
 
 /* ---- 11. Right to left --------------------------------------------------- */
 html { direction: rtl; }
