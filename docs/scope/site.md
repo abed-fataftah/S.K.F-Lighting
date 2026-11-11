@@ -50,12 +50,12 @@ Give every storefront page a real tablet and desktop layout (one row desktop hea
 **Done when:** no storefront page shows the narrow 480px strip on a tablet or laptop, nothing scrolls sideways from 768 to 1920px wide, and every phone test passes unchanged.
 spec [0029](../specs/0029-storefront-desktop-layout/index.md) · code in `src/components/page-frame.tsx`, `src/app/tokens.css`, `src/features/shell/`, `src/features/catalog/components/`, `e2e/storefront-layout.spec.ts`
 - [x] Design it (spec): `/architect storefront desktop & tablet layout`
-- [ ] Build it: `/develop storefront desktop & tablet layout`
+- [x] Build it: `/develop storefront desktop & tablet layout`
   - [x] Thin thread: tokens and breakpoint lock, `PageFrame`, full width shell, desktop header and category bar, wide category page, tablet Playwright project (AC-1 to AC-9, AC-19 to AC-22)
   - [x] Browsing: category bar overflow, filter column, search and `/c` wide, product page two columns, wide Home (AC-5, AC-9 to AC-13, AC-20)
   - [x] Buying: cart and checkout two columns, form and prose pages (AC-14, AC-17)
   - [x] Accounts: order details, my orders and drafts, quick order table, responsive sheet (AC-11, AC-15, AC-16, AC-18)
-  - [ ] Finish: drop `width="phone"`, axe and 200% zoom on all three widths, design docs updated (AC-21, AC-23)
+  - [x] Finish: drop `width="phone"`, axe and 200% zoom on all three widths, design docs updated (AC-21, AC-23)
 - [ ] Verify it: `/check verify storefront desktop & tablet layout`
 - [ ] Test it: `/test storefront desktop & tablet layout`
 

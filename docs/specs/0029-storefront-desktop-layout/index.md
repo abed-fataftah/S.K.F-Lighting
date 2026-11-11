@@ -180,8 +180,8 @@ Tracer Bullet: the first slice runs one real page (category) through the new she
 17. [x] `Sheet` `variant="responsive"`, used by the add to draft sheet, satisfies **AC-18**, **AC-11**
 
 **Finish**
-18. Remove `width="phone"` from `PageFrame` (no page uses it); axe and 200% zoom sweep on all three projects, satisfies **AC-21**
-19. Update `design.md` section 4, both `tokens.css` breakpoint notes, `handoff.md` O-1, and the storefront `pages/*.md` desktop lines, satisfies **AC-23**
+18. [x] Remove `width="phone"` from `PageFrame` (no page uses it); axe and 200% zoom sweep on all three projects, satisfies **AC-21**
+19. [x] Update `design.md` section 4, both `tokens.css` breakpoint notes, `handoff.md` O-1, and the storefront `pages/*.md` desktop lines, satisfies **AC-23**
 
 ## Migration plan
 
