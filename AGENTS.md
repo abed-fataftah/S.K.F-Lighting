@@ -39,6 +39,7 @@ pnpm db:generate             # New Drizzle migration into drizzle/
 cp .env.example .env.local   # for next dev and drizzle-kit; .dev.vars.example → .dev.vars for pnpm preview
 pnpm cf-typegen              # after editing wrangler.jsonc bindings
 E2E_TARGET=preview pnpm exec playwright test   # E2E on workerd, as CI does
+# Ops (see docs/runbooks/): pnpm admin:promote · admin:mfa-reset · media:sweep · backup:run · backup:restore-drill · db:backfill-search · launch:check
 ```
 
 ## Specs
@@ -62,6 +63,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md`. Scope lives i
 - **Commits**: Conventional Commits, e.g. `feat(cart): add quantity stepper`.
 - **Supabase client**: auth (and Storage uploads) only, never data; all data goes through Drizzle `getDb()`. Read the user with the helpers in `src/server/auth/session.ts` (`getClaims()`, `getVerifiedUser()`).
 - **Proxy**: Next 16 middleware is `src/proxy.ts` (next-intl routing, then Supabase session refresh); `/admin` and `/auth` sit outside locale routing.
+- **Monitoring**: report unexpected failures with `reportError` from `src/server/monitoring/`, which logs and sends to Sentry; client code uses `Sentry.captureException`. `src/monitoring-rules.test.ts` fails on `console.error` anywhere else.
 - **Windows**: keep `node-linker=hoisted` in `.npmrc`; OpenNext cannot read pnpm's symlinked layout.
 
 ## Tooling
@@ -70,6 +72,7 @@ Chosen in feature 2; `/develop tooling` installs what is not there yet.
 - Lint + format: ESLint (`eslint-config-next`) + Prettier with `prettier-plugin-tailwindcss` (`.prettierrc.json`).
 - Pre commit: Husky runs lint-staged (ESLint fix and Prettier on staged files), then `pnpm typecheck` (`.husky/pre-commit`).
 - CI: `.github/workflows/ci.yml` on each push: typecheck, lint, format check, Vitest, then OpenNext build and Playwright on workerd; on `main` migrate then deploy.
+- Scheduled workflows: `backup.yml` (weekly encrypted dump to R2, Sentry cron monitor), `media-sweep.yml`, `restore-drill-reminder.yml`.
 
 ## Git
 
@@ -94,5 +97,6 @@ MCP servers: supabase (recommended), playwright (recommended), context7 (recomme
 <!-- Nested AGENTS.md files are listed here as they are created -->
 - [src/server/db/AGENTS.md](src/server/db/AGENTS.md) (Drizzle schema, getDb vs getDirectDb, migrations, database tests)
 - [src/components/AGENTS.md](src/components/AGENTS.md) (shadcn on Base UI, design tokens, the design rule test, gallery)
+- [e2e/AGENTS.md](e2e/AGENTS.md) (Playwright projects and their order, local Supabase setup, per IP and accessibility helpers)
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
