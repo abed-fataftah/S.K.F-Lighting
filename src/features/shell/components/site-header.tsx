@@ -20,7 +20,9 @@ const AccountIcon = tabIcons.account;
 // From lg (spec 0029 AC-4, AC-5) it is one row inside the content box: logo, search, the account
 // link, and the cart, then the category bar. The top row dissolves into that row (lg:contents)
 // and its menu button and cart hide; a second cart link after the account one keeps the tab
-// order on the reading order at both widths. Only one cart link shows at a time.
+// order on the reading order at both widths. Only one cart link shows at a time. At lg the
+// account link and the cart turn yellow on hover, and the search box gets a yellow edge on
+// hover and while focused.
 export function SiteHeader({
   whatsappNumber,
   cartCount,
@@ -53,7 +55,7 @@ export function SiteHeader({
           method="get"
           className="px-1.5 pt-1 pb-4 lg:mx-auto lg:max-w-160 lg:flex-1 lg:p-0"
         >
-          <label className="on-light flex h-13 items-center rounded-card bg-white pe-1.5">
+          <label className="on-light flex h-13 items-center rounded-card bg-white pe-1.5 lg:border-2 lg:border-transparent lg:transition-colors lg:duration-(--dur-hover) lg:focus-within:border-yellow lg:hover:border-yellow">
             <span className="sr-only">{t("searchLabel")}</span>
             <Suspense fallback={<SearchInput placeholder={t("searchPlaceholder")} />}>
               <SearchField placeholder={t("searchPlaceholder")} />
@@ -69,7 +71,7 @@ export function SiteHeader({
         </form>
         <Link
           href={routes.accountOrders}
-          className="hidden min-h-11 shrink-0 items-center gap-2 rounded-btn px-2 type-body font-bold text-white hover:underline lg:inline-flex"
+          className="hidden min-h-11 shrink-0 items-center gap-2 rounded-btn px-2 type-body font-bold text-white transition-colors duration-(--dur-hover) hover:text-yellow lg:inline-flex"
           data-testid="header-account"
         >
           <AccountIcon aria-hidden className="size-6" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LayoutGrid } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,17 +20,25 @@ type Widths = { readonly links: readonly number[]; readonly more: number; readon
 
 const px = (value: string) => Number.parseFloat(value) || 0;
 
-/** The row's width inside its side padding. */
+/** The room left for the category links and المزيد: the row inside its side padding, less the
+ * fixed "كل الأقسام" link at its start and the gap after it. */
 function roomOf(row: HTMLElement): number {
   const style = getComputedStyle(row);
-  return row.clientWidth - px(style.paddingInlineStart) - px(style.paddingInlineEnd);
+  const fixed = row.querySelector("[data-testid=category-bar-all]");
+  const taken = fixed ? fixed.getBoundingClientRect().width + px(style.columnGap) : 0;
+  return row.clientWidth - px(style.paddingInlineStart) - px(style.paddingInlineEnd) - taken;
 }
+
+// A yellow bar under the link that grows from its middle on hover and stays on the current one.
+const underline =
+  "relative after:absolute after:start-3 after:end-3 after:bottom-1 after:h-0.5 after:scale-x-0 after:rounded-full after:bg-yellow after:transition-transform after:duration-(--dur-hover) hover:after:scale-x-100 aria-[current=page]:after:scale-x-100";
 
 // The desktop category bar (spec 0029 AC-5): from lg, a black row under the header with the
 // navigation mains (the menu sheet's list, same order) as links, the current one marked. The
 // links that do not fit move, in order, into a final "المزيد" menu that ends with "كل الأقسام".
 // Hidden below lg, where the menu sheet lists them. The header leaves it out when the list is
-// empty or its read failed.
+// empty or its read failed. A fixed yellow "كل الأقسام" link to /c opens the row; a yellow bar
+// grows under a hovered link and stays under the current one.
 //
 // Until it measures, every link sits in the clipped row and the menu lists them all, so nothing
 // shifts or is out of reach before hydration. Then it takes each link's width once (while all
@@ -101,6 +109,20 @@ export function CategoryBar({ categories }: { readonly categories: readonly Menu
         ref={rowRef}
         className="mx-auto flex h-(--h-cat-bar) max-w-(--content-max) items-center gap-1 px-(--page-pad)"
       >
+        <div className="flex shrink-0 items-center gap-1" data-testid="category-bar-all">
+          <Link
+            href={routes.categories}
+            aria-current={pathname === routes.categories ? "page" : undefined}
+            className={cn(
+              "flex min-h-11 items-center gap-2 rounded-btn px-3 type-body font-extrabold whitespace-nowrap text-yellow",
+              underline,
+            )}
+          >
+            <LayoutGrid aria-hidden className="size-4.5" />
+            {t("allCategories")}
+          </Link>
+          <span aria-hidden className="h-6 w-px bg-on-dark-muted/40" />
+        </div>
         <ul className="flex h-full min-w-0 flex-1 items-center gap-1 overflow-hidden">
           {categories.map((category, index) => {
             const current = isCurrentCategory(pathname, category.slug);
@@ -115,8 +137,9 @@ export function CategoryBar({ categories }: { readonly categories: readonly Menu
                   href={routes.category(category.slug)}
                   aria-current={current ? "page" : undefined}
                   className={cn(
-                    "flex min-h-11 items-center rounded-btn px-3 type-body font-bold whitespace-nowrap hover:underline",
+                    "flex min-h-11 items-center rounded-btn px-3 type-body font-bold whitespace-nowrap transition-colors duration-(--dur-hover) hover:text-yellow",
                     current ? "text-yellow" : "text-white",
+                    underline,
                   )}
                 >
                   {category.name}

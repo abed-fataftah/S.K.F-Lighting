@@ -441,7 +441,7 @@ test.describe("product page", () => {
 
 // covers: AC-9, AC-13 (spec 0029): Home without banners on every width.
 test.describe("home", () => {
-  test("widens the hero, shows the circles still from md, and spreads the cards", async ({
+  test("widens the hero, shows the circle row from md, and spreads the cards", async ({
     page,
   }, testInfo) => {
     await page.goto("/");
@@ -469,6 +469,34 @@ test.describe("home", () => {
     }
     await expectNoAxeViolations(page);
     await expectNoSidewaysScroll(page);
+  });
+
+  test("slides the circle row with its arrows from md, only when it overflows", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name === "phone", "the phone keeps its carousel");
+    await page.goto("/");
+    const shelf = page.getByTestId("home-circle-shelf");
+    test.skip((await shelf.count()) === 0, "needs category circles on Home");
+    await expect(shelf).toBeVisible();
+    await expect(page.getByTestId("circles-pause")).toBeHidden();
+    const row = page.getByTestId("home-circle-row");
+    const overflows = await row.evaluate((ul) => ul.scrollWidth > ul.clientWidth + 1);
+    const back = shelf.getByRole("button", { name: "القسم السابق" });
+    const next = shelf.getByRole("button", { name: "القسم التالي" });
+    if (!overflows) {
+      // Every circle fits: a still, centred row with no arrows.
+      await expect(back).toHaveCount(0);
+      await expect(next).toHaveCount(0);
+      return;
+    }
+    await expect(back).toBeDisabled();
+    await expect(next).toBeEnabled();
+    await next.click();
+    await expect.poll(() => row.evaluate((ul) => Math.abs(ul.scrollLeft))).toBeGreaterThan(0);
+    await expect(back).toBeEnabled();
+    await expectNoSidewaysScroll(page);
+    await expectNoAxeViolations(page);
   });
 });
 
@@ -573,6 +601,9 @@ test.describe("accounts", () => {
       await page.goto(path);
       const items = page.getByTestId(list).locator(":scope > li");
       await expect(items).toHaveCount(2, { timeout: 15_000 });
+      // A cold dev server can swap the streamed list in after the count; measure the final cards.
+      await expect(items.nth(1)).toBeVisible();
+      await page.waitForLoadState("networkidle");
       const first = (await items.nth(0).boundingBox())!;
       const second = (await items.nth(1).boundingBox())!;
       if (testInfo.project.name === "phone") expect(second.y).toBeGreaterThan(first.y);

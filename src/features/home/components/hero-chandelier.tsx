@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 
 // The hero's chandelier (spec 0011 AC-3), copied from the Home board (`Main.dc.html`) with its
 // colours mapped to tokens: yellow, the yellow tint, and the two drawing colours. Decorative.
+// From md it sways slowly from its wire (spec 0029), still under reduced motion; phones keep it still.
 const arms = [
   "M100 72C78 74 42 76 36 54",
   "M100 72C122 74 158 76 164 54",
@@ -33,7 +34,7 @@ export function HeroChandelier({ className }: { readonly className?: string }) {
       height="160"
       aria-hidden
       focusable="false"
-      className={cn("pointer-events-none", className)}
+      className={cn("pointer-events-none md:animate-sway", className)}
     >
       <circle cx="100" cy="78" r="66" className="fill-yellow" opacity=".06" />
       <circle cx="100" cy="78" r="40" className="fill-yellow" opacity=".08" />

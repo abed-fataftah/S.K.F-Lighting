@@ -41,13 +41,16 @@ export async function ShellSection({ whatsappNumber }: { readonly whatsappNumber
 
       <SampleGroup title={s("footerGroup")}>
         <div className="max-w-(--page-max)">
-          <SiteFooter contact={{ phone: samplePhone, address: s("sampleAddress") }} />
+          <SiteFooter
+            contact={{ phone: samplePhone, address: s("sampleAddress") }}
+            whatsappNumber={whatsappNumber}
+          />
         </div>
       </SampleGroup>
 
       <SampleGroup title={s("footerEmptyGroup")}>
         <div className="max-w-(--page-max)" data-testid="footer-no-contact">
-          <SiteFooter contact={{ phone: null, address: null }} />
+          <SiteFooter contact={{ phone: null, address: null }} whatsappNumber={whatsappNumber} />
         </div>
       </SampleGroup>
 

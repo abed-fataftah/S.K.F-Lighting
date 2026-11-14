@@ -74,7 +74,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
           <main id="main" tabIndex={-1} className="flex flex-1 flex-col">
             {children}
           </main>
-          <SiteFooter contact={contact} />
+          <SiteFooter
+            contact={contact}
+            whatsappNumber={whatsappNumber}
+            categories={navigation ?? []}
+          />
         </div>
         <BottomBar cartCount={cartCount} />
         <WhatsAppFab whatsappNumber={whatsappNumber} />

@@ -25,7 +25,7 @@ export function CartButton({
       href={routes.cart}
       aria-label={shown ? t("cartWithCount", { count: count!, shown }) : t("cart")}
       className={cn(
-        "relative inline-flex size-11 shrink-0 items-center justify-center rounded-btn text-white",
+        "relative inline-flex size-11 shrink-0 items-center justify-center rounded-btn text-white transition-colors duration-(--dur-hover) lg:hover:text-yellow",
         className,
       )}
     >

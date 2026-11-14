@@ -21,7 +21,8 @@ const tones = [1, 2, 3, 4] as const;
 // it. Out of stock: the photo at 45%, the black label, a disabled button, the price muted, and the
 // WhatsApp button asks about availability (W4) instead of the product (W3). Electricians also get
 // the "add to draft" button in the photo's end corner (spec 0021 AC-3). On a device that can hover
-// the border turns ink (spec 0029 AC-19; Tailwind's hover: applies only there).
+// the border turns ink and the photo zooms in a little inside its frame (spec 0029 AC-19;
+// Tailwind's hover: applies only there).
 export function ProductCard({
   product,
   index,
@@ -52,18 +53,24 @@ export function ProductCard({
     <article
       id={id}
       data-testid="product-card"
-      className="flex w-full scroll-mt-4 flex-col overflow-hidden rounded-card border border-border bg-white hover:border-ink"
+      className="group/card flex w-full scroll-mt-4 flex-col overflow-hidden rounded-card border border-border bg-white transition-colors duration-(--dur-hover) hover:border-ink"
     >
       <div className="relative flex flex-1 flex-col">
         <div className="relative h-(--h-card-image)">
           {product.imageKey ? (
-            <Image
-              src={product.imageKey}
-              alt={product.name}
-              fill
-              sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, (min-width: 480px) 240px, 50vw"
-              className={cn("bg-product-1 object-cover", !product.inStock && "opacity-45")}
-            />
+            // Its own clip, so the hover zoom never spills over the words or the corner button.
+            <span className="absolute inset-0 overflow-hidden">
+              <Image
+                src={product.imageKey}
+                alt={product.name}
+                fill
+                sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, (min-width: 480px) 240px, 50vw"
+                className={cn(
+                  "bg-product-1 object-cover transition-transform duration-(--dur-hover) group-hover/card:scale-104",
+                  !product.inStock && "opacity-45",
+                )}
+              />
+            </span>
           ) : (
             <ImagePlaceholder
               tone={tones[index % tones.length]}

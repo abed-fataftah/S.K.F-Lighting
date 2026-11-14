@@ -6,7 +6,7 @@ import { ProductCard } from "@/features/catalog/components/product-card";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 import { circleSubline, type HomeCircle } from "../home-rules";
-import { CategoryCircles, CircleRow } from "./category-circles";
+import { CategoryCircles, CircleShelf } from "./category-circles";
 import { sectionHeadingId } from "../section-ids";
 
 // Home's sections under the banners (spec 0011 AC-4 to AC-6; pages/home.md layout 4, 6, 7). Each
@@ -39,11 +39,11 @@ export function CategoriesSection({ circles }: { readonly circles: readonly Home
         <SectionHeading section="categories">{t("categoriesTitle")}</SectionHeading>
         <p className="type-small text-muted">{circleSubline(circles)}</p>
       </div>
-      {/* The moving carousel on phones; from md a still row of every circle (spec 0029 AC-13c). */}
+      {/* The moving carousel on phones; from md a row with arrows (spec 0029 AC-13c). */}
       <div className="md:hidden">
         <CategoryCircles circles={circles} />
       </div>
-      <CircleRow circles={circles} className="hidden md:flex" />
+      <CircleShelf circles={circles} className="hidden md:flex" />
     </section>
   );
 }
@@ -72,7 +72,7 @@ export function FeaturedSection({
         <SectionHeading section="featured">{t("featuredTitle")}</SectionHeading>
         <Link
           href={routes.categories}
-          className="inline-flex min-h-11 items-center type-small text-muted underline underline-offset-4"
+          className="inline-flex min-h-11 items-center type-small text-muted underline decoration-1 underline-offset-4 transition-colors duration-(--dur-hover) hover:text-ink hover:decoration-yellow hover:decoration-2"
         >
           {t("viewAll")}
         </Link>

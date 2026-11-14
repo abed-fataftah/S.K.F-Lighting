@@ -268,11 +268,15 @@
   --dur-carousel-move: 0.7s; /* carousel item move: transform .7s and opacity .7s, cubic-bezier(.3,.7,.3,1) */
   --ease-carousel: cubic-bezier(0.3, 0.7, 0.3, 1);
   --dur-sheet: 0.2s; /* menu sheet slide (added in spec 0003) */
+  --dur-hover: 0.2s; /* hover and focus colour, underline, and photo zoom (spec 0029) */
+  --dur-sway: 6s; /* hero chandelier sway, one full swing (spec 0029) */
 }
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur-skeleton: 0s;
     --dur-sheet: 0s;
+    --dur-hover: 0s;
+    --dur-sway: 0s;
   }
   /* Also: no carousel auto-advance, no skeleton pulse, no sheet slide. */
 }
@@ -458,6 +462,23 @@ html {
 }
 @utility animate-skeleton {
   animation: skeleton var(--dur-skeleton) ease-in-out infinite;
+}
+
+/* Hero chandelier sway (spec 0029): a slow swing from the ceiling wire. At 0s (reduced motion) it
+   does not run. */
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+@utility animate-sway {
+  transform-origin: 50% 0;
+  transform-box: view-box;
+  animation: sway var(--dur-sway) ease-in-out infinite;
 }
 
 /* ---- 13. Contrast table (computed by code, WCAG 2.x) ---------------------

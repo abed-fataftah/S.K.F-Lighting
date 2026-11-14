@@ -329,28 +329,120 @@ function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }
   );
 }
 
-/** From md (spec 0029 AC-13c): every circle as a link in a still, centred, wrapping row. */
-export function CircleRow({
+type ShelfEnds = {
+  readonly overflows: boolean;
+  readonly atStart: boolean;
+  readonly atEnd: boolean;
+};
+
+const ALL_FIT: ShelfEnds = { overflows: false, atStart: true, atEnd: true };
+
+/** Where the row is scrolled to, along the reading direction (scrollLeft is negative in rtl). */
+function shelfEnds(row: HTMLElement): ShelfEnds {
+  const room = row.scrollWidth - row.clientWidth;
+  if (room <= 1) return ALL_FIT;
+  const along = Math.abs(row.scrollLeft);
+  return { overflows: true, atStart: along <= 1, atEnd: along >= room - 1 };
+}
+
+/**
+ * From md (spec 0029 AC-13c): every circle the same size in one row. When they all fit the row
+ * is centred and still; when they do not, it scrolls sideways (snapping to a circle) and an arrow
+ * on each side slides it along, the arrow at an end disabled. Nothing moves by itself, so there is
+ * no pause button. A hovered circle gets the yellow ring the phone's centred circle has.
+ */
+export function CircleShelf({
   circles,
   className,
 }: {
   readonly circles: readonly HomeCircle[];
   readonly className?: string;
 }) {
+  const t = useTranslations("Home");
+  const rowRef = useRef<HTMLUListElement>(null);
+  const [ends, setEnds] = useState<ShelfEnds>(ALL_FIT);
+
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    const update = () => setEnds(shelfEnds(row));
+    update();
+    // Hidden below md (width 0), it measures the first time it shows.
+    const observer = new ResizeObserver(update);
+    observer.observe(row);
+    row.addEventListener("scroll", update, { passive: true });
+    return () => {
+      observer.disconnect();
+      row.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  /** Slides by about one view (less one circle), toward the end (1) or the start (-1). */
+  const slide = (toward: 1 | -1) => {
+    const row = rowRef.current;
+    if (!row) return;
+    const end = getComputedStyle(row).direction === "rtl" ? -1 : 1;
+    const item = row.firstElementChild?.getBoundingClientRect().width ?? 0;
+    row.scrollBy({ left: end * toward * Math.max(item, row.clientWidth - item) });
+  };
+
+  // Level with the middle of a circle (132 / 2, less half the 44 button).
+  const arrow = "mt-11 shrink-0 rounded-full";
+
   return (
-    <ul
-      className={cn("flex-wrap justify-center gap-6 px-(--page-pad)", className)}
-      data-testid="home-circle-row"
+    <div
+      role="region"
+      aria-label={t("categoriesLabel")}
+      className={cn("items-start gap-2 px-(--page-pad)", className)}
+      data-testid="home-circle-shelf"
     >
-      {circles.map((circle) => (
-        <li key={circle.slug} className="w-33">
-          <Link href={routes.category(circle.slug)} className="block rounded-btn text-center">
-            <CirclePicture circle={circle} />
-            <CircleWords circle={circle} />
-          </Link>
-        </li>
-      ))}
-    </ul>
+      {ends.overflows ? (
+        <Button
+          variant="outline"
+          size="icon"
+          className={arrow}
+          aria-label={t("categoryPrev")}
+          disabled={ends.atStart}
+          onClick={() => slide(-1)}
+          data-testid="circles-shelf-back"
+        >
+          <ChevronBack className="size-5" />
+        </Button>
+      ) : null}
+      <ul
+        ref={rowRef}
+        className="flex min-w-0 flex-1 snap-x snap-mandatory [scrollbar-width:none] justify-center-safe gap-6 overflow-x-auto pb-2 motion-safe:scroll-smooth [&::-webkit-scrollbar]:hidden"
+        data-testid="home-circle-row"
+      >
+        {circles.map((circle) => (
+          <li key={circle.slug} className="w-33 shrink-0 snap-start">
+            <Link
+              href={routes.category(circle.slug)}
+              className="group block rounded-btn text-center"
+            >
+              <CirclePicture
+                circle={circle}
+                className="border-4 border-transparent transition-colors duration-(--dur-hover) group-hover:border-yellow"
+              />
+              <CircleWords circle={circle} />
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {ends.overflows ? (
+        <Button
+          variant="outline"
+          size="icon"
+          className={arrow}
+          aria-label={t("categoryNext")}
+          disabled={ends.atEnd}
+          onClick={() => slide(1)}
+          data-testid="circles-shelf-next"
+        >
+          <ChevronNext className="size-5" />
+        </Button>
+      ) : null}
+    </div>
   );
 }
 

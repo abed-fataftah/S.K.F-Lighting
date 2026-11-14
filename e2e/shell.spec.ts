@@ -66,7 +66,7 @@ test.describe("storefront shell", () => {
     expect(footer.width).toBe(width);
     // The footer's inner row: inside the 1280 box, centred, with --page-pad at the sides.
     const pad = isDesktop(testInfo) ? 32 : 24;
-    const links = await box(page.locator("footer nav"));
+    const links = await box(page.getByRole("navigation", { name: "روابط السياسات" }));
     expect(links.x).toBeGreaterThanOrEqual((width - Math.min(width, 1280)) / 2 + pad - 1);
   });
 
@@ -216,9 +216,12 @@ test.describe("storefront shell", () => {
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     const float = await box(fab(page));
     const bar = isDesktop(testInfo) ? null : await box(bottomBar(page));
+    // "تتبّع طلبك" (spec 0015 AC-15) and the three policy links; from lg also the shop column
+    // and the WhatsApp button (spec 0029 AC-8).
+    await expect(
+      page.getByRole("navigation", { name: "روابط السياسات" }).getByRole("link"),
+    ).toHaveCount(4);
     const footerLinks = page.locator("footer").getByRole("link");
-    // "تتبّع طلبك" (spec 0015 AC-15) and the three policy links.
-    await expect(footerLinks).toHaveCount(4);
     for (const link of await footerLinks.all()) {
       const linkBox = await box(link);
       expect(linkBox.height).toBeGreaterThanOrEqual(44);
@@ -285,19 +288,39 @@ test.describe("desktop shell", () => {
     );
   });
 
-  test("lays the footer out as one row: logo and contact at the start, links at the end", async ({
+  test("lays the footer out in three columns: brand, shop, and help, then the copyright", async ({
     page,
   }) => {
-    const logo = await box(page.locator("footer").getByRole("img", { name: "S.K.F lighting" }));
-    const links = await box(page.locator("footer nav"));
-    expect(logo.x).toBeGreaterThan(links.x + links.width - 1);
-    expect(Math.abs(logo.y + logo.height / 2 - (links.y + links.height / 2))).toBeLessThan(40);
+    const footer = page.locator("footer");
+    const logo = await box(footer.getByRole("img", { name: "S.K.F lighting" }));
+    const help = await box(page.getByRole("navigation", { name: "روابط السياسات" }));
+    // Right to left: the brand column at the start (right), help at the end (left).
+    expect(logo.x).toBeGreaterThan(help.x + help.width - 1);
+    await expect(footer.getByTestId("footer-whatsapp")).toHaveAttribute(
+      "href",
+      /^https:\/\/wa\.me\//,
+    );
+    const shop = footer.getByRole("navigation", { name: "تسوّق" });
+    if (await shop.count()) {
+      const shopBox = await box(shop);
+      expect(shopBox.x).toBeGreaterThan(help.x + help.width - 1);
+      expect(shopBox.x + shopBox.width).toBeLessThan(logo.x);
+      await expect(shop.getByRole("link").last()).toHaveAttribute("href", "/c");
+    }
+    const copyright = footer.getByTestId("footer-copyright");
+    await expect(copyright).toContainText("جميع الحقوق محفوظة");
+    expect((await box(copyright)).y).toBeGreaterThan(help.y + help.height);
   });
 
   test("lists the navigation categories in the bar and marks the current one", async ({ page }) => {
     const bar = page.getByRole("navigation", { name: "الأقسام" });
     test.skip((await bar.count()) === 0, "needs main categories in navigation (pnpm db:seed)");
-    const first = bar.getByRole("link").first();
+    // The fixed "كل الأقسام" link opens the row; the categories follow in the list.
+    await expect(bar.getByTestId("category-bar-all").getByRole("link")).toHaveAttribute(
+      "href",
+      "/c",
+    );
+    const first = bar.getByRole("list").getByRole("link").first();
     const name = (await first.textContent())!.trim();
     const href = (await first.getAttribute("href"))!;
     expect(href).toMatch(/^\/c\//);
@@ -391,7 +414,7 @@ test.describe("category bar at 1024", () => {
     const more = page.getByTestId("category-bar-more");
     await expect(more).toBeVisible();
 
-    const links = bar(page).getByRole("link");
+    const links = bar(page).getByRole("list").getByRole("link");
     const shown = await links.count();
     expect(shown).toBeGreaterThan(0);
     expect(shown).toBeLessThan(names.length);
@@ -415,7 +438,7 @@ test.describe("category bar at 1024", () => {
   });
 
   test("fits more links into a wider window", async ({ page }) => {
-    const links = bar(page).getByRole("link");
+    const links = bar(page).getByRole("list").getByRole("link");
     const narrow = await links.count();
     await page.setViewportSize({ width: 1280, height: 800 });
     await expect.poll(() => links.count()).toBeGreaterThan(narrow);
