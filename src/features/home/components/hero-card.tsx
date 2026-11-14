@@ -26,7 +26,9 @@ export function HeroCard({
       className="on-dark relative mx-(--page-pad) overflow-hidden rounded-hero border border-sidebar-active bg-ink px-5 pt-6.5 pb-5 text-white"
       data-testid="home-hero"
     >
-      <HeroChandelier className="absolute -end-6.5 top-0" />
+      {/* From md the card is wide, so the chandelier moves in from the corner; from lg it grows
+          to fill the empty end of the card. */}
+      <HeroChandelier className="absolute -end-6.5 top-0 md:end-8 lg:end-16 lg:h-60 lg:w-75" />
       <div className="relative flex min-h-39 flex-col items-start justify-center">
         <h1 id="hero-title" className="flex flex-col type-hero">
           <span>{t("heroLine1")}</span>

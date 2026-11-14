@@ -8,8 +8,9 @@ import { cn } from "@/lib/utils";
 import { activeTab, storefrontTabs } from "../nav";
 import { tabIcons } from "./nav-icons";
 
-// BottomBar (handoff section 6, spec 0003 AC-16): fixed to the bottom of the 480 column (hidden
-// from lg, where the header holds the account link and the cart, spec 0029 AC-6),
+// BottomBar (handoff section 6, spec 0003 AC-16): fixed to the bottom of the 480 column, the full
+// screen width from md where the page is wide (hidden from lg, where the header holds the account
+// link and the cart, spec 0029 AC-6),
 // above the phone's home indicator. Five equal tabs, a 24px icon over a 12px label; the
 // current tab is bold ink with a 3px yellow underline and aria-current="page".
 // `static` puts it in the page flow (the gallery); `pathname` overrides the current path.
@@ -37,7 +38,7 @@ export function BottomBar({
         "box-content h-(--h-bottom-bar) border-t border-border bg-white",
         inFlow
           ? "relative"
-          : "fixed start-0 end-0 bottom-0 z-(--z-bar) mx-auto max-w-(--page-max) pb-[env(safe-area-inset-bottom)] lg:hidden",
+          : "fixed start-0 end-0 bottom-0 z-(--z-bar) mx-auto max-w-(--page-max) pb-[env(safe-area-inset-bottom)] md:max-w-none lg:hidden",
       )}
     >
       <ul className="flex h-full px-1 pt-1.5 pb-2.5">
