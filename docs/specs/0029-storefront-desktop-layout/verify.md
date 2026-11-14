@@ -43,7 +43,8 @@ _Steps derived from spec 0029 acceptance criteria. `/check verify` runs these; `
 - [ ] At 1280, open `/orders/track`, `/account/sign-in`, `/account/reset-password`, `/account` (signed in), and an order confirmation `/checkout/done/<number>` → each is a centred column 560 wide inside the full shell → AC-17
 - [ ] Break a storefront read (stop the local database) and open a category at 1280 → the error card sits in the centred 560 column → AC-17
 - [ ] `/policies/terms` at 1280 → a centred column 720 wide → AC-17
-- [ ] Open an unknown address such as `/no-such-page` → known gap: the 404 is still the bare placeholder outside the shell (its designed page was never built), so this part of AC-17 is not met yet → AC-17
+- [ ] Open unknown addresses `/no-such-page` and `/account/nothing` at 390, 820, and 1280 → HTTP 404, the designed 404 card (404, `الصفحة غير موجودة`, home, browse, WhatsApp) in the centred 560 column inside the full shell (header, footer, bottom bar below lg), one `h1`, tab title `الصفحة غير موجودة | S.K.F للإنارة`, `noindex` → AC-17
+- [ ] Open `/`, `/c`, `/cart`, `/orders/track` → each still its own page, never the 404 (the unknown address catch all only takes what no route matches) → AC-17
 - [ ] At 390, cart, checkout, the narrow pages, and policies → exactly as before (480 column) → AC-1
 
 ### Slice 4: accounts
@@ -77,5 +78,5 @@ _Steps derived from spec 0029 acceptance criteria. `/check verify` runs these; `
 - [ ] `pnpm exec playwright test e2e/homepage.spec.ts --project=homepage --no-deps` → passes, including the banner Home at 820 and 1280 → AC-13
 
 ## Acceptance-criteria coverage
-- AC-1 phone steps, full phone run · AC-2 breakpoint step, lock test · AC-3 shell width steps · AC-4 header steps · AC-5 category bar and overflow steps · AC-6 bottom bar step · AC-7 float step · AC-8 footer step · AC-9 category, search, `/c`, and Home grid steps · AC-10 filter column steps · AC-11 crossing lg steps (filters, menu, add to draft) · AC-12 product page steps · AC-13 Home steps · AC-14 cart and checkout steps · AC-15 order page and list steps · AC-16 quick order steps · AC-17 narrow page steps (the 404 is a known gap) · AC-18 add to draft dialog steps · AC-19 hover steps · AC-20 card, gallery, and banner sizes steps · AC-21, AC-22 partly (the pages converted so far)
+- AC-1 phone steps, full phone run · AC-2 breakpoint step, lock test · AC-3 shell width steps · AC-4 header steps · AC-5 category bar and overflow steps · AC-6 bottom bar step · AC-7 float step · AC-8 footer step · AC-9 category, search, `/c`, and Home grid steps · AC-10 filter column steps · AC-11 crossing lg steps (filters, menu, add to draft) · AC-12 product page steps · AC-13 Home steps · AC-14 cart and checkout steps · AC-15 order page and list steps · AC-16 quick order steps · AC-17 narrow page steps (with the unknown address 404 steps) · AC-18 add to draft dialog steps · AC-19 hover steps · AC-20 card, gallery, and banner sizes steps · AC-21, AC-22 partly (the pages converted so far)
 - Not yet built: AC-23, and the rest of AC-21, AC-22 (the finish)

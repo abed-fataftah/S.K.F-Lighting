@@ -546,7 +546,8 @@
     "myOrders": "طلباتي | S.K.F للإنارة",
     "quickOrder": "طلب سريع | S.K.F للإنارة",
     "drafts": "مسوداتي | S.K.F للإنارة",
-    "policy": "{title} | S.K.F للإنارة"
+    "policy": "{title} | S.K.F للإنارة",
+    "notFound": "الصفحة غير موجودة | S.K.F للإنارة"
   },
   "AdminAuth": {
     "loginTitle": "دخول لوحة التحكم",

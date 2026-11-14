@@ -751,6 +751,7 @@ test.describe("every page", () => {
       "/account/reset-password",
       "/policies/terms",
       "/p/no-such-product-layout-e2e",
+      "/no-such-page-layout-e2e",
     ]);
   });
 });

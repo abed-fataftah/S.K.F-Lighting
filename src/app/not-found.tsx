@@ -1,7 +1,8 @@
 import { HtmlDocument } from "@/components/html-document";
 
-// An address no route matches. Font, tokens, and direction are in place; a storefront page that
-// calls notFound() shows the designed card inside the shell instead ([locale]/not-found.tsx).
+// An address outside the storefront that no route matches (under /admin, /auth, /api). Font,
+// tokens, and direction are in place. Storefront addresses, matched or not, show the designed card
+// inside the shell instead ([locale]/[...rest]/page.tsx and [locale]/not-found.tsx).
 export default function NotFound() {
   return (
     <HtmlDocument>
