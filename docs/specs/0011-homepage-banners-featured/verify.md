@@ -4,7 +4,7 @@ _Steps derived from spec 0011 acceptance criteria. `/check verify` runs these; `
 ## UI / manual
 - [x] With no active banner, open `/` on a 390 wide screen → yellow strip "توصيل: الضفة ₪20 · الداخل ₪70", header, black hero with the chandelier on the left, the only `h1` is "ثريات وإنارة / وكهربائيات", then circles, featured products, the four trust cards, footer, bottom bar → AC-1, AC-3
 - [x] Tap "تسوّق الآن" → the page moves to "تسوّق حسب القسم" and focus lands on its heading; with reduced motion on it jumps without smooth scrolling → AC-3
-- [ ] Untick every main in `/admin/homepage` and save → "تسوّق الآن" now goes to "منتجات مختارة"; with no products either it is hidden → AC-3, AC-4
+- [x] Untick every main in `/admin/homepage` and save → "تسوّق الآن" now goes to "منتجات مختارة"; with no products either it is hidden → AC-3, AC-4
 - [x] In `/admin/homepage`, "+ إضافة بانر", pick a 700 wide picture → "الصورة صغيرة، اختر صورة بعرض 800 بكسل على الأقل", nothing uploads → AC-10
 - [x] Pick a large picture → the preview shows the centred 16:9 crop with upload progress; "حفظ" stays disabled until the upload ends → AC-10, AC-13
 - [x] Save a banner titled with the picture's words and linked to a sub category → the row shows "الرابط: <main> › <sub>"; Home shows the banner alone as a 16:9 picture whose link opens the sub page; the `h1` is the hidden "S.K.F للإنارة" → AC-2, AC-8, AC-10
@@ -22,9 +22,9 @@ _Steps derived from spec 0011 acceptance criteria. `/check verify` runs these; `
 - [x] Remove every pick and save → Home's "منتجات مختارة" shows the 8 newest sellable products → AC-5
 - [x] In `/admin/categories`, edit a main → "صورة الدائرة" and "السطر تحت الدائرة (اختياري)" with a hint of the line Home would build; edit a sub → neither field shows → AC-11
 - [x] Give a main a square photo and a line → Home's circle shows the photo and the line; a main with no line shows its first three menu subs as "أ، ب و ج" → AC-4, AC-11
-- [ ] With two circles → the other circle waits on the left, and back, next, and a swipe either way all swap them; with three → one each side, and the circle that wraps fades across, never sliding over the centre → AC-4
-- [ ] With two or more circles → the carousel loops, moves every 3.5 s until a touch or a focus inside, the pause button ("إيقاف التمرير التلقائي", `aria-pressed`) stops and restarts it, and with reduced motion it never moves and the pause button is gone → AC-4
-- [ ] With one circle → it shows alone and centred as a plain link, no arrows, no pause, no yellow button → AC-4
+- [x] With two circles → the other circle waits on the left, and back, next, and a swipe either way all swap them; with three → one each side, and the circle that wraps fades across, never sliding over the centre → AC-4
+- [x] With two or more circles → the carousel loops, moves every 3.5 s until a touch or a focus inside, the pause button ("إيقاف التمرير التلقائي", `aria-pressed`) stops and restarts it, and with reduced motion it never moves and the pause button is gone → AC-4
+- [x] With one circle → it shows alone and centred as a plain link, no arrows, no pause, no yellow button → AC-4
 - [x] Untick a main for Home and save → its circle is gone; a hidden or empty main ticked in the editor ("(مخفي)", "(فارغ)") does not show until it qualifies → AC-4, AC-8
 - [x] Trust cards → "توصيل لكل مكان" with "الضفة ₪20 · الداخل ₪70", "الدفع عند الاستلام" with its line, "رسالة جاهزة برقم الطلب" with no line, "استلام من المعرض" with "اسأل عن العنوان عبر واتساب" while no address is set → AC-6
 - [x] Open any page other than `/` → no yellow strip → AC-6
@@ -41,18 +41,18 @@ _Steps derived from spec 0011 acceptance criteria. `/check verify` runs these; `
 - [x] As the `media_sweep` login: `select image_key from banners` works, `select name from categories` is refused → AC-13
 
 ## Value sourcing
-- [ ] Home banners and order: set `sort` by hand to put an inactive banner first → it is not shown; the active ones show by `sort, id`, at most five
+- [x] Home banners and order: set `sort` by hand to put an inactive banner first → it is not shown; the active ones show by `sort, id`, at most five
 - [x] Banner link address: rename the linked category's slug → the banner follows the new slug with no edit
 - [x] Hero copy and WhatsApp: "اطلب عبر واتساب" opens `wa.me/<NEXT_PUBLIC_WHATSAPP_NUMBER>` with the W1 text
 - [x] Circle order and line: change `sort` between two mains → the circles swap; clear a `home_subtitle` → the built line appears
-- [ ] Featured order: reorder picks in the editor → Home follows the new order
+- [x] Featured order: reorder picks in the editor → Home follows the new order
 - [x] Featured fallback: with picks that are all hidden → Home shows the newest 8 sellable instead
-- [ ] Strip and delivery card: change a zone's `fee` and `short_name` in the database → Home and checkout both show the new fee; set `is_active = false` on both zones → the strip is hidden and the card has no line
+- [x] Strip and delivery card: change a zone's `fee` and `short_name` in the database → Home and checkout both show the new fee; set `is_active = false` on both zones → the strip is hidden and the card has no line
 - [x] Pickup card: set `shop_settings.address` → the card shows it instead of the fallback
-- [ ] Editor badges: hide a picked product's category → its row shows "القسم مخفي"
+- [x] Editor badges: hide a picked product's category → its row shows "القسم مخفي"
 - [x] Editor mains: a main whose only products are in a hidden sub → "(فارغ)"
 - [x] New banner `sort` and `is_active`: add a banner with five active → it goes last and inactive
-- [ ] Version check: every banner save, delete, and page save raises `shop_settings.home_version` by exactly one; a category dialog save leaves it alone
+- [x] Version check: every banner save, delete, and page save raises `shop_settings.home_version` by exactly one; a category dialog save leaves it alone
 - [x] Storage keys: every new upload is `banners/<uuid>.<webp|jpg>` or `categories/<uuid>.<webp|jpg>`; a banner saved with a key that is not in Storage is refused with "تعذّر حفظ الصورة. ارفعها مرة أخرى."
 - [x] Crop and size: a 4000×3000 photo is stored at 1600×900; a 3000×3000 circle photo at 800×800
 
