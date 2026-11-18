@@ -18,7 +18,7 @@ import { PaymentBadge } from "./payment-badge";
 import { OrderStatusBadge } from "./status-badge";
 
 // The orders table (spec 0014 AC-8), shared by the server rendered list and the client phone
-// search results, so it holds no server code. An unseen order carries a yellow dot with hidden
+// search results, so it holds no server code. An unseen order carries an orange dot with hidden
 // text; a customer's cancellation also shows "ألغاه العميل". الدفع shows where the money stands
 // (spec 0023 AC-11).
 export function OrdersTable({
@@ -56,7 +56,7 @@ export function OrdersTable({
                   <span data-testid="order-unseen">
                     <span
                       aria-hidden
-                      className="block size-2.5 rounded-full border border-ink bg-yellow"
+                      className="block size-2.5 rounded-full border border-ink bg-brand"
                     />
                     <span className="sr-only">{t("unseen")}</span>
                   </span>

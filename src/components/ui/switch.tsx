@@ -4,7 +4,7 @@ import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 import { cn } from "@/lib/utils";
 
 // An on and off switch on Base UI Switch (spec 0008: "ظاهر في المتجر"). Not drawn on the boards,
-// so it borrows the checkbox colours: control border and white when off, ink with a yellow thumb
+// so it borrows the checkbox colours: control border and white when off, ink with an orange thumb
 // when on. The tap area is 44 by 48 around a 44 by 28 track; the thumb moves to the end side,
 // which flips in RTL. It submits `on` with its form when checked, like a checkbox.
 function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
@@ -23,7 +23,7 @@ function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
       >
         <SwitchPrimitive.Thumb
           data-slot="switch-thumb"
-          className="size-5.5 rounded-full border border-ink bg-white transition-transform duration-(--dur-sheet) data-checked:translate-x-4 data-checked:bg-yellow rtl:data-checked:-translate-x-4"
+          className="size-5.5 rounded-full border border-ink bg-white transition-transform duration-(--dur-sheet) data-checked:translate-x-4 data-checked:bg-brand rtl:data-checked:-translate-x-4"
         />
       </span>
     </SwitchPrimitive.Root>

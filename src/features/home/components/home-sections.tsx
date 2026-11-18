@@ -73,7 +73,7 @@ function TrustCard({
 }) {
   return (
     <li className="flex flex-col gap-2 rounded-card border border-border bg-white p-3.5">
-      <span className="flex size-10 items-center justify-center rounded-tile bg-yellow text-ink">
+      <span className="flex size-10 items-center justify-center rounded-tile bg-brand text-ink">
         <Icon aria-hidden className="size-5.5" />
       </span>
       <h3 className="type-lead">{title}</h3>

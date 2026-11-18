@@ -23,8 +23,8 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Mobile (390) (designed):
-1. Header (shared). Row: h1 "مسوداتي" 24/800 and the yellow small button "+ مسودة جديدة" (padding-bottom 12). Line 14 muted.
-2. One card per draft (padding 14, margin-bottom 10): name 16/800; line 13 muted "N أسطر · آخر تعديل [التاريخ]"; row: yellow small button "فتح" (flex 1) and outline small icon button with a trash icon (44 wide).
+1. Header (shared). Row: h1 "مسوداتي" 24/800 and the orange small button "+ مسودة جديدة" (padding-bottom 12). Line 14 muted.
+2. One card per draft (padding 14, margin-bottom 10): name 16/800; line 13 muted "N أسطر · آخر تعديل [التاريخ]"; row: orange small button "فتح" (flex 1) and outline small icon button with a trash icon (44 wide).
 3. Footer, bottom bar (tab: حسابي), float.
 
 Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
@@ -41,7 +41,7 @@ Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: acc
 Drafts of the user: name, line count, last edited date.
 
 ## States
-Empty: use the empty card with title "لا توجد مسودات" and a yellow button "+ مسودة جديدة" (not drawn; wording is mine). Loading and error: not drawn.
+Empty: use the empty card with title "لا توجد مسودات" and an orange button "+ مسودة جديدة" (not drawn; wording is mine). Loading and error: not drawn.
 
 ## Interactions
 1. "فتح": opens `/account/quick-order?draft=<id>`.

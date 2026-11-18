@@ -1,7 +1,7 @@
 // One off: the shop's share image and the Store block logo (spec 0026 AC-13).
 //   node scripts/make-share-images.mjs
-// The logo sits on the ink token, the colour of the header it is drawn for (it is yellow and
-// white, so on the yellow primary it would vanish). The colour is read from tokens.css, so it has
+// The logo sits on the ink token, the colour of the header it is drawn for (it is orange and
+// white, so on the orange primary it would vanish). The colour is read from tokens.css, so it has
 // one source. Commit the two PNGs it writes; rerun only when the logo or the token changes.
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

@@ -2,6 +2,7 @@
 
 **Date**: 2026-10-19
 **Status**: In Progress
+**Amended**: 2026-11-19. Amended by spec [0032](../0032-light-hero-orange-brand/index.md): the brand colour is orange `--skf-brand` (#F7931E, tint #FEEFDC) in place of `--skf-yellow`, and the colour rule becomes "a fill under ink text, or text or an outline on black".
 
 ## Summary
 

@@ -36,7 +36,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 Mobile (390) (designed):
 1. Header (shared). h1 24/800: "تسجيل الدخول", "إنشاء حساب" or "استعادة كلمة المرور" (padding 12 0 12).
 2. Tabs (login and register only): two equal buttons 48 high.
-3. Card (padding 14): fields per tab. Login: البريد الإلكتروني, كلمة المرور, link button "نسيت كلمة المرور؟", yellow large "دخول". Register: الاسم الكامل, رقم الهاتف, البريد الإلكتروني, كلمة المرور, yellow large "إنشاء الحساب". Reset: text, البريد الإلكتروني, yellow large "إرسال رابط الاستعادة", link button "العودة لتسجيل الدخول".
+3. Card (padding 14): fields per tab. Login: البريد الإلكتروني, كلمة المرور, link button "نسيت كلمة المرور؟", orange large "دخول". Register: الاسم الكامل, رقم الهاتف, البريد الإلكتروني, كلمة المرور, orange large "إنشاء الحساب". Reset: text, البريد الإلكتروني, orange large "إرسال رابط الاستعادة", link button "العودة لتسجيل الدخول".
 4. Card (margin-top 12): "تفضّل الطلب بدون حساب؟", line 13 muted, outline large "المتابعة كضيف", outline large "تتبّع طلب".
 5. Footer, bottom bar (tab: حسابي), float.
 

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-// The owner's logo (white "SKF", yellow bolt, yellow "lighting"), drawn for black surfaces
+// The owner's logo (white "SKF", orange bolt, orange "lighting"), drawn for black surfaces
 // only. A trace from the canvas until the owner sends the original files (O-4); replace
 // public/brand/skf-logo.svg in place. A plain <img>: files in /public skip the image loader.
 const LOGO_SRC = "/brand/skf-logo.svg";

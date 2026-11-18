@@ -60,10 +60,10 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 ## Layout
 Mobile (390) (designed):
 1. Header (shared). Breadcrumb: الرئيسية، category (link), current product (700).
-2. Gallery (padding 8 16 0): main area 300 high, radius 12, dark product background; image 270x270 centered; arrows 44 round (white, 1px ink) at 10px from each edge, vertically centered; counter "1 / 4" (12px white on ink, radius 4) at the end-bottom corner; "غير متوفر" black label at the start-top corner when out of stock. Under it a row of thumbnails 56x56 radius 8 (8 gap); selected thumb has a 2px yellow border, others 1px control border; the last thumbnail is the video (play icon).
+2. Gallery (padding 8 16 0): main area 300 high, radius 12, dark product background; image 270x270 centered; arrows 44 round (white, 1px ink) at 10px from each edge, vertically centered; counter "1 / 4" (12px white on ink, radius 4) at the end-bottom corner; "غير متوفر" black label at the start-top corner when out of stock. Under it a row of thumbnails 56x56 radius 8 (8 gap); selected thumb has a 2px orange border, others 1px control border; the last thumbnail is the video (play icon).
 3. Title block (padding-top 20): h1 22/800 (1.35); a line with `الكود: [الكود]` 13 muted and the stock word (700, green "متوفر" or muted "غير متوفر"); price 28/800 with `· للحجم <size>` 13 muted.
 4. Options card (white, padding 14, margin-top 16): "الحجم" (16/800) with chips; "اللون" with chips (dot 18px plus name); "الكمية" with the stepper. Unavailable options: disabled chip, struck through, extra text "· غير متوفر".
-5. Buttons (stacked, gap 10, margin-top 16): yellow "أضف للسلة" 52 high; green "اطلب عبر واتساب" 52 high with icon.
+5. Buttons (stacked, gap 10, margin-top 16): orange "أضف للسلة" 52 high; green "اطلب عبر واتساب" 52 high with icon.
 6. Cards (margin-top 24 then 12): الوصف; المواصفات (rows with a label in muted and the value in 700, 1px lines); help card "هل تحتاج مساعدة في الاختيار؟" with a green small button.
 7. Footer, bottom bar (tab: الأقسام), float.
 

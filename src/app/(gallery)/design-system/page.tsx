@@ -38,7 +38,7 @@ export default async function DesignSystemPage() {
       <SkipLink />
       <header className="on-dark bg-ink text-white">
         <div className="mx-auto flex max-w-(--admin-form-max) flex-col gap-2 px-4 pt-6 pb-5">
-          <p className="type-caption font-extrabold text-yellow">{shop("title")}</p>
+          <p className="type-caption font-extrabold text-brand">{shop("title")}</p>
           <h1 className="type-title-l">{t("title")}</h1>
           <p className="max-w-(--page-max) text-on-dark-muted">{t("intro")}</p>
           <nav aria-label={t("toc")} className="mt-2">

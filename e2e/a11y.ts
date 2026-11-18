@@ -70,9 +70,9 @@ export async function expectNoSidewaysScroll(page: Page) {
   expect(overflow).toBeLessThanOrEqual(0);
 }
 
-// The focus outline is 3px solid, ink on light surfaces and yellow inside .on-dark.
-export async function expectFocusOutline(target: Locator, colour: "ink" | "yellow") {
-  const rgb = colour === "ink" ? "rgb(17, 17, 17)" : "rgb(252, 244, 44)";
+// The focus outline is 3px solid, ink on light surfaces and orange inside .on-dark.
+export async function expectFocusOutline(target: Locator, colour: "ink" | "brand") {
+  const rgb = colour === "ink" ? "rgb(17, 17, 17)" : "rgb(247, 147, 30)";
   await expect(target).toBeFocused();
   await expect(target).toHaveCSS("outline-style", "solid");
   await expect(target).toHaveCSS("outline-width", "3px");

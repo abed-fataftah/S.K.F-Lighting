@@ -211,7 +211,7 @@ export function MediaSection({
             <button
               type="button"
               onClick={() => photoInput.current?.click()}
-              className="flex size-30 cursor-pointer flex-col items-center justify-center gap-1 rounded-tile border-2 border-dashed border-control-border bg-white px-2 text-center type-body font-bold text-ink hover:bg-yellow-tint"
+              className="flex size-30 cursor-pointer flex-col items-center justify-center gap-1 rounded-tile border-2 border-dashed border-control-border bg-white px-2 text-center type-body font-bold text-ink hover:bg-brand-tint"
             >
               {t("addPhoto")}
             </button>

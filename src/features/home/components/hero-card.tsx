@@ -33,7 +33,7 @@ export function HeroCard({
       <div className="relative flex min-h-39 flex-col items-start justify-center">
         <h1 id="hero-title" className="flex flex-col type-hero">
           <span>{t("heroLine1")}</span>
-          <span className="text-yellow">{t("heroLine2")}</span>
+          <span className="text-brand">{t("heroLine2")}</span>
         </h1>
         <p className="mt-2.5 type-body text-on-dark-muted">{t("heroText")}</p>
       </div>

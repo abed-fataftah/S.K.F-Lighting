@@ -82,7 +82,7 @@ export function SignInTabs({
               type="button"
               aria-pressed={tab === id}
               onClick={() => switchTo(id, false)}
-              className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-btn border border-control-border bg-white px-3 type-control text-ink aria-pressed:border-ink aria-pressed:bg-yellow aria-pressed:font-extrabold"
+              className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-btn border border-control-border bg-white px-3 type-control text-ink aria-pressed:border-ink aria-pressed:bg-brand aria-pressed:font-extrabold"
               data-testid={`tab-${id}`}
             >
               {t(label)}

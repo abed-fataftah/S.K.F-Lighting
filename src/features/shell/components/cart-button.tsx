@@ -6,7 +6,7 @@ import { formatNumber } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
-// The header cart link (spec 0003, AC-14): 44x44, a white 26px cart. A yellow count badge
+// The header cart link (spec 0003, AC-14): 44x44, a white 26px cart. An orange count badge
 // shows only for a count above 0, capped at 99+; the count lives in the link's name, so the
 // badge itself is hidden from screen readers. Feature 12 passes the count.
 export function CartButton({
@@ -25,7 +25,7 @@ export function CartButton({
       href={routes.cart}
       aria-label={shown ? t("cartWithCount", { count: count!, shown }) : t("cart")}
       className={cn(
-        "relative inline-flex size-11 shrink-0 items-center justify-center rounded-btn text-white transition-colors duration-(--dur-hover) lg:hover:text-yellow",
+        "relative inline-flex size-11 shrink-0 items-center justify-center rounded-btn text-white transition-colors duration-(--dur-hover) lg:hover:text-brand",
         className,
       )}
     >

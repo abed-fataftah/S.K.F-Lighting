@@ -12,7 +12,7 @@ import { tabIcons } from "./nav-icons";
 // screen width from md where the page is wide (hidden from lg, where the header holds the account
 // link and the cart, spec 0029 AC-6),
 // above the phone's home indicator. Five equal tabs, a 24px icon over a 12px label; the
-// current tab is bold ink with a 3px yellow underline and aria-current="page".
+// current tab is bold ink with a 3px orange underline and aria-current="page".
 // `static` puts it in the page flow (the gallery); `pathname` overrides the current path.
 // `cartCount` (lines in the cart, spec 0004 AC-4) badges the cart tab, as on the header; the
 // badge is part of the tab's name, so what is seen is what is announced.
@@ -63,7 +63,7 @@ export function BottomBar({
                     </Badge>
                   ) : null}
                 </span>
-                <span className={cn("border-b-3", active ? "border-yellow" : "border-transparent")}>
+                <span className={cn("border-b-3", active ? "border-brand" : "border-transparent")}>
                   {t(`tabs.${id}`)}
                 </span>
               </Link>

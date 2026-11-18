@@ -135,7 +135,7 @@ export function FiltersScreen({
         <ListFilter aria-hidden />
         {t("button")}
         {badge > 0 ? (
-          <span className="inline-flex size-5.5 items-center justify-center rounded-full bg-yellow type-caption font-extrabold text-ink">
+          <span className="inline-flex size-5.5 items-center justify-center rounded-full bg-brand type-caption font-extrabold text-ink">
             <span aria-hidden>{formatNumber(badge)}</span>
             <span className="sr-only">{t("badge", { count: formatNumber(badge) })}</span>
           </span>

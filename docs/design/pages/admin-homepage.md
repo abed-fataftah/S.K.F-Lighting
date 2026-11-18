@@ -42,7 +42,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Desktop (1280) (designed):
-Header h1 "الصفحة الرئيسية" with yellow small "حفظ التغييرات". One column, max 960. Card "البانرات": text 14 muted; rows (banner tile 120x56, title 800, "الرابط: [الرابط]", checkbox "فعّال", ↑ ↓ buttons, outline small "تعديل"); "+ إضافة بانر". Card "المنتجات المختارة": search field "إضافة منتج" and rows (tile 44, name 700, code 12, remove icon button); card "الأقسام الظاهرة في الصفحة الرئيسية": checkbox grid of main categories.
+Header h1 "الصفحة الرئيسية" with orange small "حفظ التغييرات". One column, max 960. Card "البانرات": text 14 muted; rows (banner tile 120x56, title 800, "الرابط: [الرابط]", checkbox "فعّال", ↑ ↓ buttons, outline small "تعديل"); "+ إضافة بانر". Card "المنتجات المختارة": search field "إضافة منتج" and rows (tile 44, name 700, code 12, remove icon button); card "الأقسام الظاهرة في الصفحة الرئيسية": checkbox grid of main categories.
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 

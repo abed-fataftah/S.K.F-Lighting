@@ -76,7 +76,7 @@ async function fetchCategoryProducts(slug: string): Promise<readonly CardProduct
 // tilt (`--tilt-x`, `--tilt-y`, physical, written by the pointer handler), then the scale. Depth
 // comes from the transform, the scale, and the tint only: no shadow, no blur, no gradient.
 const CARD = cn(
-  "group/tab relative block aspect-4/5 w-(--category-card) shrink-0 cursor-pointer snap-start overflow-hidden rounded-card border-2 border-transparent bg-product-1 text-start select-none aria-selected:border-yellow",
+  "group/tab relative block aspect-4/5 w-(--category-card) shrink-0 cursor-pointer snap-start overflow-hidden rounded-card border-2 border-transparent bg-product-1 text-start select-none aria-selected:border-brand",
   "[--sc:1] [--tilt-x:0] [--tilt-y:0] aria-selected:[--sc:var(--category-scale)]",
   "transform-[perspective(var(--coverflow-depth))_rotateY(calc(var(--turn)_*_var(--cf-dir)_*_var(--category-turn)_+_var(--tilt-y)_*_var(--category-tilt)))_rotateX(calc(var(--tilt-x)_*_var(--category-tilt)))_scale(var(--sc))]",
   "transition-[transform,border-color] duration-(--dur-carousel-move) ease-(--ease-carousel) data-tilt:duration-(--dur-hover) motion-reduce:transition-none",
@@ -378,7 +378,7 @@ export function CategoryCards({
           </h3>
           <Link
             href={routes.category(current.slug)}
-            className="inline-flex min-h-11 shrink-0 items-center type-small text-muted underline decoration-1 underline-offset-4 transition-colors duration-(--dur-hover) hover:text-ink hover:decoration-yellow hover:decoration-2"
+            className="inline-flex min-h-11 shrink-0 items-center type-small text-muted underline decoration-1 underline-offset-4 transition-colors duration-(--dur-hover) hover:text-ink hover:decoration-brand hover:decoration-2"
           >
             {t("viewAll")}
           </Link>

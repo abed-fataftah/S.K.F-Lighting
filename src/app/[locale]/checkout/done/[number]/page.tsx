@@ -63,7 +63,7 @@ export default async function ConfirmationPage({
       <WhatsAppHandoff orderId={order.id} url={url} autoOpen={query.wa === "1"} />
 
       <Card className="items-center gap-3 px-5 py-7 text-center">
-        <span className="flex size-18 items-center justify-center rounded-full border-2 border-ink bg-yellow text-ink">
+        <span className="flex size-18 items-center justify-center rounded-full border-2 border-ink bg-brand text-ink">
           <Check aria-hidden className="size-9" strokeWidth={3} />
         </span>
         <FocusHeading className="type-title-l">{t("title")}</FocusHeading>

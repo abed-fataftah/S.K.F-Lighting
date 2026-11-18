@@ -52,7 +52,7 @@ Single column, cards with 12px between them:
 1. Header (shared). h1 "إتمام الطلب" 24/800 (padding 12 0 10).
 2. Card "بيانات التواصل": fields الاسم الكامل (`autocomplete="name"`), رقم الهاتف (`type="tel"`, `autocomplete="tel"`); link button "لديك حساب؟ سجّل الدخول".
 3. Card "طريقة الاستلام": two radio cards ("استلام من المعرض" with line `[العنوان] · بدون رسوم`; "توصيل" with line "إلى العنوان الذي تحدده"). When delivery is chosen: heading "المنطقة" and two radio cards (الضفة ₪20, الداخل ₪70), then textarea "العنوان بالتفصيل" (88 high). Always: textarea "ملاحظات (اختياري)" (72 high).
-4. Card "الدفع": 40px yellow icon tile, title "الدفع عند الاستلام", line "ادفع عند استلام طلبك.".
+4. Card "الدفع": 40px orange icon tile, title "الدفع عند الاستلام", line "ادفع عند استلام طلبك.".
 5. Card "ملخص الطلب": one row per line ("<name> × <qty>" and price), "المجموع الفرعي", "التوصيل" (`₪20`, `₪70` or "بدون رسوم"), "الإجمالي" 18/800; green large button "تأكيد وإرسال عبر واتساب"; note 13 muted.
 6. Footer, bottom bar (tab: السلة), float.
 

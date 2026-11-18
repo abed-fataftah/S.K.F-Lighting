@@ -32,7 +32,7 @@ type Notice = {
   readonly keep: boolean;
 };
 
-// "حالة الطلب" (spec 0014 AC-5): the badge, the next step as the one yellow button, the other
+// "حالة الطلب" (spec 0014 AC-5): the badge, the next step as the one orange button, the other
 // moves in "خيارات أخرى", and the cancel dialog. Every control is disabled while a move runs, and
 // the action plus any refresh sit in one transition, so the pending state lasts until the new
 // status is on screen; focus then moves to the badge. Final states show no control.

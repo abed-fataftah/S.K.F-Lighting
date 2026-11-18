@@ -175,7 +175,7 @@ export function ProductGallery({
                 onClick={() => goTo(index)}
                 className={cn(
                   "relative size-14 shrink-0 cursor-pointer overflow-hidden rounded-btn bg-product-1",
-                  index === current ? "border-2 border-yellow" : "border border-control-border",
+                  index === current ? "border-2 border-brand" : "border border-control-border",
                 )}
               >
                 {thumb ? (

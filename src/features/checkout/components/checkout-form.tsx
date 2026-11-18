@@ -318,7 +318,7 @@ export function CheckoutForm({
         </Card>
 
         <Card className="flex-row items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-tile bg-yellow text-ink">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-tile bg-brand text-ink">
             <Banknote aria-hidden className="size-5.5" />
           </span>
           <div className="flex flex-col">

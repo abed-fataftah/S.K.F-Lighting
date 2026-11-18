@@ -73,13 +73,13 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 ## Layout
 Mobile (390) (designed):
 Top to bottom, all inside the 480px column:
-1. Info strip: yellow, 12/800 ink, centered, padding 8 12. Text in Content (`strip`). Home only.
-2. Header (black): menu button (44x44, start side), logo 52px high (center), cart button (44x44, end side). Padding 8 8 6. Then the search bar: white, radius 12, 52 high, input flex 1, yellow 42x42 search button (radius 8) at the end. Block padding 4 14 16.
-3. Hero card: black, radius 20, margin 0 16. Chandelier drawing 200x160 hanging from the top edge on the physical left. Headline 32/800: line 1 white, line 2 yellow. Subline 14 white. Two buttons 52 high: yellow "تسوّق الآن" and green WhatsApp "اطلب عبر واتساب".
-4. Section "تسوّق حسب القسم" (title 22/800) with subline 13 muted, then the category circle carousel (below), then the yellow button naming the selected category.
-5. Owner circle (centered): 112px circle, 4px yellow ring, 4px inner gap, photo; name 16/800; "صاحب المتجر" 13 muted; green pill button 44 high "تواصل مباشرة عبر واتساب".
+1. Info strip: orange, 12/800 ink, centered, padding 8 12. Text in Content (`strip`). Home only.
+2. Header (black): menu button (44x44, start side), logo 52px high (center), cart button (44x44, end side). Padding 8 8 6. Then the search bar: white, radius 12, 52 high, input flex 1, orange 42x42 search button (radius 8) at the end. Block padding 4 14 16.
+3. Hero card: white with a 1px border (spec 0032), radius 20, margin 0 16. Chandelier drawing 200x160 hanging from the top edge on the physical left. Headline 32/800: line 1 ink, line 2 ink on an orange marker. Subline 14 muted. Two buttons 52 high: orange "تسوّق الآن" and green WhatsApp "اطلب عبر واتساب".
+4. Section "تسوّق حسب القسم" (title 22/800) with subline 13 muted, then the category circle carousel (below), then the orange button naming the selected category.
+5. Owner circle (centered): 112px circle, 4px orange ring, 4px inner gap, photo; name 16/800; "صاحب المتجر" 13 muted; green pill button 44 high "تواصل مباشرة عبر واتساب".
 6. Section "منتجات مختارة" with link "عرض الكل" (44 high) at the end; two product cards side by side (product card pattern, `design.md` section 7).
-7. Section "لماذا تشتري من S.K.F": 2x2 grid of trust cards (white card, 40x40 yellow icon tile radius 10, title 16/800, line 13 muted). Four cards in Content (`trust`).
+7. Section "لماذا تشتري من S.K.F": 2x2 grid of trust cards (white card, 40x40 orange icon tile radius 10, title 16/800, line 13 muted). Four cards in Content (`trust`).
 8. Footer (black): logo 64px, contact line, three policy links (44 high each).
 9. Bottom bar and WhatsApp float.
 Section side padding is 16 (the board has 14 in places: build 16).
@@ -91,7 +91,7 @@ Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: hom
 ## Components
 | Element | Component | Variant | Props and result |
 |---|---|---|---|
-| Info strip | custom | yellow | text only, no link |
+| Info strip | custom | orange | text only, no link |
 | Header, search | SiteHeader | Home variant with strip above | search submits to `/search?q=` |
 | Hero buttons | Button | primary large, WhatsApp large | "تسوّق الآن" scrolls to the categories section; WhatsApp opens the general message (handoff section 9, message W1) |
 | Category carousel | custom | circles | see Interactions |
@@ -109,7 +109,7 @@ Loading, empty (no featured products: hide the section) and error are not design
 ## Interactions
 1. Tap a carousel arrow or swipe: moves one category, loops forever.
 2. Carousel auto-advances every 3500ms until the first touch; after a touch it never auto-advances again on that page view. No auto-advance under `prefers-reduced-motion: reduce`.
-3. Tap the centered circle or the yellow button "تصفّح <category>": opens `/c/<category>`.
+3. Tap the centered circle or the orange button "تصفّح <category>": opens `/c/<category>`.
 4. "تسوّق الآن": scrolls to the section "تسوّق حسب القسم".
 5. "عرض الكل": opens `/c` (all products). Route is a proposal (O-1).
 6. "أضف للسلة" on a card: same behavior as on the Category page.

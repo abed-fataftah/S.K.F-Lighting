@@ -6,11 +6,11 @@ import { GallerySection } from "../gallery-section";
 // so Tailwind sees them. tokens-contrast.test.ts proves the ratios.
 const textPairs = [
   {
-    id: "inkOnYellow",
+    id: "inkOnBrand",
     fg: "--skf-ink",
-    bg: "--skf-yellow",
-    ratio: "16.29",
-    className: "bg-yellow text-ink",
+    bg: "--skf-brand",
+    ratio: "8.22",
+    className: "bg-brand text-ink",
   },
   {
     id: "inkOnWhite",
@@ -29,9 +29,9 @@ const textPairs = [
   {
     id: "inkOnTint",
     fg: "--skf-ink",
-    bg: "--skf-yellow-tint",
-    ratio: "17.40",
-    className: "bg-yellow-tint text-ink",
+    bg: "--skf-brand-tint",
+    ratio: "16.72",
+    className: "bg-brand-tint text-ink",
   },
   {
     id: "inkOnFill",
@@ -57,9 +57,9 @@ const textPairs = [
   {
     id: "mutedOnTint",
     fg: "--skf-muted",
-    bg: "--skf-yellow-tint",
-    ratio: "6.87",
-    className: "bg-yellow-tint text-muted",
+    bg: "--skf-brand-tint",
+    ratio: "6.60",
+    className: "bg-brand-tint text-muted",
   },
   {
     id: "mutedOnFill",
@@ -83,11 +83,11 @@ const textPairs = [
     className: "bg-white text-whatsapp",
   },
   {
-    id: "yellowOnInk",
-    fg: "--skf-yellow",
+    id: "brandOnInk",
+    fg: "--skf-brand",
     bg: "--skf-ink",
-    ratio: "16.29",
-    className: "bg-ink text-yellow",
+    ratio: "8.22",
+    className: "bg-ink text-brand",
   },
   {
     id: "whiteOnInk",
@@ -133,6 +133,13 @@ const edgePairs = [
     bg: "--skf-page",
     ratio: "3.18",
     className: "bg-page",
+  },
+  {
+    id: "controlOnTint",
+    fg: "--skf-control-border",
+    bg: "--skf-brand-tint",
+    ratio: "3.07",
+    className: "bg-brand-tint",
   },
 ] as const;
 

@@ -15,7 +15,7 @@ export function stepKey(step: TimelineStep["status"], fulfilment: Fulfilment) {
 
 const CIRCLE = {
   done: "border-ink bg-ink text-white",
-  current: "border-2 border-ink bg-yellow text-ink",
+  current: "border-2 border-ink bg-brand text-ink",
   upcoming: "border-2 border-control-border bg-white",
 } as const;
 

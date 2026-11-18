@@ -18,7 +18,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 ## Layout
 Mobile (390) (designed):
 1. Header (shared).
-2. Card (padding 32 20, margin-top 28, centered): disc 80px fill-muted with a cart icon 38px; h1 "السلة فارغة" 22/800; text 14 muted; yellow large button "تصفّح الأقسام"; green large button "اسألنا عبر واتساب".
+2. Card (padding 32 20, margin-top 28, centered): disc 80px fill-muted with a cart icon 38px; h1 "السلة فارغة" 22/800; text 14 muted; orange large button "تصفّح الأقسام"; green large button "اسألنا عبر واتساب".
 3. Footer, bottom bar (tab: السلة), float.
 
 Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.

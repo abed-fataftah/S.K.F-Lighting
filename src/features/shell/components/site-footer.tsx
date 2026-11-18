@@ -14,7 +14,7 @@ import type { MenuCategory } from "./menu-sheet";
 const FOOTER_CATEGORIES = 6;
 
 const footerLink =
-  "flex min-h-11 items-center transition-colors duration-(--dur-hover) hover:text-yellow hover:underline";
+  "flex min-h-11 items-center transition-colors duration-(--dur-hover) hover:text-brand hover:underline";
 
 // SiteFooter (handoff section 6, spec 0003 AC-15): black, 13px light grey text; the logo,
 // the shop's phone and address from shop_settings (a missing part is hidden), "تتبّع طلبك"
@@ -76,7 +76,7 @@ export function SiteFooter({
                   </li>
                 ))}
                 <li>
-                  <Link href={routes.categories} className={`${footerLink} font-bold text-yellow`}>
+                  <Link href={routes.categories} className={`${footerLink} font-bold text-brand`}>
                     {t("allCategories")}
                   </Link>
                 </li>

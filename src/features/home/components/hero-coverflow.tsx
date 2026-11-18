@@ -277,7 +277,7 @@ export function HeroCoverflow({
       <div className="mx-auto flex w-full max-w-(--content-max) flex-col items-start px-5 pt-6.5 pb-5 md:px-(--page-pad) md:pt-8 md:pb-6 lg:items-center lg:pt-10 lg:pb-8 lg:text-center">
         <h1 id="hero-title" className="flex flex-col type-hero">
           <span>{t("heroLine1")}</span>
-          <span className="text-yellow">{t("heroLine2")}</span>
+          <span className="text-brand">{t("heroLine2")}</span>
         </h1>
         <p className="mt-2.5 type-body text-on-dark-muted">{t("heroText")}</p>
 
@@ -393,7 +393,7 @@ export function HeroCoverflow({
                       aria-hidden
                       className={cn(
                         "size-2.5 rounded-full border transition-colors duration-(--dur-hover)",
-                        index === centre ? "border-yellow bg-yellow" : "border-on-dark-muted",
+                        index === centre ? "border-brand bg-brand" : "border-on-dark-muted",
                       )}
                     />
                   </button>

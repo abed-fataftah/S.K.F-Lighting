@@ -26,7 +26,7 @@ test.describe("design system gallery", () => {
   });
 
   test("shows every contrast pair, every type role, and the button matrix", async ({ page }) => {
-    await expect(page.locator("#colours li")).toHaveCount(18);
+    await expect(page.locator("#colours li")).toHaveCount(19);
     await expect(page.locator("#type li")).toHaveCount(14);
     await expect(page.getByRole("button", { name: "متابعة الطلب" })).toHaveCount(5);
     await expect(page.getByRole("button", { name: "أضف للسلة" }).last()).toBeDisabled();
@@ -55,10 +55,10 @@ test.describe("design system gallery", () => {
     await expect(page.locator("main#main")).toHaveCSS("outline-style", "none");
   });
 
-  test("draws a yellow focus outline on black and an ink one on light", async ({ page }) => {
+  test("draws an orange focus outline on black and an ink one on light", async ({ page }) => {
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
-    await expectFocusOutline(page.getByRole("link", { name: "الألوان وتباينها" }), "yellow");
+    await expectFocusOutline(page.getByRole("link", { name: "الألوان وتباينها" }), "brand");
 
     const button = page.getByRole("button", { name: "متابعة الطلب" }).first();
     await button.focus();

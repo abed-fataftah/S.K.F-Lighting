@@ -3,7 +3,7 @@ import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import type { AssignableRole } from "../roles";
 
-// An account's role as a badge (spec 0019 AC-2, AC-4): عميل, or كهربائي in yellow so electricians
+// An account's role as a badge (spec 0019 AC-2, AC-4): عميل, or كهربائي in orange so electricians
 // stand out in the list. Works on the server and in the client search results.
 export function RoleBadge({
   role,

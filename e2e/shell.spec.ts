@@ -71,7 +71,7 @@ test.describe("storefront shell", () => {
   });
 
   // covers: AC-5, AC-11, AC-20
-  test("starts with the skip link, then the menu button with a yellow outline", async ({
+  test("starts with the skip link, then the menu button with an orange outline", async ({
     page,
   }, testInfo) => {
     await page.keyboard.press("Tab");
@@ -84,7 +84,7 @@ test.describe("storefront shell", () => {
       isDesktop(testInfo)
         ? page.locator("header").getByRole("link", { name: "S.K.F lighting" })
         : page.getByRole("button", { name: "القائمة" }),
-      "yellow",
+      "brand",
     );
 
     await page.keyboard.press("Shift+Tab");

@@ -84,13 +84,13 @@ Mobile (390) (designed):
 2. Breadcrumb: `الرئيسية` link, chevron, current category in 700 ink. Links 44 high.
 3. Title block (padding 0 16 12): h1 24/800 with the category name; subline 13 muted listing the sub-categories.
 4. Sub-category chips: one horizontal row, scrolls sideways, gap 8, padding 0 16 4. First chip "الكل". Chips are toggle chips.
-5. Toolbar (padding 12 16 4): filter button at the start (white, 1px ink border, radius 8, 44 high, filter icon, label "تصفية", yellow count badge 22px when filters are active); result count 13 muted at the end.
+5. Toolbar (padding 12 16 4): filter button at the start (white, 1px ink border, radius 8, 44 high, filter icon, label "تصفية", orange count badge 22px when filters are active); result count 13 muted at the end.
 6. Applied filters: wrap row of removable chips plus link button "مسح الكل" (padding 8 16 0).
 7. Product grid: 2 columns, gap 10, padding 12 16 0. Product card pattern.
 8. Below the grid: "تم عرض N من M منتج" (13 muted, centered) and the "عرض المزيد" outline button 48 high (padding-top 22).
-9. Help card (padding 28 16 0): 40px yellow icon tile with WhatsApp icon, "لم تجد ما تبحث عنه؟", line, green small button "اسألنا عبر واتساب".
+9. Help card (padding 28 16 0): 40px orange icon tile with WhatsApp icon, "لم تجد ما تبحث عنه؟", line, green small button "اسألنا عبر واتساب".
 10. Footer, bottom bar (tab: الأقسام), float.
-Filters screen (replaces the whole page while open): black top bar (close button 44x44 at the start, h1 "تصفية المنتجات" 18/800 white); body padding 16 with three white cards (السعر: two number fields "من" and "إلى", each with a 13px label; الحجم: toggle chips; اللون: toggle chips with a color dot 18px and a check when selected); bottom action bar (white, 1px top border, padding 12 16): outline button "مسح الكل" (flex 1) and yellow button "عرض N منتج" (flex 1.6), both 52 high.
+Filters screen (replaces the whole page while open): black top bar (close button 44x44 at the start, h1 "تصفية المنتجات" 18/800 white); body padding 16 with three white cards (السعر: two number fields "من" and "إلى", each with a 13px label; الحجم: toggle chips; اللون: toggle chips with a color dot 18px and a check when selected); bottom action bar (white, 1px top border, padding 12 16): outline button "مسح الكل" (flex 1) and orange button "عرض N منتج" (flex 1.6), both 52 high.
 
 Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
 
@@ -113,10 +113,10 @@ Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: cat
 Products of the category (and sub-category): name, code, spec chips (base type, power, size), price (smallest price over sizes, prefix not shown on card in the board), stock text, first photo. Count `M` is the total of matching products; `N` is how many are shown. Filter options: sizes and colours that exist in the category. Price range placeholders `0` and `1000` are samples. Page size for "load more": `[عدد المنتجات في الصفحة]` (O-10).
 
 ## States
-Default list (board 1). Filters screen (board 2). Loading: header and title stay; six skeleton cards in the grid, `role="status"`, hidden text "جارٍ تحميل المنتجات". No results: card with search icon disc, title "لا توجد منتجات مطابقة", text, yellow button "مسح التصفية" (removes all filters), green button "اسألنا عبر واتساب". Error: card with warning icon, title "تعذّر تحميل المنتجات", yellow button "إعادة المحاولة" (reloads the list; shows loading state), green button "اطلب عبر واتساب"; toolbar and applied row are hidden. Out of stock card: see product card pattern.
+Default list (board 1). Filters screen (board 2). Loading: header and title stay; six skeleton cards in the grid, `role="status"`, hidden text "جارٍ تحميل المنتجات". No results: card with search icon disc, title "لا توجد منتجات مطابقة", text, orange button "مسح التصفية" (removes all filters), green button "اسألنا عبر واتساب". Error: card with warning icon, title "تعذّر تحميل المنتجات", orange button "إعادة المحاولة" (reloads the list; shows loading state), green button "اطلب عبر واتساب"; toolbar and applied row are hidden. Out of stock card: see product card pattern.
 
 ## Interactions
-1. Tap a sub-category chip: selects it (yellow, check not shown on this row) and reloads the grid.
+1. Tap a sub-category chip: selects it (orange, check not shown on this row) and reloads the grid.
 2. Tap "تصفية": opens the filters screen (page scroll locked).
 3. In filters: tap a size or color chip toggles it; type a price; "مسح الكل" clears all and closes; "عرض N منتج" applies, updates the address, closes, and focus returns to the filter button.
 4. Tap the x on an applied chip: removes that filter and reloads.

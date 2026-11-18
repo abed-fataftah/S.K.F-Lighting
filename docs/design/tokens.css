@@ -8,8 +8,8 @@
 
 /* ---- 1. Brand and UI colors (roles) ------------------------------------- */
 :root {
-  --skf-yellow: #FCF42C;          /* brand yellow, measured from the logo. FILL ONLY, with ink text. Never text on white. */
-  --skf-yellow-tint: #FFF6D0;     /* selected radio card, notice banner, highlight rows */
+  --skf-brand: #F7931E;           /* brand orange (spec 0032). FILL ONLY under ink text, or text and outlines on black. Never text on white. */
+  --skf-brand-tint: #FEEFDC;       /* selected radio card, notice banner, highlight rows */
   --skf-ink: #111111;             /* primary text, black header, black footer, black sidebar */
   --skf-white: #FFFFFF;           /* cards, inputs, bottom bar */
   --skf-page: #F5F5F3;            /* page background (warm gray) */
@@ -42,8 +42,8 @@
   --illus-05: #CDBA8A;
   --illus-06: #FFE9A8;
   --illus-07: #E9D08A;
-  --illus-08: #E9D58A;
-  --illus-09: #F5EFD0;
+  --illus-08: #D98B3A;
+  --illus-09: #F0B878;
   --illus-10: #EDEDED;
   --illus-11: #FFE08A;
   --illus-12: #FFE0A0;
@@ -84,13 +84,13 @@
   --card-foreground: var(--skf-ink);
   --popover: var(--skf-white);
   --popover-foreground: var(--skf-ink);
-  --primary: var(--skf-yellow);
+  --primary: var(--skf-brand);
   --primary-foreground: var(--skf-ink);
   --secondary: var(--skf-white);
   --secondary-foreground: var(--skf-ink);
   --muted: var(--skf-fill-muted);
   --muted-foreground: var(--skf-muted);
-  --accent: var(--skf-yellow-tint);
+  --accent: var(--skf-brand-tint);
   --accent-foreground: var(--skf-ink);
   --destructive: var(--skf-danger);
   --destructive-foreground: var(--skf-white);
@@ -174,7 +174,7 @@
 /* ---- 8. Focus ------------------------------------------------------------ */
 :root {
   --focus-ring: 3px solid var(--skf-ink);           /* on light surfaces */
-  --focus-ring-on-dark: 3px solid var(--skf-yellow);/* on black header, footer, sidebar */
+  --focus-ring-on-dark: 3px solid var(--skf-brand);/* on black header, footer, sidebar */
   --focus-offset: 2px;
 }
 :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
@@ -223,8 +223,8 @@ html { direction: rtl; }
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-skf-yellow: var(--skf-yellow);
-  --color-skf-yellow-tint: var(--skf-yellow-tint);
+  --color-skf-brand: var(--skf-brand);
+  --color-skf-brand-tint: var(--skf-brand-tint);
   --color-skf-ink: var(--skf-ink);
   --color-skf-page: var(--skf-page);
   --color-skf-muted: var(--skf-muted);
@@ -246,18 +246,18 @@ html { direction: rtl; }
 
 /* ---- 13. Contrast table (computed by code, WCAG 2.x) ---------------------
    Text pairs (need 4.5:1 for text under 24px, 3:1 for large text)
-   --skf-ink on --skf-yellow ............ 16.29   buttons, chips, selected states
+   --skf-ink on --skf-brand ............. 8.22    buttons, chips, selected states
    --skf-ink on --skf-white ............. 18.88   card text
    --skf-ink on --skf-page .............. 17.30   page text
-   --skf-ink on --skf-yellow-tint ....... 17.40   selected radio card, notice
+   --skf-ink on --skf-brand-tint ........ 16.72   selected radio card, notice
    --skf-ink on --skf-fill-muted ........ 14.53   skeleton, disabled areas
    --skf-muted on --skf-white ........... 7.46    secondary text on cards
    --skf-muted on --skf-page ............ 6.83    secondary text on page
-   --skf-muted on --skf-yellow-tint ..... 6.87    secondary text on tint
+   --skf-muted on --skf-brand-tint ...... 6.60    secondary text on tint
    --skf-muted on --skf-fill-muted ...... 5.74    disabled button text
    --skf-white on --skf-whatsapp ........ 5.25    WhatsApp buttons
    --skf-whatsapp on --skf-white ........ 5.25    "in stock" text, "paid" badge text
-   --skf-yellow on --skf-ink ............ 16.29   text on black
+   --skf-brand on --skf-ink ............. 8.22    text on black
    --skf-white on --skf-ink ............. 18.88   text on black
    --skf-on-dark-muted on --skf-ink ..... 13.19   footer and sidebar links
    --skf-white on --skf-sidebar-active .. 14.35   active sidebar item
@@ -265,5 +265,6 @@ html { direction: rtl; }
    Non-text pairs (need 3:1)
    --skf-control-border on --skf-white .. 3.47    input and chip edges on cards
    --skf-control-border on --skf-page ... 3.18    input and chip edges on page
-   FORBIDDEN: --skf-yellow as text on white or on --skf-page (about 1.2:1).
+   --skf-control-border on --skf-brand-tint . 3.07    input and chip edges on tint
+   FORBIDDEN: --skf-brand as text on white (2.30:1) or on --skf-page (2.10:1).
    -------------------------------------------------------------------------- */

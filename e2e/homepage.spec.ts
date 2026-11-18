@@ -113,7 +113,7 @@ async function picture(page: Page, width: number, height: number) {
       const context = canvas.getContext("2d")!;
       context.fillStyle = "#1b1714";
       context.fillRect(0, 0, w, h);
-      context.fillStyle = "#fcf42c";
+      context.fillStyle = "#3a7bd5";
       context.fillRect(w / 4, h / 4, w / 2, h / 2);
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9),

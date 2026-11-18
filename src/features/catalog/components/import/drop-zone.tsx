@@ -54,11 +54,11 @@ export function DropZone({
       data-over={over || undefined}
       className={cn(
         "flex flex-col items-center gap-2 rounded-card border-2 border-dashed border-control-border bg-white px-4 py-6 text-center",
-        disabled ? "cursor-not-allowed bg-page" : "cursor-pointer hover:bg-yellow-tint",
-        over && "border-ink bg-yellow-tint",
+        disabled ? "cursor-not-allowed bg-page" : "cursor-pointer hover:bg-brand-tint",
+        over && "border-ink bg-brand-tint",
       )}
     >
-      <span className="flex size-12 items-center justify-center rounded-full bg-yellow text-ink">
+      <span className="flex size-12 items-center justify-center rounded-full bg-brand text-ink">
         <Upload aria-hidden className="size-6" />
       </span>
       <p className="type-lead">{title}</p>

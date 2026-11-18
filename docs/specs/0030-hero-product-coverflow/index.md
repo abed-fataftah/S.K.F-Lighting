@@ -2,6 +2,7 @@
 
 **Date**: 2026-11-18
 **Status**: In Progress
+**Amended**: 2026-11-19. Amended by spec [0032](../0032-light-hero-orange-brand/index.md): the hero surface is white (AC-3), the side card tint is white (AC-4), the words are ink (AC-5), the arrows and dots are styled for white (AC-6, AC-8), and the fallback card (AC-11) and loading shape (AC-14) are light.
 
 ## Summary
 

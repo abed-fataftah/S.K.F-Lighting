@@ -21,6 +21,8 @@ const produces = (cls: string) => build([cls]).includes(selector(cls));
 describe("Tailwind lock", () => {
   it.each([
     "bg-red-500",
+    // The old colour name is gone (spec 0032 AC-1).
+    "bg-yellow",
     "text-gray-600",
     "bg-black",
     "rounded-lg",
@@ -53,7 +55,7 @@ describe("Tailwind lock", () => {
     "bg-transparent",
     "text-current",
     "font-sans",
-    "bg-yellow",
+    "bg-brand",
     "text-ink",
     "border-control-border",
     "bg-product-1",
