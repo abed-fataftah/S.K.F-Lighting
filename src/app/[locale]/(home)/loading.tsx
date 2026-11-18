@@ -2,10 +2,12 @@ import { getTranslations } from "next-intl/server";
 import { LoadingStatus } from "@/components/loading-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageFrame } from "@/components/page-frame";
+import { cn } from "@/lib/utils";
 
 // Home loading (spec 0011 AC-7, spec 0030 AC-14): skeletons of the real layout, announced once as
 // "جارٍ التحميل". The hero's shape first, on the black hero surface: two headline lines, the
-// subline, the centre card, the dots, and the two buttons; then the circles and the trust cards.
+// subline, the centre card, the dots, and the two buttons; then the category cards with their grid
+// (spec 0031 AC-9) and the trust cards.
 export default async function HomeLoading() {
   const t = await getTranslations("Home");
   const block = "bg-sidebar-active";
@@ -31,12 +33,24 @@ export default async function HomeLoading() {
         </div>
       </div>
       <PageFrame width="wide" className="flex flex-col gap-8.5 pt-7.5 pb-8">
-        <div className="flex flex-col items-center gap-3 px-(--page-pad)">
-          <Skeleton className="h-7 w-44" />
-          <Skeleton className="h-4 w-64" />
-          <div className="flex gap-3.5 pt-3">
+        <div className="flex flex-col gap-3 px-(--page-pad)">
+          <Skeleton className="h-7 w-44 self-center" />
+          <div className="flex gap-3 overflow-hidden pt-3 md:justify-center md:gap-4">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} className="size-24 rounded-full" />
+              <Skeleton key={i} className="aspect-4/5 w-(--category-card) shrink-0 rounded-card" />
+            ))}
+          </div>
+          <Skeleton className="mt-3 h-6 w-32" />
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 lg:grid-cols-4 lg:gap-4">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton
+                key={i}
+                className={cn(
+                  "h-(--h-card-image) rounded-card",
+                  i >= 2 && "hidden md:block",
+                  i >= 3 && "md:hidden lg:block",
+                )}
+              />
             ))}
           </div>
         </div>

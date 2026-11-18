@@ -1,12 +1,13 @@
 import { Banknote, MessageCircle, Store, Truck, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { circleSubline, type HomeCircle } from "../home-rules";
-import { CategoryCircles, CircleShelf } from "./category-circles";
+import type { CardProduct } from "@/features/catalog/card-view";
+import type { HomeCategory } from "../home-rules";
+import { CategoryCards } from "./category-cards";
 import { sectionHeadingId } from "../section-ids";
 
-// Home's sections under the hero and the banners (spec 0011 AC-4, AC-6; pages/home.md layout 4,
-// 7). Each heading takes focus from "تسوّق الآن" (`tabIndex={-1}`), so it needs an id from
+// Home's sections under the hero and the banners (spec 0011 AC-6, spec 0031; pages/home.md layout
+// 4, 7). Each heading takes focus from "تسوّق الآن" (`tabIndex={-1}`), so it needs an id from
 // `sectionHeadingId`. The featured grid left with spec 0030: the picks are the hero coverflow.
 
 function SectionHeading({
@@ -23,24 +24,40 @@ function SectionHeading({
   );
 }
 
-/** "تسوّق حسب القسم": the circles and the first six names; hidden with no circle. */
-export function CategoriesSection({ circles }: { readonly circles: readonly HomeCircle[] }) {
+/**
+ * "تسوّق حسب القسم" (spec 0031 AC-1): the category cards and, under them, the selected category's
+ * products. The page leaves it out with no card.
+ */
+export function CategoriesSection({
+  categories,
+  first,
+  whatsappNumber,
+  siteUrl,
+  canAddToDraft,
+}: {
+  readonly categories: readonly HomeCategory[];
+  readonly first: readonly CardProduct[] | null;
+  readonly whatsappNumber: string;
+  readonly siteUrl: string;
+  readonly canAddToDraft: boolean;
+}) {
   const t = useTranslations("Home");
   return (
     <section
       id="categories"
       aria-labelledby={sectionHeadingId("categories")}
-      className="flex flex-col gap-1 pt-7.5 pb-2 text-center"
+      className="flex flex-col gap-1 pt-7.5 pb-2"
     >
-      <div className="flex flex-col gap-1 px-6 pb-5">
+      <div className="px-6 pb-2 text-center">
         <SectionHeading section="categories">{t("categoriesTitle")}</SectionHeading>
-        <p className="type-small text-muted">{circleSubline(circles)}</p>
       </div>
-      {/* The moving carousel on phones; from md a row with arrows (spec 0029 AC-13c). */}
-      <div className="md:hidden">
-        <CategoryCircles circles={circles} />
-      </div>
-      <CircleShelf circles={circles} className="hidden md:flex" />
+      <CategoryCards
+        categories={categories}
+        first={first}
+        whatsappNumber={whatsappNumber}
+        siteUrl={siteUrl}
+        canAddToDraft={canAddToDraft}
+      />
     </section>
   );
 }

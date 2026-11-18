@@ -16,8 +16,15 @@ import { categories, deliveryZones, featuredProducts, products } from "@/server/
 import type { Database, Transaction } from "@/server/db/types";
 import { withTimeLimit, type TimeLimitError } from "@/server/db/time-limit";
 import type { ZoneFee } from "../fees";
-import { bannerHref, buildHomeCircles, HOME_LIMITS, type HomeCircle } from "../home-rules";
+import {
+  bannerHref,
+  buildHomeCategories,
+  firstCategory,
+  HOME_LIMITS,
+  type HomeCategory,
+} from "../home-rules";
 import { readBannerRows } from "./banner-rows";
+import { homeCategoryIds, readHomeCategoryProducts } from "./category-products";
 
 // Home's reads (spec 0011 AC-7). Each part is read on its own under its own time limit, so a
 // failed or slow read hides only its own part. Public shop data only; hidden categories and
@@ -38,11 +45,14 @@ export type HomeBanner = {
 
 export type HomeSections = {
   readonly banners: readonly HomeBanner[] | null;
-  readonly circles: readonly HomeCircle[] | null;
+  /** The category cards (spec 0031 AC-2); the part keeps its spec 0011 name. */
+  readonly circles: readonly HomeCategory[] | null;
+  /** The first card's eight products (spec 0031 AC-6); null when its read failed or no card. */
+  readonly categoryProducts: readonly CardProduct[] | null;
   readonly featured: readonly CardProduct[] | null;
 };
 
-type Part = "banners" | "circles" | "featured" | "fees";
+type Part = "banners" | "circles" | "categoryProducts" | "featured" | "fees";
 
 /** Logs name the part and the error kind, never values (AC-7). */
 function logReadFailed(
@@ -92,21 +102,42 @@ export async function readHomeFeatured(db: Db): Promise<readonly CardProduct[]> 
   return picks.length ? picks : readHomeProducts(db);
 }
 
-/** Banners, circles, and featured products, read together; a part that fails is null. */
+/** The first card's eight (spec 0031 AC-6), read after the cards since it needs the tree. */
+async function readFirstCategoryProducts(
+  circles: readonly HomeCategory[] | null,
+): Promise<readonly CardProduct[] | null> {
+  const first = circles && firstCategory(circles);
+  if (!first) return null;
+  return timed(
+    "categoryProducts",
+    async () => {
+      const ids = homeCategoryIds(await loadCatalogTree(), first.slug);
+      return ids ? readHomeCategoryProducts(await getDb(), ids) : [];
+    },
+    HOME_PART_TIMEOUT_MS,
+  );
+}
+
+/**
+ * Banners, the category cards and the first card's products, and featured products, read
+ * together; a part that fails is null.
+ */
 export async function getHomeSections(): Promise<HomeSections> {
-  const [banners, circles, featured] = await Promise.all([
+  const circlesPart = timed(
+    "circles",
+    async () => {
+      const tree = await loadCatalogTree();
+      return buildHomeCategories(tree.categories, tree.listed);
+    },
+    HOME_PART_TIMEOUT_MS,
+  );
+  const [banners, circles, categoryProducts, featured] = await Promise.all([
     timed("banners", async () => readHomeBanners(await getDb()), HOME_PART_TIMEOUT_MS),
-    timed(
-      "circles",
-      async () => {
-        const tree = await loadCatalogTree();
-        return buildHomeCircles(tree.categories, tree.listed);
-      },
-      HOME_PART_TIMEOUT_MS,
-    ),
+    circlesPart,
+    circlesPart.then(readFirstCategoryProducts),
     timed("featured", async () => readHomeFeatured(await getDb()), HOME_PART_TIMEOUT_MS),
   ]);
-  return { banners, circles, featured };
+  return { banners, circles, categoryProducts, featured };
 }
 
 /** Active zones in `sort, name` order, the same rows and order as checkout (AC-6). */

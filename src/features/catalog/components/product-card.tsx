@@ -38,8 +38,8 @@ export function ProductCard({
   readonly id?: string;
   readonly whatsappNumber: string;
   readonly siteUrl: string;
-  /** `h3` under a section heading. */
-  readonly heading?: "h2" | "h3";
+  /** `h3` under a section heading; `h4` under Home's category grid heading. */
+  readonly heading?: "h2" | "h3" | "h4";
   /** The visitor is an electrician (spec 0021 AC-1); read per request by the page. */
   readonly canAddToDraft?: boolean;
 }) {

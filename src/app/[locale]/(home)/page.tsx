@@ -13,6 +13,7 @@ import { BannerCarousel } from "@/features/home/components/banner-carousel";
 import { HeroCard } from "@/features/home/components/hero-card";
 import { HeroCoverflow } from "@/features/home/components/hero-coverflow";
 import { CategoriesSection, TrustSection } from "@/features/home/components/home-sections";
+import { canAddToDraft } from "@/features/drafts/server/guard";
 import { buildZoneLine } from "@/features/home/fees";
 import { heroChoice, shopNowTarget } from "@/features/home/home-rules";
 import { getDeliveryFees, getHomeSections } from "@/features/home/server/home";
@@ -41,27 +42,30 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Home (spec 0030 AC-1): the hero (the product coverflow, or the fallback card with no products),
-// the banners under it when any is on, the category circles, and the trust cards, inside the shop
+// the banners under it when any is on, the category cards with the selected category's products
+// (spec 0031), and the trust cards, inside the shop
 // layout's strip, header, and footer. Every part is read together and stands alone: a part whose
 // read failed is null and only that part is gone (spec 0011 AC-7). The hero owns the page's one
 // `h1`. The coverflow renders outside the page frame so its black band reaches both screen edges
 // from md; the fallback card keeps the content width inside the frame.
 export default async function HomePage() {
-  const [meta, seo, sections, fees, address, contact, whatsappNumber] = await Promise.all([
-    getTranslations("Metadata"),
-    getTranslations("Seo"),
-    getHomeSections(),
-    getDeliveryFees(),
-    getShopAddress(),
-    getShopContact(),
-    getWhatsappNumber(),
-  ]);
+  const [meta, seo, sections, fees, address, contact, whatsappNumber, draftButtons] =
+    await Promise.all([
+      getTranslations("Metadata"),
+      getTranslations("Seo"),
+      getHomeSections(),
+      getDeliveryFees(),
+      getShopAddress(),
+      getShopContact(),
+      getWhatsappNumber(),
+      canAddToDraft(),
+    ]);
   const { siteUrl } = parsePublicEnv();
   const banners = sections.banners ?? [];
-  const circles = sections.circles ?? [];
+  const categories = sections.circles ?? [];
   const featured = sections.featured ?? [];
   const hero = heroChoice(sections.featured);
-  const jumpTo = shopNowTarget(circles.length);
+  const jumpTo = shopNowTarget(categories.length);
   // The `Store` block for local search (spec 0026 AC-9), from the same cached contact read.
   const store = storeFromContact(contact, {
     siteUrl,
@@ -88,7 +92,15 @@ export default async function HomePage() {
             <BannerCarousel banners={banners} />
           </div>
         ) : null}
-        {circles.length ? <CategoriesSection circles={circles} /> : null}
+        {categories.length ? (
+          <CategoriesSection
+            categories={categories}
+            first={sections.categoryProducts}
+            whatsappNumber={whatsappNumber}
+            siteUrl={siteUrl}
+            canAddToDraft={draftButtons}
+          />
+        ) : null}
         <TrustSection zoneLine={buildZoneLine(fees)} address={address} />
       </PageFrame>
     </>

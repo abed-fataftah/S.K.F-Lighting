@@ -1,6 +1,7 @@
-// The homepage rules (spec 0011): the caps, the live link rule, the category circles and their
-// lines, the featured badges, and the save plans. Pure, so Home, the editor, the actions, and the
-// tests all share one answer.
+// The homepage rules (spec 0011): the caps, the live link rule, the category cards and their
+// lines (spec 0031), the featured badges, and the save plans. Pure, so Home, the editor, the
+// actions, and the tests all share one answer.
+import type { CardProduct } from "@/features/catalog/card-view";
 import {
   buildNavigation,
   isCategoryShown,
@@ -15,10 +16,8 @@ export const HOME_LIMITS = {
   maxActiveBanners: 5,
   /** Featured picks (AC-12). */
   maxFeatured: 8,
-  /** Circles at or above this count form the carousel; a single circle shows alone (AC-4). */
-  carouselFrom: 2,
-  /** Circle names the section subline lists (AC-4). */
-  sublineNames: 6,
+  /** Products the category cards' grid shows for the selected category (spec 0031 AC-6). */
+  categoryProducts: 8,
 } as const;
 
 // ---- Banner links (AC-10) --------------------------------------------------------------------
@@ -61,7 +60,7 @@ export function bannerHref(target: BannerTarget | null): string | null {
   return target && isTargetLive(target) ? targetHref(target) : null;
 }
 
-// ---- Category circles (AC-4) -----------------------------------------------------------------
+// ---- Category cards (spec 0031 AC-2) ---------------------------------------------------------
 
 export type HomeCategoryRow = NavCategory & {
   readonly showOnHome: boolean;
@@ -69,7 +68,7 @@ export type HomeCategoryRow = NavCategory & {
   readonly imageKey: string | null;
 };
 
-export type HomeCircle = {
+export type HomeCategory = {
   readonly slug: string;
   readonly name: string;
   readonly imageKey: string | null;
@@ -86,13 +85,14 @@ export function joinSubNames(names: readonly string[]): string | null {
 }
 
 /**
- * The circles: the mains the menu lists (shown, with a listed product), ticked for Home, in
- * category order. The line is the owner's, else built from the main's menu subs.
+ * The cards: the mains the menu lists (shown, with a listed product), ticked for Home, in category
+ * order. The line is the owner's, else built from the main's menu subs. The route that answers a
+ * card's products checks against this same list (spec 0031 AC-7).
  */
-export function buildHomeCircles(
+export function buildHomeCategories(
   rows: readonly HomeCategoryRow[],
   listed: ReadonlyMap<string, number>,
-): readonly HomeCircle[] {
+): readonly HomeCategory[] {
   const bySlug = new Map(rows.map((row) => [row.slug, row]));
   return buildNavigation(rows, listed).flatMap((main) => {
     const row = bySlug.get(main.slug);
@@ -121,30 +121,119 @@ export function builtCircleLines(
   );
 }
 
-/** The section subline: the first six circle names. */
-export function circleSubline(circles: readonly HomeCircle[]): string {
-  return circles
-    .slice(0, HOME_LIMITS.sublineNames)
-    .map((circle) => circle.name)
-    .join("، ");
-}
-
 /**
- * Where circle `index` sits in the carousel while circle `centre` is in the middle: its signed
- * steps from the centre, positive toward the inline end. The far half wraps to the start side, so
- * with 2 circles the other one always waits on the end side and with 3 one sits on each side.
+ * Where card `index` sits in the hero coverflow (spec 0030) while card `centre` is in the middle:
+ * its signed steps from the centre, positive toward the inline end. The far half wraps to the start
+ * side, so with 2 cards the other one always waits on the end side and with 3 one sits on each side.
  */
 export function circleSteps(index: number, centre: number, count: number): number {
   const raw = (((index - centre) % count) + count) % count;
   return raw > count / 2 ? raw - count : raw;
 }
 
-/** A step that moves a circle from one side of the centre to the other: it fades across (AC-4). */
+/** A coverflow step that moves a card from one side of the centre to the other: it fades across
+ * (spec 0030 AC-7). */
 export const changesSide = (before: number, after: number): boolean => before * after < 0;
 
-/** Where "تسوّق الآن" goes: the circles, else nowhere (hidden) (spec 0030 AC-3, AC-11). */
-export function shopNowTarget(circleCount: number): "categories" | null {
-  return circleCount > 0 ? "categories" : null;
+/** Where "تسوّق الآن" goes: the category cards, else nowhere (hidden) (spec 0030 AC-3, AC-11). */
+export function shopNowTarget(categoryCount: number): "categories" | null {
+  return categoryCount > 0 ? "categories" : null;
+}
+
+/** The card selected when Home opens: the first in the owner's order; null with none (AC-2). */
+export function firstCategory(categories: readonly HomeCategory[]): HomeCategory | null {
+  return categories[0] ?? null;
+}
+
+/**
+ * Which way card `index` turns at rest while card `selected` is pressed (AC-5): -1, 0, or 1, the
+ * sign of its `rotateY`. Only the cards in the selected card's own visual row turn (`perRow` cards
+ * a row; on a phone the whole list is one row); they face it, as the coverflow's side cards face
+ * the centre: a card on the physical right gets a negative angle, one on the physical left a
+ * positive one. `dir` is 1 in left to right and -1 in right to left. The component passes 1 and
+ * lets the CSS multiply by `--cf-dir`, so the server markup is right in both directions.
+ */
+export function categoryTurn(
+  index: number,
+  selected: number,
+  perRow: number,
+  dir: Dir,
+): -1 | 0 | 1 {
+  const row = Math.max(1, perRow);
+  if (index === selected || Math.floor(index / row) !== Math.floor(selected / row)) return 0;
+  return dir * Math.sign(index - selected) > 0 ? -1 : 1;
+}
+
+/**
+ * The card a key selects (AC-3): the left arrow the card on the physical left, the right arrow the
+ * one on the physical right (the rule of `stepForKey`), Home the first, End the last, wrapping at
+ * the ends. Null for any other key.
+ */
+export function indexForKey(key: string, index: number, count: number, dir: Dir): number | null {
+  if (count < 1) return null;
+  const wrap = (at: number) => ((at % count) + count) % count;
+  if (key === "ArrowLeft") return wrap(index - dir);
+  if (key === "ArrowRight") return wrap(index + dir);
+  if (key === "Home") return 0;
+  if (key === "End") return count - 1;
+  return null;
+}
+
+// ---- The category grid's cache (spec 0031 AC-7, AC-8) ------------------------------------------
+
+/** What the page knows of one category's eight products. */
+export type CategoryEntry =
+  | { readonly kind: "ready"; readonly products: readonly CardProduct[] }
+  | { readonly kind: "loading" }
+  | { readonly kind: "failed" };
+
+export type CategoryCache = ReadonlyMap<string, CategoryEntry>;
+
+export type CategoryCacheAction =
+  | { readonly type: "start"; readonly slug: string }
+  | { readonly type: "done"; readonly slug: string; readonly products: readonly CardProduct[] }
+  | { readonly type: "fail"; readonly slug: string };
+
+/** The seed: the page's own eight for the first category, or a failed entry when that read failed. */
+export function seedCategoryCache(
+  first: HomeCategory | null,
+  products: readonly CardProduct[] | null,
+): CategoryCache {
+  if (!first) return new Map();
+  const entry: CategoryEntry = products ? { kind: "ready", products } : { kind: "failed" };
+  return new Map([[first.slug, entry]]);
+}
+
+/** A category is fetched when nothing is known of it, or its last fetch failed (a retry). */
+export const needsFetch = (entry: CategoryEntry | undefined): boolean =>
+  entry === undefined || entry.kind === "failed";
+
+/**
+ * One answer per slug for the component's lifetime: a ready entry never changes; a fetch starts
+ * only for an unknown or failed slug; an answer is stored whether or not its card is still the
+ * selected one (the panel reads the selected slug only, so a late answer never replaces it).
+ */
+export function categoryCacheReducer(
+  cache: CategoryCache,
+  action: CategoryCacheAction,
+): CategoryCache {
+  const entry = cache.get(action.slug);
+  if (entry?.kind === "ready") return cache;
+  if (action.type === "start" && !needsFetch(entry)) return cache;
+  const next: CategoryEntry =
+    action.type === "done"
+      ? { kind: "ready", products: action.products }
+      : { kind: action.type === "start" ? "loading" : "failed" };
+  return new Map(cache).set(action.slug, next);
+}
+
+/** What the panel shows for the selected category (AC-6, AC-7, AC-8). */
+export function categoryPanelState(
+  entry: CategoryEntry | undefined,
+): "grid" | "skeleton" | "notice" | "empty" {
+  if (entry === undefined || entry.kind === "loading") return "skeleton";
+  if (entry.kind === "failed") return "notice";
+  return entry.products.length ? "grid" : "empty";
 }
 
 // ---- Hero coverflow (spec 0030) ----------------------------------------------------------------

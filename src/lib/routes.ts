@@ -114,10 +114,13 @@ export const routes = {
       slug
     ],
   designSystem: "/design-system",
-  /** Route handlers outside the catalog's public reads. */
+  /** Route handlers fetched from the browser. */
   api: {
     /** The quick order product search (spec 0020 AC-7). */
     quickOrderProducts: (q: string) => `/api/quick-order/products?q=${encodeURIComponent(q)}`,
+    /** The eight products of a Home category card (spec 0031 AC-7). */
+    homeCategoryProducts: (category: string) =>
+      `/api/catalog/home-products?category=${encodeURIComponent(category)}`,
   },
   /** Outside locale routing, like the dashboard (spec 0017 AC-8). */
   auth: { confirm: "/auth/confirm" },
