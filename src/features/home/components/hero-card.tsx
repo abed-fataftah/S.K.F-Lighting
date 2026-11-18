@@ -5,17 +5,18 @@ import { whatsappUrl } from "@/lib/whatsapp";
 import { HeroChandelier } from "./hero-chandelier";
 import { SectionJump } from "./section-jump";
 
-// The hero card (spec 0011 AC-3; pages/home.md layout 3): shown when no banner is on. Black,
-// radius 20, the chandelier hanging from the top edge on the physical left (the inline end in
-// right to left), the page's one `h1`, and the two buttons. "تسوّق الآن" goes to the circles, or
-// to the featured products when there are none, and is hidden when both are. From md it spans
-// the content width, the words at the start and the chandelier at the end (spec 0029 AC-13a).
+// The hero card (spec 0011 AC-3; pages/home.md layout 3): the fallback hero, shown when there
+// are no products for the coverflow (spec 0030 AC-11). Black, radius 20, the chandelier hanging
+// from the top edge on the physical left (the inline end in right to left), the page's one `h1`,
+// and the two buttons. "تسوّق الآن" goes to the circles and is hidden when there are none. From
+// md it spans the content width, the words at the start and the chandelier at the end (spec 0029
+// AC-13a).
 export function HeroCard({
   whatsappNumber,
   jumpTo,
 }: {
   readonly whatsappNumber: string;
-  readonly jumpTo: "categories" | "featured" | null;
+  readonly jumpTo: "categories" | null;
 }) {
   const t = useTranslations("Home");
   const shell = useTranslations("Shell");

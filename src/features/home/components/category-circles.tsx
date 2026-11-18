@@ -12,6 +12,7 @@ import {
   type CSSProperties,
   type PointerEvent,
 } from "react";
+import { tokenEasing, tokenMs, useReducedMotion } from "../motion";
 import { ChevronBack, ChevronNext } from "@/components/icons/directional";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -34,23 +35,6 @@ const OFFSETS = (() => {
   const far = near + (SIZE * SCALES[1]) / 2 + GAP + (SIZE * SCALES[2]) / 2;
   return [0, near, far, far + (SIZE * SCALES[2]) / 2 + GAP + 30] as const;
 })();
-
-const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-
-function subscribeReducedMotion(onChange: () => void) {
-  const query = window.matchMedia(reducedMotionQuery);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-/** True under `prefers-reduced-motion: reduce`; true on the server, so nothing moves before it knows. */
-function useReducedMotion() {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia(reducedMotionQuery).matches,
-    () => true,
-  );
-}
 
 const phoneQuery = "(width < 48rem)";
 
@@ -125,12 +109,6 @@ function placed(steps: number, end: 1 | -1) {
   };
 }
 
-/** A CSS time token ("0.7s" or "700ms") in milliseconds. */
-function tokenMs(element: Element, token: string) {
-  const value = getComputedStyle(element).getPropertyValue(token).trim();
-  return value.endsWith("ms") ? parseFloat(value) : parseFloat(value) * 1000;
-}
-
 /**
  * Two or more circles (AC-4; pages/home.md interactions 1 to 3): loops, and moves on by itself
  * every 3.5 seconds until the first touch or any focus inside, never under reduced motion. The
@@ -186,7 +164,7 @@ function CircleCarousel({ circles }: { readonly circles: readonly HomeCircle[] }
         ],
         {
           duration: tokenMs(item, "--dur-carousel-move"),
-          easing: getComputedStyle(item).getPropertyValue("--ease-carousel").trim() || "ease",
+          easing: tokenEasing(item),
         },
       );
     });

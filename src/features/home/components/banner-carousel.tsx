@@ -10,9 +10,8 @@ import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { HomeBanner } from "../server/home";
 
-// Its width at each breakpoint (spec 0029 AC-20).
-const SIZES =
-  "(min-width: 1024px) 830px, (min-width: 768px) 720px, (min-width: 480px) 448px, 100vw";
+// Its width at each breakpoint (spec 0029 AC-20; at most 720 from md, spec 0030 AC-12).
+const SIZES = "(min-width: 768px) 720px, (min-width: 480px) 448px, 100vw";
 
 function BannerPicture({
   banner,

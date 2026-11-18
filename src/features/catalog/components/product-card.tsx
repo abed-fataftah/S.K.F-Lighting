@@ -38,7 +38,7 @@ export function ProductCard({
   readonly id?: string;
   readonly whatsappNumber: string;
   readonly siteUrl: string;
-  /** `h3` under a section heading (Home's featured products, spec 0011 AC-5). */
+  /** `h3` under a section heading. */
   readonly heading?: "h2" | "h3";
   /** The visitor is an electrician (spec 0021 AC-1); read per request by the page. */
   readonly canAddToDraft?: boolean;

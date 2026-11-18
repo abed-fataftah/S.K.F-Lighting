@@ -164,6 +164,7 @@
   --fab-bottom: 84px; /* WhatsApp float offset above the bottom; 24px from lg (spec 0029) */
   --fab-inset: 14px; /* WhatsApp float distance from the screen's end edge; 24px from md (spec 0029) */
   --w-sheet: 320px; /* menu sheet width (capped at 85vw where used) */
+  --coverflow-card: 220px; /* Home hero coverflow centre card width; 260px from md, 300px from lg (spec 0030) */
 }
 
 /* Tablet (md, 48rem) and desktop (lg, 64rem) values (spec 0029). Below md every value above holds. */
@@ -171,12 +172,14 @@
   :root {
     --page-pad: 24px;
     --fab-inset: 24px;
+    --coverflow-card: 260px;
   }
 }
 @media (width >= 64rem) {
   :root {
     --page-pad: 32px;
     --fab-bottom: 24px;
+    --coverflow-card: 300px;
   }
 }
 
@@ -270,6 +273,7 @@
   --dur-sheet: 0.2s; /* menu sheet slide (added in spec 0003) */
   --dur-hover: 0.2s; /* hover and focus colour, underline, and photo zoom (spec 0029) */
   --dur-sway: 6s; /* hero chandelier sway, one full swing (spec 0029) */
+  --coverflow-depth: 1000px; /* perspective of the Home hero coverflow, so side cards read as turned (spec 0030) */
 }
 @media (prefers-reduced-motion: reduce) {
   :root {

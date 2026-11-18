@@ -1,16 +1,13 @@
 import { Banknote, MessageCircle, Store, Truck, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import type { CardProduct } from "@/features/catalog/card-view";
-import { ProductCard } from "@/features/catalog/components/product-card";
-import { Link } from "@/i18n/navigation";
-import { routes } from "@/lib/routes";
 import { circleSubline, type HomeCircle } from "../home-rules";
 import { CategoryCircles, CircleShelf } from "./category-circles";
 import { sectionHeadingId } from "../section-ids";
 
-// Home's sections under the banners (spec 0011 AC-4 to AC-6; pages/home.md layout 4, 6, 7). Each
-// heading takes focus from "تسوّق الآن" (`tabIndex={-1}`), so it needs an id from `sectionHeadingId`.
+// Home's sections under the hero and the banners (spec 0011 AC-4, AC-6; pages/home.md layout 4,
+// 7). Each heading takes focus from "تسوّق الآن" (`tabIndex={-1}`), so it needs an id from
+// `sectionHeadingId`. The featured grid left with spec 0030: the picks are the hero coverflow.
 
 function SectionHeading({
   section,
@@ -44,56 +41,6 @@ export function CategoriesSection({ circles }: { readonly circles: readonly Home
         <CategoryCircles circles={circles} />
       </div>
       <CircleShelf circles={circles} className="hidden md:flex" />
-    </section>
-  );
-}
-
-/** "منتجات مختارة": the picks or the newest products, two per row (AC-5). */
-export function FeaturedSection({
-  products,
-  whatsappNumber,
-  siteUrl,
-  canAddToDraft,
-}: {
-  readonly products: readonly CardProduct[];
-  readonly whatsappNumber: string;
-  readonly siteUrl: string;
-  /** Electricians get "add to draft" on each card (spec 0021 AC-1). */
-  readonly canAddToDraft: boolean;
-}) {
-  const t = useTranslations("Home");
-  return (
-    <section
-      id="featured"
-      aria-labelledby={sectionHeadingId("featured")}
-      className="flex flex-col gap-3 px-(--page-pad) pt-8.5"
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <SectionHeading section="featured">{t("featuredTitle")}</SectionHeading>
-        <Link
-          href={routes.categories}
-          className="inline-flex min-h-11 items-center type-small text-muted underline decoration-1 underline-offset-4 transition-colors duration-(--dur-hover) hover:text-ink hover:decoration-yellow hover:decoration-2"
-        >
-          {t("viewAll")}
-        </Link>
-      </div>
-      <ul
-        className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 lg:grid-cols-4 lg:gap-4"
-        data-testid="home-products"
-      >
-        {products.map((product, index) => (
-          <li key={product.slug} className="flex">
-            <ProductCard
-              product={product}
-              index={index}
-              whatsappNumber={whatsappNumber}
-              siteUrl={siteUrl}
-              heading="h3"
-              canAddToDraft={canAddToDraft}
-            />
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

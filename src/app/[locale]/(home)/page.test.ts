@@ -3,11 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CardProduct } from "@/features/catalog/card-view";
 import { BannerCarousel } from "@/features/home/components/banner-carousel";
 import { HeroCard } from "@/features/home/components/hero-card";
-import {
-  CategoriesSection,
-  FeaturedSection,
-  TrustSection,
-} from "@/features/home/components/home-sections";
+import { HeroCoverflow } from "@/features/home/components/hero-coverflow";
+import { CategoriesSection, TrustSection } from "@/features/home/components/home-sections";
 import type { ZoneFee } from "@/features/home/fees";
 import type { HomeCircle } from "@/features/home/home-rules";
 import type { HomeSections } from "@/features/home/server/home";
@@ -20,7 +17,6 @@ const getHomeSections = vi.fn<() => Promise<HomeSections>>();
 const getDeliveryFees = vi.fn<() => Promise<readonly ZoneFee[] | null>>();
 const getShopAddress = vi.fn<() => Promise<string | null>>();
 vi.mock("@/features/home/server/home", () => ({ getHomeSections, getDeliveryFees }));
-const canAddToDraft = vi.fn<() => Promise<boolean>>(async () => false);
 const getShopContact = vi.fn<() => Promise<ShopContact>>(async () => noContact);
 vi.mock("@/features/shell/server/shop-contact", () => ({
   getShopAddress,
@@ -28,7 +24,6 @@ vi.mock("@/features/shell/server/shop-contact", () => ({
   getWhatsappNumber: async () => "970500000000",
   pickWhatsappNumber: (saved: string | null) => saved || "970500000000",
 }));
-vi.mock("@/features/drafts/server/guard", () => ({ canAddToDraft }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 
@@ -47,7 +42,6 @@ type Props = {
   banners?: unknown;
   circles?: unknown;
   products?: unknown;
-  canAddToDraft?: boolean;
   zoneLine?: string | null;
   address?: string | null;
 };
@@ -83,36 +77,60 @@ function answer(sections: Partial<HomeSections>, fees: readonly ZoneFee[] | null
   getShopAddress.mockResolvedValue(null);
 }
 
-// covers: AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7 (spec 0011)
+// covers: AC-1, AC-2, AC-11, AC-12 (spec 0030); AC-6, AC-7 (spec 0011)
 describe("home page", () => {
   afterEach(() => vi.clearAllMocks());
 
-  it("shows the hero with the page's only h1 when no banner is on", async () => {
-    answer({ circles: [circle("lamps")], featured: [card(1)] });
+  const h1s = (page: ReactNode) => findAll(page, (el) => el.type === "h1");
+
+  it("shows the coverflow hero with the picks, which owns the page's one h1", async () => {
+    answer({ circles: [circle("lamps")], featured: [card(1), card(2)] });
 
     const page = await HomePage();
 
-    expect(find(page, HeroCard)?.props.jumpTo).toBe("categories");
+    const hero = find(page, HeroCoverflow);
+    expect(hero?.props.products).toHaveLength(2);
+    expect(hero?.props.jumpTo).toBe("categories");
+    expect(find(page, HeroCard)).toBeNull();
     expect(find(page, BannerCarousel)).toBeNull();
-    expect(findAll(page, (el) => el.type === "h1")).toEqual([]);
+    expect(h1s(page)).toEqual([]);
   });
 
-  it("shows the banners and a hidden h1 with the shop's name instead of the hero", async () => {
-    answer({ banners: [banner] });
+  it("keeps the hero above the banners when a banner is on, with no hidden h1", async () => {
+    answer({ banners: [banner], featured: [card(1)] });
 
     const page = await HomePage();
 
     expect(find(page, BannerCarousel)?.props.banners).toEqual([banner]);
-    expect(find(page, HeroCard)).toBeNull();
-    const [heading] = findAll(page, (el) => el.type === "h1");
-    expect(heading.props.children).toBe(ar.Home.title);
-    expect(heading.props.className).toBe("sr-only");
+    expect(find(page, HeroCoverflow)).not.toBeNull();
+    expect(h1s(page)).toEqual([]);
+    const order = findAll(
+      page,
+      (el) => el.type === HeroCoverflow || el.type === BannerCarousel,
+    ).map((el) => el.type);
+    expect(order).toEqual([HeroCoverflow, BannerCarousel]);
   });
 
-  it("falls back to the hero when the banner read failed", async () => {
-    answer({ banners: null });
+  it("shows the fallback card with no products, or when the featured read failed", async () => {
+    answer({ circles: [circle("lamps")], featured: [] });
+    const empty = await HomePage();
+    expect(find(empty, HeroCard)?.props.jumpTo).toBe("categories");
+    expect(find(empty, HeroCoverflow)).toBeNull();
 
-    expect(find(await HomePage(), HeroCard)).not.toBeNull();
+    answer({ featured: null });
+    const failed = await HomePage();
+    expect(find(failed, HeroCard)).not.toBeNull();
+    expect(find(failed, HeroCoverflow)).toBeNull();
+    expect(h1s(failed)).toEqual([]);
+  });
+
+  it("keeps the coverflow and drops only the banners when the banner read failed", async () => {
+    answer({ banners: null, featured: [card(1)] });
+
+    const page = await HomePage();
+
+    expect(find(page, HeroCoverflow)).not.toBeNull();
+    expect(find(page, BannerCarousel)).toBeNull();
   });
 
   it("hides only the parts whose read failed or came back empty", async () => {
@@ -121,25 +139,14 @@ describe("home page", () => {
     const page = await HomePage();
 
     expect(find(page, CategoriesSection)).toBeNull();
-    expect(find(page, FeaturedSection)?.props.products).toHaveLength(2);
-    expect(find(page, HeroCard)?.props.jumpTo).toBe("featured");
+    expect(find(page, HeroCoverflow)?.props.jumpTo).toBeNull();
     expect(find(page, TrustSection)).not.toBeNull();
   });
 
-  it("hides the shop now button when there are neither circles nor products", async () => {
+  it("hides the shop now button when there are no circles", async () => {
     answer({ circles: [], featured: null });
 
-    const page = await HomePage();
-
-    expect(find(page, FeaturedSection)).toBeNull();
-    expect(find(page, HeroCard)?.props.jumpTo).toBeNull();
-  });
-
-  it("offers add to draft on the cards only to electricians (spec 0021 AC-1)", async () => {
-    answer({ featured: [card(1)] });
-    expect(find(await HomePage(), FeaturedSection)?.props.canAddToDraft).toBe(false);
-    canAddToDraft.mockResolvedValueOnce(true);
-    expect(find(await HomePage(), FeaturedSection)?.props.canAddToDraft).toBe(true);
+    expect(find(await HomePage(), HeroCard)?.props.jumpTo).toBeNull();
   });
 
   it("gives the delivery card the zone line and the pickup card the address", async () => {

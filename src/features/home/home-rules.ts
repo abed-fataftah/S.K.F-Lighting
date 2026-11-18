@@ -142,13 +142,117 @@ export function circleSteps(index: number, centre: number, count: number): numbe
 /** A step that moves a circle from one side of the centre to the other: it fades across (AC-4). */
 export const changesSide = (before: number, after: number): boolean => before * after < 0;
 
-/** Where "تسوّق الآن" goes: the circles, else the featured products, else nowhere (hidden). */
-export function shopNowTarget(
-  circleCount: number,
-  featuredCount: number,
-): "categories" | "featured" | null {
-  if (circleCount > 0) return "categories";
-  return featuredCount > 0 ? "featured" : null;
+/** Where "تسوّق الآن" goes: the circles, else nowhere (hidden) (spec 0030 AC-3, AC-11). */
+export function shopNowTarget(circleCount: number): "categories" | null {
+  return circleCount > 0 ? "categories" : null;
+}
+
+// ---- Hero coverflow (spec 0030) ----------------------------------------------------------------
+
+/** The hero: the coverflow with one or more products, else the fallback card (AC-2, AC-11). */
+export function heroChoice(featured: readonly unknown[] | null): "coverflow" | "card" {
+  return featured && featured.length > 0 ? "coverflow" : "card";
+}
+
+/** How many neighbours show on each side: one below lg, two from lg (AC-4). */
+export type CoverflowVisible = 1 | 2;
+
+/** +1 in left to right, -1 in right to left: the physical direction of the inline end. */
+export type Dir = 1 | -1;
+
+// The geometry table of spec 0030 (Feature design), by steps away from the centre. The last entry
+// is the "next out" place, where a card waits hidden and slides in from; anything further sits
+// there too. The 0.80 offset at md is folded into 0.78 (within the 10% tuning the spec allows).
+const COVERFLOW = {
+  1: {
+    offset: [0, 0.78, 1.4],
+    scale: [1, 0.74, 0.56],
+    angle: [0, 35, 45],
+    opacity: [1, 0.75, 0],
+    tint: [0, 0.3, 0.5],
+  },
+  2: {
+    offset: [0, 0.82, 1.4, 1.9],
+    scale: [1, 0.74, 0.56, 0.42],
+    angle: [0, 35, 45, 50],
+    opacity: [1, 0.75, 0.5, 0],
+    tint: [0, 0.3, 0.5, 0.5],
+  },
+} as const;
+
+export type CoverflowPlacement = {
+  /** The move along the line as a multiple of the card width, positive toward the physical right. */
+  readonly x: number;
+  /** `rotateY` in degrees; the minus turns a card's inner edge back so it faces the centre. */
+  readonly angle: number;
+  readonly scale: number;
+  readonly opacity: number;
+  /** The black overlay's opacity. */
+  readonly tint: number;
+  /** Falls by one per step away, so nearer cards stack above. */
+  readonly z: number;
+  /** Beyond the visible neighbours: at the next out place, invisible and untouchable. */
+  readonly hidden: boolean;
+};
+
+/**
+ * Where a card `steps` from the centre sits (AC-4). `dir` turns the inline steps into a physical
+ * side: with `dir` 1 the values are "toward the inline end" and the CSS multiplies by the
+ * direction; with the real `dir` they are physical, for the crossing fade keyframes.
+ */
+export function coverflowPlacement(
+  steps: number,
+  visible: CoverflowVisible,
+  dir: Dir,
+): CoverflowPlacement {
+  const geometry = COVERFLOW[visible];
+  const away = Math.min(Math.abs(steps), visible + 1);
+  const side = dir * Math.sign(steps);
+  // `|| 0` turns the centre's -0 (a zero side) into a plain 0.
+  return {
+    x: side * geometry.offset[away] || 0,
+    angle: -side * geometry.angle[away] || 0,
+    scale: geometry.scale[away],
+    opacity: geometry.opacity[away],
+    tint: geometry.tint[away],
+    z: 10 - away,
+    hidden: away > visible,
+  };
+}
+
+export type KeyPress = {
+  readonly key: string;
+  readonly ctrlKey: boolean;
+  readonly altKey: boolean;
+  readonly metaKey: boolean;
+  readonly shiftKey: boolean;
+};
+
+/**
+ * The step an arrow key makes (AC-6): the left key brings the card on the physical left to the
+ * centre, the right key the card on the physical right, in both directions. A key with a modifier
+ * is the browser's. Null is no step.
+ */
+export function stepForKey(press: KeyPress, dir: Dir): 1 | -1 | null {
+  if (press.ctrlKey || press.altKey || press.metaKey || press.shiftKey) return null;
+  // The physical left card is the inline start in left to right (-1), the inline end in right to left.
+  if (press.key === "ArrowLeft") return dir === 1 ? -1 : 1;
+  if (press.key === "ArrowRight") return dir;
+  return null;
+}
+
+export const COVERFLOW_SWIPE = {
+  /** A pointer move this far sideways (and more sideways than up and down) is a swipe (AC-6). */
+  step: 40,
+  /** A move this far sideways cancels the click that follows, so a drag never opens or taps. */
+  tap: 10,
+} as const;
+
+/** The step a pointer move makes: the cards follow the finger, so a move to the right brings the
+ * physical left card in. 0 is no step (too short, or more up and down than sideways). */
+export function swipeStep(dx: number, dy: number, dir: Dir): 1 | -1 | 0 {
+  if (Math.abs(dx) < COVERFLOW_SWIPE.step || Math.abs(dx) <= Math.abs(dy)) return 0;
+  return dx > 0 ? (dir === 1 ? -1 : 1) : dir;
 }
 
 // ---- Featured products (AC-5, AC-8) ----------------------------------------------------------

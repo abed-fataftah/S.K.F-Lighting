@@ -12,7 +12,7 @@ export function SectionJump({
   className,
   children,
 }: {
-  readonly section: "categories" | "featured";
+  readonly section: "categories";
   readonly className?: string;
   readonly children: ReactNode;
 }) {

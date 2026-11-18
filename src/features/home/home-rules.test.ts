@@ -6,14 +6,19 @@ import {
   changesSide,
   circleSteps,
   circleSubline,
+  COVERFLOW_SWIPE,
+  coverflowPlacement,
   HOME_LIMITS,
   featuredBadge,
+  heroChoice,
   isStale,
   isTargetLive,
   joinSubNames,
   planHomepageSave,
   planNewBanner,
   shopNowTarget,
+  stepForKey,
+  swipeStep,
   targetLabel,
   type BannerTarget,
   type HomeCategoryRow,
@@ -145,10 +150,136 @@ describe("the circle carousel", () => {
 });
 
 describe("shopNowTarget", () => {
-  it("goes to the circles, else the featured products, else nowhere", () => {
-    expect(shopNowTarget(3, 2)).toBe("categories");
-    expect(shopNowTarget(0, 2)).toBe("featured");
-    expect(shopNowTarget(0, 0)).toBeNull();
+  it("goes to the circles, else nowhere (spec 0030 AC-3)", () => {
+    expect(shopNowTarget(3)).toBe("categories");
+    expect(shopNowTarget(0)).toBeNull();
+  });
+});
+
+// covers: AC-2, AC-4, AC-6, AC-7, AC-9, AC-11 (spec 0030)
+describe("the hero coverflow", () => {
+  const sides = (centre: number, count: number) =>
+    Array.from({ length: count }, (_, index) => circleSteps(index, centre, count));
+
+  it("shows the coverflow with one or more products, else the fallback card", () => {
+    expect(heroChoice([{}])).toBe("coverflow");
+    expect(heroChoice([])).toBe("card");
+    expect(heroChoice(null)).toBe("card");
+  });
+
+  it("places 1, 2, 3, and 8 products by their signed steps from the centre", () => {
+    expect(sides(0, 1)).toEqual([0]);
+    // Two: the other one waits on the inline end side and each step swaps them.
+    expect(sides(0, 2)).toEqual([0, 1]);
+    expect(sides(1, 2)).toEqual([1, 0]);
+    expect(sides(1, 3)).toEqual([-1, 0, 1]);
+    expect(sides(0, 8)).toEqual([0, 1, 2, 3, 4, -3, -2, -1]);
+    expect(sides(5, 8)).toEqual([3, 4, -3, -2, -1, 0, 1, 2]);
+  });
+
+  it("gives the centre card full size, facing, top of the stack", () => {
+    expect(coverflowPlacement(0, 1, -1)).toEqual({
+      x: 0,
+      angle: 0,
+      scale: 1,
+      opacity: 1,
+      tint: 0,
+      z: 10,
+      hidden: false,
+    });
+  });
+
+  it("turns a neighbour toward the centre, smaller and tinted, below lg", () => {
+    // One step toward the inline end, the physical right in left to right: moved right, its
+    // inner (left) edge back, so a negative rotateY.
+    expect(coverflowPlacement(1, 1, 1)).toEqual({
+      x: 0.78,
+      angle: -35,
+      scale: 0.74,
+      opacity: 0.75,
+      tint: 0.3,
+      z: 9,
+      hidden: false,
+    });
+    // The same step in right to left sits on the physical left and turns the other way.
+    expect(coverflowPlacement(1, 1, -1)).toMatchObject({ x: -0.78, angle: 35 });
+    expect(coverflowPlacement(-1, 1, -1)).toMatchObject({ x: 0.78, angle: -35 });
+  });
+
+  it("hides the second card out below lg at the next out place, and the third from lg", () => {
+    expect(coverflowPlacement(2, 1, 1)).toEqual({
+      x: 1.4,
+      angle: -45,
+      scale: 0.56,
+      opacity: 0,
+      tint: 0.5,
+      z: 8,
+      hidden: true,
+    });
+    expect(coverflowPlacement(2, 2, 1)).toMatchObject({
+      x: 1.4,
+      angle: -45,
+      scale: 0.56,
+      opacity: 0.5,
+      z: 8,
+      hidden: false,
+    });
+    expect(coverflowPlacement(3, 2, 1)).toMatchObject({
+      x: 1.9,
+      scale: 0.42,
+      angle: -50,
+      opacity: 0,
+      z: 7,
+      hidden: true,
+    });
+    // Anything further sits at the same place, hidden.
+    expect(coverflowPlacement(-4, 2, 1)).toEqual(coverflowPlacement(-3, 2, 1));
+    expect(coverflowPlacement(-4, 1, 1)).toEqual(coverflowPlacement(-2, 1, 1));
+  });
+
+  it("fades only a card that crosses to the other side", () => {
+    // Eight products, next: the furthest start side one (-3) wraps to the end side (4).
+    expect(changesSide(circleSteps(5, 0, 8), circleSteps(5, 1, 8))).toBe(true);
+    expect(changesSide(circleSteps(1, 0, 8), circleSteps(1, 1, 8))).toBe(false);
+    // The tie card (4) only comes one step nearer: no crossing.
+    expect(changesSide(circleSteps(4, 0, 8), circleSteps(4, 1, 8))).toBe(false);
+    // Three products, back: the end side one crosses to the start side.
+    expect(changesSide(circleSteps(1, 0, 3), circleSteps(1, 2, 3))).toBe(true);
+    // Two products swap through the centre, never across it.
+    expect(changesSide(circleSteps(1, 0, 2), circleSteps(1, 1, 2))).toBe(false);
+  });
+
+  it("maps the arrow keys to the physical side, in both directions", () => {
+    const press = (key: string, mod: Partial<Parameters<typeof stepForKey>[0]> = {}) => ({
+      key,
+      ctrlKey: false,
+      altKey: false,
+      metaKey: false,
+      shiftKey: false,
+      ...mod,
+    });
+    // Right to left: the physical left card is the inline end, one step on.
+    expect(stepForKey(press("ArrowLeft"), -1)).toBe(1);
+    expect(stepForKey(press("ArrowRight"), -1)).toBe(-1);
+    expect(stepForKey(press("ArrowLeft"), 1)).toBe(-1);
+    expect(stepForKey(press("ArrowRight"), 1)).toBe(1);
+    expect(stepForKey(press("ArrowUp"), -1)).toBeNull();
+    expect(stepForKey(press("Enter"), -1)).toBeNull();
+    expect(stepForKey(press("ArrowLeft", { shiftKey: true }), -1)).toBeNull();
+    expect(stepForKey(press("ArrowRight", { ctrlKey: true }), -1)).toBeNull();
+  });
+
+  it("steps on a sideways move of 40px or more, the cards following the finger", () => {
+    expect(COVERFLOW_SWIPE).toEqual({ step: 40, tap: 10 });
+    // Right to left: a move to the right brings the physical left (inline end) card in.
+    expect(swipeStep(40, 0, -1)).toBe(1);
+    expect(swipeStep(-40, 10, -1)).toBe(-1);
+    expect(swipeStep(60, 0, 1)).toBe(-1);
+    expect(swipeStep(-60, 0, 1)).toBe(1);
+    expect(swipeStep(39, 0, -1)).toBe(0);
+    // More up and down than sideways is the page scrolling, not a swipe.
+    expect(swipeStep(50, 60, -1)).toBe(0);
+    expect(swipeStep(50, 50, -1)).toBe(0);
   });
 });
 

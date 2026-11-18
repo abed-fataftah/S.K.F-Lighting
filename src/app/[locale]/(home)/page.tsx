@@ -10,19 +10,15 @@ import {
   pickWhatsappNumber,
 } from "@/features/shell/server/shop-contact";
 import { BannerCarousel } from "@/features/home/components/banner-carousel";
-import { HomeSideCard } from "@/features/home/components/home-side-card";
 import { HeroCard } from "@/features/home/components/hero-card";
-import {
-  CategoriesSection,
-  FeaturedSection,
-  TrustSection,
-} from "@/features/home/components/home-sections";
+import { HeroCoverflow } from "@/features/home/components/hero-coverflow";
+import { CategoriesSection, TrustSection } from "@/features/home/components/home-sections";
 import { buildZoneLine } from "@/features/home/fees";
-import { shopNowTarget } from "@/features/home/home-rules";
-import { canAddToDraft } from "@/features/drafts/server/guard";
+import { heroChoice, shopNowTarget } from "@/features/home/home-rules";
 import { getDeliveryFees, getHomeSections } from "@/features/home/server/home";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { PageFrame } from "@/components/page-frame";
 
 // Home's own title names the town; its share tags use the shop image (spec 0026 AC-8).
@@ -44,26 +40,28 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Home (spec 0011 AC-1): the banners or the hero, the category circles, the featured products,
-// and the trust cards, inside the shop layout's strip, header, and footer. Every part is read
-// together and stands alone: a part whose read failed is null and only that part is gone (AC-7).
-// The page has one `h1`: the hero's headline, else a hidden one with the shop's name.
+// Home (spec 0030 AC-1): the hero (the product coverflow, or the fallback card with no products),
+// the banners under it when any is on, the category circles, and the trust cards, inside the shop
+// layout's strip, header, and footer. Every part is read together and stands alone: a part whose
+// read failed is null and only that part is gone (spec 0011 AC-7). The hero owns the page's one
+// `h1`. The coverflow renders outside the page frame so its black band reaches both screen edges
+// from md; the fallback card keeps the content width inside the frame.
 export default async function HomePage() {
-  const [t, meta, seo, sections, fees, address, contact, draftButtons] = await Promise.all([
-    getTranslations("Home"),
+  const [meta, seo, sections, fees, address, contact, whatsappNumber] = await Promise.all([
     getTranslations("Metadata"),
     getTranslations("Seo"),
     getHomeSections(),
     getDeliveryFees(),
     getShopAddress(),
     getShopContact(),
-    canAddToDraft(),
+    getWhatsappNumber(),
   ]);
   const { siteUrl } = parsePublicEnv();
-  const whatsappNumber = await getWhatsappNumber();
   const banners = sections.banners ?? [];
   const circles = sections.circles ?? [];
   const featured = sections.featured ?? [];
+  const hero = heroChoice(sections.featured);
+  const jumpTo = shopNowTarget(circles.length);
   // The `Store` block for local search (spec 0026 AC-9), from the same cached contact read.
   const store = storeFromContact(contact, {
     siteUrl,
@@ -73,43 +71,26 @@ export default async function HomePage() {
   });
 
   return (
-    <PageFrame width="wide" className="flex flex-col pt-3.5 pb-8">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(store) }}
-      />
-      {banners.length ? (
-        <>
-          <h1 className="sr-only">{t("title")}</h1>
-          {/* At md the banners sit centred at most 720 wide; from lg in the start two thirds of a
-              row, the side card in the end third (spec 0029 AC-13b). */}
-          <div className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:px-(--page-pad)">
-            <div className="md:mx-auto md:w-full md:max-w-(--prose-max) lg:max-w-none">
-              <BannerCarousel banners={banners} />
-            </div>
-            <HomeSideCard
-              whatsappNumber={whatsappNumber}
-              jumpTo={shopNowTarget(circles.length, featured.length)}
-              className="hidden self-stretch lg:flex"
-            />
-          </div>
-        </>
-      ) : (
-        <HeroCard
-          whatsappNumber={whatsappNumber}
-          jumpTo={shopNowTarget(circles.length, featured.length)}
-        />
-      )}
-      {circles.length ? <CategoriesSection circles={circles} /> : null}
-      {featured.length ? (
-        <FeaturedSection
-          products={featured}
-          whatsappNumber={whatsappNumber}
-          siteUrl={siteUrl}
-          canAddToDraft={draftButtons}
-        />
+    <>
+      {hero === "coverflow" ? (
+        <HeroCoverflow products={featured} whatsappNumber={whatsappNumber} jumpTo={jumpTo} />
       ) : null}
-      <TrustSection zoneLine={buildZoneLine(fees)} address={address} />
-    </PageFrame>
+      <PageFrame width="wide" className={cn("flex flex-col pb-8", hero === "card" && "pt-3.5")}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(store) }}
+        />
+        {hero === "card" ? <HeroCard whatsappNumber={whatsappNumber} jumpTo={jumpTo} /> : null}
+        {banners.length ? (
+          // Under the hero (spec 0030 AC-12): the column's width below md, centred at most 720
+          // wide from md.
+          <div className="pt-6 md:mx-auto md:w-full md:max-w-(--prose-max)">
+            <BannerCarousel banners={banners} />
+          </div>
+        ) : null}
+        {circles.length ? <CategoriesSection circles={circles} /> : null}
+        <TrustSection zoneLine={buildZoneLine(fees)} address={address} />
+      </PageFrame>
+    </>
   );
 }
