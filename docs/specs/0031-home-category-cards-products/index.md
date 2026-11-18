@@ -1,7 +1,7 @@
 # 0031. Home category cards with their products
 
 **Date**: 2026-11-18
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -118,10 +118,10 @@ The circles are replaced by 3D photo cards that are tabs; the first category's p
 
 Tracer Bullet: the first task puts the whole thread in place (route, read, cards as plain tabs, server rendered first grid, press and swap) so the existing flows prove Home still works, then each later task thickens one layer.
 
-1. **Thin thread.** `routes.api.homeCategoryProducts`, the request parser, `readHomeCategoryProducts` with the limit, `handleCategoryProducts` with the limiter, the on Home check, time limit, the headers per status, and the route file under `/api/catalog/`; `getHomeSections` gains the `categoryProducts` part after `circles`; `category-cards.tsx` with the tablist, roving focus, keys, a plain card look, the heading row, the grid, the skeleton while fetching, and the per visit cache; `CategoriesSection` renders it; `page.tsx` passes the new props; the circles and their strings go; `loading.tsx` takes the new shape; the homepage and layout flows retargeted. Satisfies **AC-1**, **AC-2**, **AC-3**, **AC-6**, **AC-7**, **AC-9**, **AC-10**
-2. **The 3D cards.** The five tokens and the removed one, `categoryTurn` per visual row with the `ResizeObserver` count, the per card perspective, the selected scale and yellow edge with the transparent border on the rest, the tint overlay, the mouse and pen tilt in a frame, the padded snap row below `md` with scroll into view, the wrapped rows from `md`, `motion-reduce:transition-none`, server rendered rest state; Vitest for the turn and key rules. Satisfies **AC-4**, **AC-5**, **AC-11**
-3. **Resilience.** Prefetch on mouse or pen hover and on focus, the two neighbours after the first paint, the 150ms wait after keys; shared in flight requests; the stale answer guard; the failure notice with retry and Sentry; the failed seed when the first part is null; the empty line; Vitest for the panel state reducer, the parser, the handler, and the database read. Satisfies **AC-7**, **AC-8**, **AC-11**
-4. **Finish.** The Playwright flows of AC-11 on the three projects, the JavaScript disabled check of the server rendered grid, axe on the section, the amendment lines in specs 0011 and 0029. Satisfies **AC-11**
+1. [x] **Thin thread.** `routes.api.homeCategoryProducts`, the request parser, `readHomeCategoryProducts` with the limit, `handleCategoryProducts` with the limiter, the on Home check, time limit, the headers per status, and the route file under `/api/catalog/`; `getHomeSections` gains the `categoryProducts` part after `circles`; `category-cards.tsx` with the tablist, roving focus, keys, a plain card look, the heading row, the grid, the skeleton while fetching, and the per visit cache; `CategoriesSection` renders it; `page.tsx` passes the new props; the circles and their strings go; `loading.tsx` takes the new shape; the homepage and layout flows retargeted. Satisfies **AC-1**, **AC-2**, **AC-3**, **AC-6**, **AC-7**, **AC-9**, **AC-10**
+2. [x] **The 3D cards.** The five tokens and the removed one, `categoryTurn` per visual row with the `ResizeObserver` count, the per card perspective, the selected scale and yellow edge with the transparent border on the rest, the tint overlay, the mouse and pen tilt in a frame, the padded snap row below `md` with scroll into view, the wrapped rows from `md`, `motion-reduce:transition-none`, server rendered rest state; Vitest for the turn and key rules. Satisfies **AC-4**, **AC-5**, **AC-11**
+3. [x] **Resilience.** Prefetch on mouse or pen hover and on focus, the two neighbours after the first paint, the 150ms wait after keys; shared in flight requests; the stale answer guard; the failure notice with retry and Sentry; the failed seed when the first part is null; the empty line; Vitest for the panel state reducer, the parser, the handler, and the database read. Satisfies **AC-7**, **AC-8**, **AC-11**
+4. [x] **Finish.** The Playwright flows of AC-11 on the three projects, the JavaScript disabled check of the server rendered grid, axe on the section, the amendment lines in specs 0011 and 0029. Satisfies **AC-11**
 
 ## Consequences
 
