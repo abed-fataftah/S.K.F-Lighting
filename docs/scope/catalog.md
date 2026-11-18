@@ -93,12 +93,12 @@ spec [0011](../specs/0011-homepage-banners-featured/index.md) · code in `src/fe
 ### 37. Hero product coverflow · in-progress
 A 3D coverflow of the featured products as the Home hero at every width: the headline above, one large product card in the centre, smaller angled cards on each side, arrows on desktop, finger swiping on phones, and a smooth slide that brings the chosen product to the centre. Uses the shop's tokens and type (depth through scale and tint, since the design rules allow no shadows). The banner carousel moves below it when banners are on.
 **Done when:** the featured products show as the coverflow at 390, 820, and 1280px with the neighbours partly visible on a phone, arrows and keyboard move it on desktop, a swipe moves it on a phone, the centre card opens its product page, motion stops under reduced motion, and the existing Home tests still pass.
-spec [0030](../specs/0030-hero-product-coverflow/index.md) · code in `src/features/home/`, `src/app/[locale]/(home)/`, `src/app/tokens.css`
+spec [0030](../specs/0030-hero-product-coverflow/index.md) · code in `src/features/home/components/hero-coverflow.tsx`, `src/features/home/home-rules.ts`, `src/features/home/motion.ts`, `src/app/[locale]/(home)/`, `src/app/tokens.css`, `e2e/hero-coverflow.spec.ts`
 - [x] Design it (spec): `/architect hero product coverflow`
-- [ ] Build it: `/develop hero product coverflow`
-  - [ ] Thin thread: the two tokens, the hero in place outside the page frame with still cards for every width, the new Home order, the grid and side card gone, banners under the hero, the three flows retargeted (AC-1, AC-2, AC-3, AC-5, AC-10, AC-11, AC-12, AC-13, AC-14)
-  - [ ] Movement on a phone: swipe and tap, the crossing fade, reduced motion, focus following the centre, named dots and live text, the 1 and 2 product rules, unit tests (AC-4, AC-6, AC-7, AC-8, AC-9)
-  - [ ] Tablet and desktop: the black band, two neighbours each side, arrows, keyboard, no sideways scroll (AC-6, AC-10, AC-12)
-  - [ ] Finish: Playwright at 390, 820, and 1280, reduced motion, axe on both hero versions (AC-15)
+- [x] Build it: `/develop hero product coverflow`
+  - [x] Thin thread: the two tokens, the hero in place outside the page frame with still cards for every width, the new Home order, the grid and side card gone, banners under the hero, the three flows retargeted (AC-1, AC-2, AC-3, AC-5, AC-10, AC-11, AC-12, AC-13, AC-14)
+  - [x] Movement on a phone: swipe and tap, the crossing fade, reduced motion, focus following the centre, named dots and live text, the 1 and 2 product rules, unit tests (AC-4, AC-6, AC-7, AC-8, AC-9)
+  - [x] Tablet and desktop: the black band, two neighbours each side, arrows, keyboard, no sideways scroll (AC-6, AC-10, AC-12)
+  - [x] Finish: Playwright at 390, 820, and 1280, reduced motion, axe on both hero versions (AC-15)
 - [ ] Verify it: `/check verify hero product coverflow`
 - [ ] Test it: `/test hero product coverflow`

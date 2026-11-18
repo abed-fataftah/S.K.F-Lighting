@@ -1,7 +1,7 @@
 # 0030. Hero product coverflow
 
 **Date**: 2026-11-18
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -127,10 +127,10 @@ The centre card is scale 1, angle 0, opacity 1, no tint, z index highest; z inde
 
 Tracer Bullet: the first task puts the coverflow in the real page end to end on a phone with the products already in place server side, so the existing flows prove the page still works, then each later task thickens one layer.
 
-1. **Thin thread: the hero in place.** The two tokens in `tokens.css`; `hero-coverflow.tsx` renders the section outside the `PageFrame`, the `h1`, the subline, the list (plain `li`, inner slide group) with the centre card link, the reserved words block, and still side cards placed for both widths from the geometry table (no movement yet), the buttons row; `page.tsx` takes the new order, chooses coverflow or fallback card, drops the hidden `h1`, removes `FeaturedSection`, moves banners under the hero, and updates the banner `sizes`; `shopNowTarget`, `hero-card.tsx`, `section-jump.tsx`, and `section-ids.ts` lose the featured target; `loading.tsx` takes the new shape. Run the e2e flows that open the first link in `home-products`, and retarget `first-order`, `homepage`, and the `home` test of `storefront-layout` as AC-15 says. Satisfies **AC-1**, **AC-2**, **AC-3**, **AC-5**, **AC-10**, **AC-11**, **AC-12**, **AC-13**, **AC-14**
-2. **Movement on a phone.** `motion.ts`, `coverflowPlacement` with z index and the next out place, `circleSteps` reuse, the state, swipe and tap telling (40px and 10px thresholds, the capture phase click guard, `touch-pan-y`, no dragging), the side slide tap, the transition with visibility and the overlay, the crossing fade through the Web Animations API with the width read in px, reduced motion, focus following the centre link, the live text and the named dots, the 1 and 2 product rules; Vitest for every rule. Satisfies **AC-4**, **AC-6**, **AC-7**, **AC-8**, **AC-9**
-3. **Tablet and desktop.** The band from `md`, centring from `lg`, the `lg:` placement classes on every card, the arrows from `lg` at the content box edges, the keyboard handler with the modifier rule, delete `home-side-card.tsx`; no sideways scroll at every test width. Satisfies **AC-6**, **AC-10**, **AC-12**
-4. **Finish.** The Playwright flows of AC-15 on the phone, tablet, and desktop projects, reduced motion emulation, axe on both hero versions, the amendment notes in specs 0011 and 0029 if not yet added. Satisfies **AC-15**
+1. [x] **Thin thread: the hero in place.** The two tokens in `tokens.css`; `hero-coverflow.tsx` renders the section outside the `PageFrame`, the `h1`, the subline, the list (plain `li`, inner slide group) with the centre card link, the reserved words block, and still side cards placed for both widths from the geometry table (no movement yet), the buttons row; `page.tsx` takes the new order, chooses coverflow or fallback card, drops the hidden `h1`, removes `FeaturedSection`, moves banners under the hero, and updates the banner `sizes`; `shopNowTarget`, `hero-card.tsx`, `section-jump.tsx`, and `section-ids.ts` lose the featured target; `loading.tsx` takes the new shape. Run the e2e flows that open the first link in `home-products`, and retarget `first-order`, `homepage`, and the `home` test of `storefront-layout` as AC-15 says. Satisfies **AC-1**, **AC-2**, **AC-3**, **AC-5**, **AC-10**, **AC-11**, **AC-12**, **AC-13**, **AC-14**
+2. [x] **Movement on a phone.** `motion.ts`, `coverflowPlacement` with z index and the next out place, `circleSteps` reuse, the state, swipe and tap telling (40px and 10px thresholds, the capture phase click guard, `touch-pan-y`, no dragging), the side slide tap, the transition with visibility and the overlay, the crossing fade through the Web Animations API with the width read in px, reduced motion, focus following the centre link, the live text and the named dots, the 1 and 2 product rules; Vitest for every rule. Satisfies **AC-4**, **AC-6**, **AC-7**, **AC-8**, **AC-9**
+3. [x] **Tablet and desktop.** The band from `md`, centring from `lg`, the `lg:` placement classes on every card, the arrows from `lg` at the content box edges, the keyboard handler with the modifier rule, delete `home-side-card.tsx`; no sideways scroll at every test width. Satisfies **AC-6**, **AC-10**, **AC-12**
+4. [x] **Finish.** The Playwright flows of AC-15 on the phone, tablet, and desktop projects, reduced motion emulation, axe on both hero versions, the amendment notes in specs 0011 and 0029 if not yet added. Satisfies **AC-15**
 
 ## Consequences
 
