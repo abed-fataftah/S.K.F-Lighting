@@ -18,6 +18,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 - **Timeline:** no fixed date. Launch when the launch set is done and tested.
 - **Responsive (decided 2026-11-18):** the storefront's phone, tablet, and desktop layouts (feature 36) get verified, then a sweep adds small phones, landscape, and large monitors (39); the dashboard gets real phone and tablet layouts (38).
 - **Home hero (decided 2026-11-18):** a 3D coverflow of the featured products is the hero at every width, with the headline above it; the banner carousel shows below it when banners are on (37).
+- **Light hero and orange brand (decided 2026-11-19):** the Home hero sits on white instead of the black band, and the brand colour is orange #F7931E everywhere, logo included, named `brand` in code (43).
 - **Home categories (decided 2026-11-18):** the category circles become 3D photo cards that act as tabs, with the pressed category's first eight products in a grid under them (42).
 - **App stores (decided 2026-11-18):** installable web app first (40), then Google Play as a wrapped web app (41). The App Store waits: Apple often rejects a plain website wrapper, and an iOS build needs a Mac and a yearly developer account.
 
@@ -67,6 +68,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 40 | Installable web app | Slice 11 | planned |
 | 41 | Google Play listing | Slice 11 | planned |
 | 42 | Home category cards & their products | Slice 8 | in-progress |
+| 43 | Light hero & orange brand | Slice 8 | in-progress |
 
 ## Areas
 
@@ -75,7 +77,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 - [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
-- [Site & launch](site.md): features 26, 28 to 30, 36, 38, and 39 (settings and policies, search visibility, stats, desktop and tablet layout, dashboard on phone and tablet, the width sweep, go live). 0 of 7 done.
+- [Site & launch](site.md): features 26, 28 to 30, 36, 38, 39, and 43 (settings and policies, search visibility, stats, desktop and tablet layout, dashboard on phone and tablet, the width sweep, light hero and orange brand, go live). 0 of 8 done.
 - [Loyalty](loyalty.md): features 31 and 32, after launch. 0 of 2 done.
 - [Returns](returns.md): features 33 and 34, after launch. 0 of 2 done.
 - [Mobile app](app.md): features 40 and 41, after launch (installable web app, Google Play). 0 of 2 done.

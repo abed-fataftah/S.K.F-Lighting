@@ -69,6 +69,20 @@ Close the gaps spec 0029 left open on the storefront: small phones from 320px, p
 **Done when:** no storefront page scrolls sideways from 320 to 2560px wide, a phone in landscape (390px tall) keeps the header, bottom bar, and WhatsApp float usable, content stays centred at 1280px on a 2560px screen with the shell backgrounds full width, and the Playwright projects cover 320 and 2560.
 - [ ] Build it: `/develop small phone, landscape & large monitor sweep`
 
+### 43. Light hero & orange brand · in-progress · from spec 0032
+The Home hero moves from the black band to a white surface, and the brand colour changes from yellow to orange (#F7931E) across the storefront, dashboard, logo, and link preview pictures; in code the colour is renamed `brand`. A dev only `pnpm media:samples` command gives local products and main categories glowing sample pictures until the real photos are uploaded.
+**Done when:** no `yellow` name or value is left in the code, the logo and share pictures are orange, the hero and its fallback card are white at 390, 820, and 1280px with the orange marker under line 2, axe passes, and `media:samples` fills local pictures and refuses a non local database.
+spec [0032](../specs/0032-light-hero-orange-brand/index.md)
+- [x] Design it (spec): `/architect light hero and orange brand colour`
+- [ ] Build it: `/develop light hero & orange brand`
+  - [ ] Brand token end to end: tokens, contrast table, every class, `cn()` names, gallery and Arabic copy, tests and docs (AC-1, AC-2, AC-4, AC-15)
+  - [ ] Logo and share pictures recoloured and made again (AC-3)
+  - [ ] Light hero: surface, marker, white tint, dots, arrows, fallback card and chandelier, loading shape, hero flows (AC-5 to AC-13, AC-15)
+  - [ ] Sample pictures command with guards and tests, run locally (AC-14, AC-15)
+  - [ ] Finish: full suites, axe at three widths, Home screenshots against the mockup (AC-13, AC-15)
+- [ ] Verify it: `/check verify light hero & orange brand`
+- [ ] Test it: `/test light hero & orange brand`
+
 ## Launch
 
 ### 30. Go live · in-progress
