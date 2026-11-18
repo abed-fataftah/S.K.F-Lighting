@@ -35,7 +35,7 @@ export default defineConfig({
         hasTouch: true,
       },
       testMatch:
-        /(shell|storefront-layout|categories|search-filters|product-page|cart|checkout-delivery)\.spec\.ts/,
+        /(shell|storefront-layout|hero-coverflow|categories|search-filters|product-page|cart|checkout-delivery)\.spec\.ts/,
     },
     // After them, alone: it changes Home's banners and featured products, which other flows read
     // (spec 0011 AC-16), and puts them back when it ends.

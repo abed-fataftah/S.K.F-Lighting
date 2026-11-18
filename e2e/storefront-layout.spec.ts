@@ -439,19 +439,27 @@ test.describe("product page", () => {
   });
 });
 
-// covers: AC-9, AC-13 (spec 0029): Home without banners on every width.
+// covers: AC-9, AC-13 (spec 0029), AC-3, AC-10, AC-11 (spec 0030): Home on every width.
 test.describe("home", () => {
-  test("widens the hero, shows the circle row from md, and spreads the cards", async ({
+  test("spans the hero across the screen from md, shows the circle row from md, and spreads the cards", async ({
     page,
   }, testInfo) => {
     await page.goto("/");
     const project = testInfo.project.name;
     const hero = page.getByTestId("home-hero");
-    test.skip((await hero.count()) === 0, "a banner is on (the homepage flow covers that Home)");
     const width = page.viewportSize()!.width;
     const heroBox = await hero.boundingBox();
-    const content = project === "phone" ? Math.min(width, 480) : Math.min(width, 1280);
-    expect(Math.round(heroBox!.width)).toBe(content - 2 * pad[project]);
+    if (await page.getByTestId("home-products").count()) {
+      // The coverflow hero: a card inside the phone column, a band across the screen from md.
+      const band = await page.evaluate(() => document.documentElement.clientWidth);
+      expect(Math.round(heroBox!.width)).toBe(
+        project === "phone" ? Math.min(width, 480) - 2 * pad.phone : band,
+      );
+    } else {
+      // The fallback card keeps the content width (spec 0029 AC-13a).
+      const content = project === "phone" ? Math.min(width, 480) : Math.min(width, 1280);
+      expect(Math.round(heroBox!.width)).toBe(content - 2 * pad[project]);
+    }
 
     const row = page.getByTestId("home-circle-row");
     if ((await row.count()) > 0) {
@@ -462,11 +470,6 @@ test.describe("home", () => {
       .getByTestId("home-trust")
       .evaluate((ul) => getComputedStyle(ul).gridTemplateColumns.split(" ").length);
     expect(trust).toBe(project === "desktop" ? 4 : 2);
-    if (await page.getByTestId("home-products").count()) {
-      expect(await columnCount(page, "home-products")).toBe(
-        { phone: 2, tablet: 3, desktop: 4 }[project],
-      );
-    }
     await expectNoAxeViolations(page);
     await expectNoSidewaysScroll(page);
   });
