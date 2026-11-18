@@ -6,7 +6,7 @@ import { HeroCard } from "@/features/home/components/hero-card";
 import { HeroCoverflow } from "@/features/home/components/hero-coverflow";
 import { CategoriesSection, TrustSection } from "@/features/home/components/home-sections";
 import type { ZoneFee } from "@/features/home/fees";
-import type { HomeCircle } from "@/features/home/home-rules";
+import type { HomeCategory } from "@/features/home/home-rules";
 import type { HomeSections } from "@/features/home/server/home";
 import { noContact, type ShopContact } from "@/features/shell/contact";
 import ar from "@/i18n/messages/ar.json";
@@ -24,6 +24,8 @@ vi.mock("@/features/shell/server/shop-contact", () => ({
   getWhatsappNumber: async () => "970500000000",
   pickWhatsappNumber: (saved: string | null) => saved || "970500000000",
 }));
+const canAddToDraft = vi.fn<() => Promise<boolean>>(async () => false);
+vi.mock("@/features/drafts/server/guard", () => ({ canAddToDraft }));
 vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "970500000000");
 vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 
@@ -40,7 +42,9 @@ type Props = {
   className?: string;
   jumpTo?: string | null;
   banners?: unknown;
-  circles?: unknown;
+  categories?: unknown;
+  first?: unknown;
+  canAddToDraft?: boolean;
   products?: unknown;
   zoneLine?: string | null;
   address?: string | null;
@@ -68,11 +72,17 @@ const card = (n: number): CardProduct => ({
   inStock: true,
   addVariantId: `variant-${n}`,
 });
-const circle = (slug: string): HomeCircle => ({ slug, name: slug, imageKey: null, line: null });
+const circle = (slug: string): HomeCategory => ({ slug, name: slug, imageKey: null, line: null });
 const banner = { id: "b1", imageKey: "banners/b1.webp", alt: "خصم الشتاء", href: null };
 
 function answer(sections: Partial<HomeSections>, fees: readonly ZoneFee[] | null = null) {
-  getHomeSections.mockResolvedValue({ banners: [], circles: [], featured: [], ...sections });
+  getHomeSections.mockResolvedValue({
+    banners: [],
+    circles: [],
+    categoryProducts: null,
+    featured: [],
+    ...sections,
+  });
   getDeliveryFees.mockResolvedValue(fees);
   getShopAddress.mockResolvedValue(null);
 }
@@ -143,7 +153,25 @@ describe("home page", () => {
     expect(find(page, TrustSection)).not.toBeNull();
   });
 
-  it("hides the shop now button when there are no circles", async () => {
+  // covers: AC-1, AC-6 (spec 0031)
+  it("gives the category cards the first category's products and the draft check", async () => {
+    answer({ circles: [circle("lamps"), circle("wires")], categoryProducts: [card(3)] });
+    canAddToDraft.mockResolvedValueOnce(true);
+
+    const section = find(await HomePage(), CategoriesSection);
+
+    expect(section?.props.categories).toEqual([circle("lamps"), circle("wires")]);
+    expect(section?.props.first).toEqual([card(3)]);
+    expect(section?.props.canAddToDraft).toBe(true);
+  });
+
+  it("still renders the cards when the first category's read failed", async () => {
+    answer({ circles: [circle("lamps")], categoryProducts: null });
+
+    expect(find(await HomePage(), CategoriesSection)?.props.first).toBeNull();
+  });
+
+  it("hides the shop now button when there are no category cards", async () => {
     answer({ circles: [], featured: null });
 
     expect(find(await HomePage(), HeroCard)?.props.jumpTo).toBeNull();

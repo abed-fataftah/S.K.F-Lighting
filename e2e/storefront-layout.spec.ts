@@ -439,9 +439,10 @@ test.describe("product page", () => {
   });
 });
 
-// covers: AC-9, AC-13 (spec 0029), AC-3, AC-10, AC-11 (spec 0030): Home on every width.
+// covers: AC-9, AC-13 (spec 0029), AC-3, AC-10, AC-11 (spec 0030), AC-4 (spec 0031): Home on
+// every width.
 test.describe("home", () => {
-  test("spans the hero across the screen from md, shows the circle row from md, and spreads the cards", async ({
+  test("spans the hero across the screen from md, lays out the category cards, and spreads the trust cards", async ({
     page,
   }, testInfo) => {
     await page.goto("/");
@@ -461,10 +462,20 @@ test.describe("home", () => {
       expect(Math.round(heroBox!.width)).toBe(content - 2 * pad[project]);
     }
 
-    const row = page.getByTestId("home-circle-row");
-    if ((await row.count()) > 0) {
-      await expect(row).toBeVisible({ visible: project !== "phone" });
-      await expect(page.getByTestId("home-circles")).toBeVisible({ visible: project === "phone" });
+    const tabs = page.getByTestId("home-category-tabs");
+    if ((await tabs.count()) > 0) {
+      // The card width per breakpoint: 140, 180, then 200 (spec 0031 AC-4). The selected card is
+      // scaled, so the layout width is measured, not the box.
+      const cardWidth: Record<string, number> = { phone: 140, tablet: 180, desktop: 200 };
+      const first = tabs.getByRole("tab").first();
+      expect(await first.evaluate((el) => (el as HTMLElement).offsetWidth)).toBe(
+        cardWidth[project],
+      );
+      // Below md one row that scrolls sideways; from md the cards wrap, with no scrolling.
+      const overflowX = await tabs.evaluate((el) => getComputedStyle(el).overflowX);
+      const wrap = await tabs.evaluate((el) => getComputedStyle(el).flexWrap);
+      expect(overflowX).toBe(project === "phone" ? "auto" : "visible");
+      expect(wrap).toBe(project === "phone" ? "nowrap" : "wrap");
     }
     const trust = await page
       .getByTestId("home-trust")
@@ -472,34 +483,6 @@ test.describe("home", () => {
     expect(trust).toBe(project === "desktop" ? 4 : 2);
     await expectNoAxeViolations(page);
     await expectNoSidewaysScroll(page);
-  });
-
-  test("slides the circle row with its arrows from md, only when it overflows", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name === "phone", "the phone keeps its carousel");
-    await page.goto("/");
-    const shelf = page.getByTestId("home-circle-shelf");
-    test.skip((await shelf.count()) === 0, "needs category circles on Home");
-    await expect(shelf).toBeVisible();
-    await expect(page.getByTestId("circles-pause")).toBeHidden();
-    const row = page.getByTestId("home-circle-row");
-    const overflows = await row.evaluate((ul) => ul.scrollWidth > ul.clientWidth + 1);
-    const back = shelf.getByRole("button", { name: "القسم السابق" });
-    const next = shelf.getByRole("button", { name: "القسم التالي" });
-    if (!overflows) {
-      // Every circle fits: a still, centred row with no arrows.
-      await expect(back).toHaveCount(0);
-      await expect(next).toHaveCount(0);
-      return;
-    }
-    await expect(back).toBeDisabled();
-    await expect(next).toBeEnabled();
-    await next.click();
-    await expect.poll(() => row.evaluate((ul) => Math.abs(ul.scrollLeft))).toBeGreaterThan(0);
-    await expect(back).toBeEnabled();
-    await expectNoSidewaysScroll(page);
-    await expectNoAxeViolations(page);
   });
 });
 

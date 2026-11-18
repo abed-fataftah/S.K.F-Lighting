@@ -12,10 +12,12 @@ const loadCatalogTree = vi.fn();
 const readCards = vi.fn();
 const readHomeProducts = vi.fn();
 vi.mock("./banner-rows", () => ({ readBannerRows }));
+const readCategoryHead = vi.fn();
 vi.mock("@/features/catalog/server/queries", () => ({
   cardColumns: {},
   loadCatalogTree,
   readCards,
+  readCategoryHead,
   readHomeProducts,
 }));
 
@@ -52,7 +54,12 @@ describe("getHomeSections", () => {
     expect(settled).toBe(false);
     await vi.advanceTimersByTimeAsync(1);
 
-    expect(await pending).toEqual({ banners: null, circles: [], featured: [] });
+    expect(await pending).toEqual({
+      banners: null,
+      circles: [],
+      categoryProducts: null,
+      featured: [],
+    });
     expect(console.error).toHaveBeenCalledWith(
       JSON.stringify({ event: "home_read_failed", part: "banners", error: "timeout" }),
     );
@@ -76,6 +83,53 @@ describe("getHomeSections", () => {
     readHomeProducts.mockResolvedValue(newest);
 
     expect((await getHomeSections()).featured).toBe(newest);
+  });
+
+  // covers: AC-6 (spec 0031)
+  describe("the first category's products", () => {
+    const main = {
+      id: "lamps",
+      slug: "lamps",
+      name: "أباجورات",
+      description: null,
+      sort: 0,
+      parentId: null,
+      isVisible: true,
+      showOnHome: true,
+      homeSubtitle: null,
+      imageKey: null,
+    };
+
+    beforeEach(() => {
+      loadCatalogTree.mockResolvedValue({ categories: [main], listed: new Map([["lamps", 1]]) });
+      readCategoryHead.mockReturnValue({ categoryIds: ["lamps"] });
+    });
+
+    it("reads the first card's eight after the cards", async () => {
+      const eight = [{ slug: "lamp-1" }];
+      readCards.mockResolvedValue(eight);
+
+      const sections = await getHomeSections();
+
+      expect(sections.circles?.map((category) => category.slug)).toEqual(["lamps"]);
+      expect(sections.categoryProducts).toBe(eight);
+      expect(readCategoryHead).toHaveBeenCalledWith(expect.anything(), "lamps", null, 1);
+    });
+
+    it("is null with no card, and null and logged when its read fails", async () => {
+      loadCatalogTree.mockResolvedValue({ categories: [], listed: new Map() });
+      expect((await getHomeSections()).categoryProducts).toBeNull();
+
+      loadCatalogTree.mockResolvedValue({ categories: [main], listed: new Map([["lamps", 1]]) });
+      readCards.mockRejectedValue(new TypeError("bad row lamps"));
+      const sections = await getHomeSections();
+
+      expect(sections.circles).toHaveLength(1);
+      expect(sections.categoryProducts).toBeNull();
+      expect(console.error).toHaveBeenCalledWith(
+        JSON.stringify({ event: "home_read_failed", part: "categoryProducts", error: "TypeError" }),
+      );
+    });
   });
 
   it("shows the picks when there are any", async () => {

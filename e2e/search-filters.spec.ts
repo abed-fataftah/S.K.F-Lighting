@@ -9,6 +9,7 @@ import {
   usePhoneWidth,
 } from "./a11y";
 import { localSql } from "./local-db";
+import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-1 to AC-6, AC-8 to AC-14, AC-16 (spec 0010). On a phone sized right to left screen:
 // the search prompt and its too short note; an Arabic name typed with other hamza and ta marbuta
@@ -28,6 +29,9 @@ test.beforeEach(async ({ page }, testInfo) => {
   );
   test.skip(!accounts, "needs the local Supabase (pnpm db:start)");
   await usePhoneWidth(page, testInfo);
+  // The live count shares its per IP allowance with Home's category cards (spec 0031 AC-7), which
+  // every flow that opens Home spends; this flow keeps an allowance of its own.
+  await page.context().setExtraHTTPHeaders(ownIpHeaders());
 });
 
 async function checkA11y(page: Page) {
