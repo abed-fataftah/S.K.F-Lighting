@@ -102,3 +102,16 @@ spec [0030](../specs/0030-hero-product-coverflow/index.md) · code in `src/featu
   - [x] Finish: Playwright at 390, 820, and 1280, reduced motion, axe on both hero versions (AC-15)
 - [ ] Verify it: `/check verify hero product coverflow`
 - [ ] Test it: `/test hero product coverflow`
+
+### 42. Home category cards & their products · in-progress
+Under the hero, the category circles become a row of 3D photo cards that work like tabs: the pressed card's category shows its first eight products in a grid right under it, with a link to the full category page. The first category in the owner's order opens selected and its products come with the page; the others load on press and are kept for the visit. The cards turn to face the pressed one and tilt under a mouse; nothing moves by itself.
+**Done when:** the ticked mains show as photo cards at 390, 820, and 1280px, the first category's products are on the page without JavaScript, pressing or arrow keying to another card swaps the heading and the eight products, "عرض الكل" opens the category page, a failed load shows a retry notice, and the existing Home tests still pass.
+spec [0031](../specs/0031-home-category-cards-products/index.md) · code in `src/features/home/`, `src/app/api/catalog/home-products/`, `src/app/[locale]/(home)/`, `src/app/tokens.css`
+- [x] Design it (spec): `/architect home category cards with products`
+- [ ] Build it: `/develop home category cards with products`
+  - [ ] Thin thread: the route under `/api/catalog/`, the eight product read, the tab cards with keys, the server rendered first grid, press and swap with the skeleton, the circles gone, the flows retargeted (AC-1, AC-2, AC-3, AC-6, AC-7, AC-9, AC-10)
+  - [ ] The 3D cards: the tokens, the turn toward the pressed card within its row, scale and yellow edge, tint, mouse tilt, the padded snap row and the wrapped rows, reduced motion, unit tests (AC-4, AC-5, AC-11)
+  - [ ] Resilience: prefetch on hover and focus and the neighbours after first paint, the key wait, the stale guard, the failure notice with retry, the route and read tests (AC-7, AC-8, AC-11)
+  - [ ] Finish: Playwright on phone, tablet, and desktop, the no JavaScript check, axe (AC-11)
+- [ ] Verify it: `/check verify home category cards with products`
+- [ ] Test it: `/test home category cards with products`

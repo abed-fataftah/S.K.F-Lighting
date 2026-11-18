@@ -18,6 +18,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 - **Timeline:** no fixed date. Launch when the launch set is done and tested.
 - **Responsive (decided 2026-11-18):** the storefront's phone, tablet, and desktop layouts (feature 36) get verified, then a sweep adds small phones, landscape, and large monitors (39); the dashboard gets real phone and tablet layouts (38).
 - **Home hero (decided 2026-11-18):** a 3D coverflow of the featured products is the hero at every width, with the headline above it; the banner carousel shows below it when banners are on (37).
+- **Home categories (decided 2026-11-18):** the category circles become 3D photo cards that act as tabs, with the pressed category's first eight products in a grid under them (42).
 - **App stores (decided 2026-11-18):** installable web app first (40), then Google Play as a wrapped web app (41). The App Store waits: Apple often rejects a plain website wrapper, and an iOS build needs a Mac and a yearly developer account.
 
 ## At a glance
@@ -65,11 +66,12 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 39 | Small phone, landscape & large monitor sweep | Slice 8 | planned |
 | 40 | Installable web app | Slice 11 | planned |
 | 41 | Google Play listing | Slice 11 | planned |
+| 42 | Home category cards & their products | Slice 8 | in-progress |
 
 ## Areas
 
 - [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 6 of 6 done.
-- [Catalog](catalog.md): features 7 to 11, 25, and 37 (products, import, categories, product page, search, homepage, hero coverflow). 4 of 7 done.
+- [Catalog](catalog.md): features 7 to 11, 25, 37, and 42 (products, import, categories, product page, search, homepage, hero coverflow, category cards). 4 of 8 done.
 - [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
