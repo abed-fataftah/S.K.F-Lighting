@@ -3,6 +3,7 @@
 **Date**: 2026-10-26
 **Status**: In Progress
 **Amended**: 2026-11-08. The category circles become a carousel from 2 circles, not 4; a single circle shows alone (AC-4, AC-16). The arrows, swipe, loop, auto advance, and pause button do not change.
+**Amended**: 2026-11-18. Spec [0030](../0030-hero-product-coverflow/index.md) replaces AC-1 (Home order and the `h1`), AC-3 (the hero card is now only the fallback with no products), and AC-5 (the featured grid is gone; its products are the coverflow hero). The banners now show under the hero.
 
 ## Summary
 

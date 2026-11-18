@@ -16,6 +16,9 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 - **Catalog loading:** you fill a spreadsheet template, upload it once, then add photos in bulk, matched by product code in the file name.
 - **Electrician orders for a customer** (written like "ali / mo"): the order belongs to the electrician's account, with the customer's name, phone, and delivery address on it.
 - **Timeline:** no fixed date. Launch when the launch set is done and tested.
+- **Responsive (decided 2026-11-18):** the storefront's phone, tablet, and desktop layouts (feature 36) get verified, then a sweep adds small phones, landscape, and large monitors (39); the dashboard gets real phone and tablet layouts (38).
+- **Home hero (decided 2026-11-18):** a 3D coverflow of the featured products is the hero at every width, with the headline above it; the banner carousel shows below it when banners are on (37).
+- **App stores (decided 2026-11-18):** installable web app first (40), then Google Play as a wrapped web app (41). The App Store waits: Apple often rejects a plain website wrapper, and an iOS build needs a Mac and a yearly developer account.
 
 ## At a glance
 
@@ -57,21 +60,28 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 34 | Returns & exchanges | Slice 10 | planned |
 | 35 | Dashboard home | Slice 4 | planned |
 | 36 | Storefront desktop & tablet layout | Slice 8 | in-progress |
+| 37 | Hero product coverflow | Slice 8 | in-progress |
+| 38 | Dashboard on phone and tablet | Slice 8 | planned |
+| 39 | Small phone, landscape & large monitor sweep | Slice 8 | planned |
+| 40 | Installable web app | Slice 11 | planned |
+| 41 | Google Play listing | Slice 11 | planned |
 
 ## Areas
 
 - [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 6 of 6 done.
-- [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 4 of 6 done.
+- [Catalog](catalog.md): features 7 to 11, 25, and 37 (products, import, categories, product page, search, homepage, hero coverflow). 4 of 7 done.
 - [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
-- [Site & launch](site.md): features 26, 28 to 30, and 36 (settings and policies, search visibility, stats, desktop and tablet layout, go live). 0 of 5 done.
+- [Site & launch](site.md): features 26, 28 to 30, 36, 38, and 39 (settings and policies, search visibility, stats, desktop and tablet layout, dashboard on phone and tablet, the width sweep, go live). 0 of 7 done.
 - [Loyalty](loyalty.md): features 31 and 32, after launch. 0 of 2 done.
 - [Returns](returns.md): features 33 and 34, after launch. 0 of 2 done.
+- [Mobile app](app.md): features 40 and 41, after launch (installable web app, Google Play). 0 of 2 done.
 
 ## Deferred
 
 Out of scope for now, kept so the plan stays honest.
+- **App Store listing**: the shop on the iPhone App Store through a native shell; needs a Mac, an Apple developer account (99 USD a year), and enough app only features to pass Apple's review · needs a decision · after feature 41
 - **Online card payment at checkout**: pay on the website instead of cash or cheque · needs a decision · GA
 - **Automatic WhatsApp sending**: the site messages you from the shop number by itself, through a business messaging service · needs a decision
 - **Opening hours and map position for search**: shop settings hold hours, location, and social page links, so the home Store block can carry them · from spec 0026 · needs a decision

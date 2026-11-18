@@ -59,6 +59,16 @@ spec [0029](../specs/0029-storefront-desktop-layout/index.md) · code in `src/co
 - [ ] Verify it: `/check verify storefront desktop & tablet layout`
 - [ ] Test it: `/test storefront desktop & tablet layout`
 
+### 38. Dashboard on phone and tablet · planned · needs a decision
+Real phone and tablet layouts for every dashboard page, so you can run orders and products from your phone: the sidebar becomes a drawer or bottom bar, tables turn into cards or scroll inside their own box, and KPI cards, form rows, and detail columns stack. Desktop stays as designed.
+**Done when:** every dashboard page works at 390 and 820px with no sideways page scroll, every control is at least 44px, the sidebar's unseen orders count stays reachable, and axe passes on each page at both widths.
+- [ ] Design it (spec): `/architect dashboard on phone and tablet`
+
+### 39. Small phone, landscape & large monitor sweep · planned
+Close the gaps spec 0029 left open on the storefront: small phones from 320px, phones held sideways, and monitors wider than 1920px. Runs after feature 36 is verified.
+**Done when:** no storefront page scrolls sideways from 320 to 2560px wide, a phone in landscape (390px tall) keeps the header, bottom bar, and WhatsApp float usable, content stays centred at 1280px on a 2560px screen with the shell backgrounds full width, and the Playwright projects cover 320 and 2560.
+- [ ] Build it: `/develop small phone, landscape & large monitor sweep`
+
 ## Launch
 
 ### 30. Go live · in-progress

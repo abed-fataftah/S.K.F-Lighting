@@ -2,6 +2,7 @@
 
 **Date**: 2026-11-10
 **Status**: In Progress
+**Amended**: 2026-11-18. Spec [0030](../0030-hero-product-coverflow/index.md) replaces AC-13 (a) and (b): the hero is the product coverflow at every width, and the banner side card is removed (banners sit centred at 720px from `md`).
 
 ## Summary
 
