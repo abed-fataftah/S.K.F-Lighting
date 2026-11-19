@@ -77,7 +77,7 @@ spec [0032](../specs/0032-light-hero-orange-brand/index.md)
 - [ ] Build it: `/develop light hero & orange brand`
   - [x] Brand token end to end: tokens, contrast table, every class, `cn()` names, gallery and Arabic copy, tests and docs (AC-1, AC-2, AC-4, AC-15)
   - [x] Logo and share pictures recoloured and made again (AC-3)
-  - [ ] Light hero: surface, marker, white tint, dots, arrows, fallback card and chandelier, loading shape, hero flows (AC-5 to AC-13, AC-15)
+  - [x] Light hero: surface, marker, white tint, dots, arrows, fallback card and chandelier, loading shape, hero flows (AC-5 to AC-13, AC-15)
   - [ ] Sample pictures command with guards and tests, run locally (AC-14, AC-15)
   - [ ] Finish: full suites, axe at three widths, Home screenshots against the mockup (AC-13, AC-15)
 - [ ] Verify it: `/check verify light hero & orange brand`

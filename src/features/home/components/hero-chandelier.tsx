@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 // The hero's chandelier (spec 0011 AC-3), copied from the Home board (`Main.dc.html`) with its
-// colours mapped to tokens: orange, the orange tint, and the two drawing colours. Decorative.
+// colours mapped to tokens: orange and the two orange drawing colours, so it reads on white (spec 0032 AC-11). Decorative.
 // From md it sways slowly from its wire (spec 0029), still under reduced motion; phones keep it still.
 const arms = [
   "M100 72C78 74 42 76 36 54",
@@ -66,18 +66,18 @@ export function HeroChandelier({ className }: { readonly className?: string }) {
         <g key={x}>
           <line x1={x} y1={top} x2={x} y2={end} className="stroke-illus-08" strokeWidth="1.2" />
           {beads.map((cy) => (
-            <circle key={cy} cx={x} cy={cy} r="1.9" className="fill-brand-tint" />
+            <circle key={cy} cx={x} cy={cy} r="1.9" className="fill-brand" />
           ))}
           <path
             d={`M${x} ${end}L${x + 3.4} ${end + 5.5}L${x} ${end + 12}L${x - 3.4} ${end + 5.5}Z`}
-            className="fill-brand-tint"
+            className="fill-brand"
           />
         </g>
       ))}
       <line x1="100" y1="72" x2="100" y2="116" className="stroke-illus-08" strokeWidth="1.4" />
-      <circle cx="100" cy="84" r="2.2" className="fill-brand-tint" />
-      <circle cx="100" cy="96" r="2.2" className="fill-brand-tint" />
-      <path d="M100 116L107.48 128.1L100 142.4L92.52 128.1Z" className="fill-brand-tint" />
+      <circle cx="100" cy="84" r="2.2" className="fill-brand" />
+      <circle cx="100" cy="96" r="2.2" className="fill-brand" />
+      <path d="M100 116L107.48 128.1L100 142.4L92.52 128.1Z" className="fill-brand" />
     </svg>
   );
 }

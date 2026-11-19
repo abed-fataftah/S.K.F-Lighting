@@ -114,11 +114,11 @@ function Picture({
           className={cn("absolute inset-0", !product.inStock && "opacity-45")}
         />
       )}
-      {/* The depth tint (AC-4): black over the picture, as deep as the card's place says. On a
+      {/* The depth tint (AC-4; white since spec 0032 AC-7): white over the picture, as deep as the card's place says. On a
           crossing step it jumps with its card instead of sliding. */}
       <span
         aria-hidden
-        className="absolute inset-0 bg-ink opacity-(--t) transition-opacity duration-(--dur-carousel-move) ease-(--ease-carousel) motion-reduce:transition-none"
+        className="absolute inset-0 bg-white opacity-(--t) transition-opacity duration-(--dur-carousel-move) ease-(--ease-carousel) motion-reduce:transition-none"
         style={crossing ? { transition: "none" } : undefined}
       />
       {!product.inStock ? (
@@ -144,13 +144,9 @@ function Words({ product }: { readonly product: CardProduct }) {
     );
   return (
     <span className="mt-2.5 block">
-      <span className={cn("line-clamp-2 type-lead text-white", NAME_LINES)}>{product.name}</span>
+      <span className={cn("line-clamp-2 type-lead text-ink", NAME_LINES)}>{product.name}</span>
       <span
-        className={cn(
-          "block type-lead",
-          PRICE_LINE,
-          product.inStock ? "text-white" : "text-on-dark-muted",
-        )}
+        className={cn("block type-lead", PRICE_LINE, product.inStock ? "text-ink" : "text-muted")}
         data-testid="hero-price"
       >
         {price}
@@ -161,8 +157,8 @@ function Words({ product }: { readonly product: CardProduct }) {
 
 /**
  * The Home hero (spec 0030): the headline, then a coverflow of the featured products, the dots, and
- * the two buttons, on the black hero surface. Below md a rounded card with the page's side margins;
- * from md a black band across the screen with its content in the centred content box. The coverflow
+ * the two buttons, on the white hero surface (spec 0032 AC-5). Below md a rounded card with a 1px border and the
+ * page's side margins; from md a white band across the screen, edged at the bottom, with its content in the centred content box. The coverflow
  * moves one product per step, by a swipe, a tap on a side card, the arrows (from lg), the arrow
  * keys, or a dot; it loops and never moves by itself. One product shows alone with no controls.
  */
@@ -265,21 +261,21 @@ export function HeroCoverflow({
   const total = formatNumber(count);
   // The arrows (AC-6): from lg, at the content box's edges, level with the middle of the image.
   const arrow =
-    "absolute top-[calc(var(--coverflow-card)_*_0.625)] z-20 hidden -translate-y-1/2 rounded-full border-white text-white hover:bg-sidebar-active lg:inline-flex";
+    "absolute top-[calc(var(--coverflow-card)_*_0.625)] z-20 hidden -translate-y-1/2 rounded-full border-control-border bg-white text-ink hover:bg-page lg:inline-flex";
 
   return (
     <section
       aria-labelledby="hero-title"
       data-testid="home-hero"
       onKeyDown={moves ? onKeyDown : undefined}
-      className="on-dark relative mx-(--page-pad) mt-3.5 overflow-hidden rounded-hero border border-sidebar-active bg-ink text-white md:mx-0 md:mt-0 md:rounded-none md:border-0"
+      className="relative mx-(--page-pad) mt-3.5 overflow-hidden rounded-hero border border-border bg-white text-ink md:mx-0 md:mt-0 md:rounded-none md:border-x-0 md:border-t-0"
     >
       <div className="mx-auto flex w-full max-w-(--content-max) flex-col items-start px-5 pt-6.5 pb-5 md:px-(--page-pad) md:pt-8 md:pb-6 lg:items-center lg:pt-10 lg:pb-8 lg:text-center">
         <h1 id="hero-title" className="flex flex-col type-hero">
           <span>{t("heroLine1")}</span>
-          <span className="text-brand">{t("heroLine2")}</span>
+          <span className="w-fit rounded-btn bg-brand px-3 lg:self-center">{t("heroLine2")}</span>
         </h1>
-        <p className="mt-2.5 type-body text-on-dark-muted">{t("heroText")}</p>
+        <p className="mt-2.5 type-body text-muted">{t("heroText")}</p>
 
         <div
           role="region"
@@ -393,7 +389,7 @@ export function HeroCoverflow({
                       aria-hidden
                       className={cn(
                         "size-2.5 rounded-full border transition-colors duration-(--dur-hover)",
-                        index === centre ? "border-brand bg-brand" : "border-on-dark-muted",
+                        index === centre ? "border-ink bg-brand" : "border-control-border",
                       )}
                     />
                   </button>

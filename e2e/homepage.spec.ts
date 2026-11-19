@@ -346,6 +346,12 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
   await expect(customer.getByRole("heading", { level: 1 })).toHaveText(/ثريات وإنارة/);
   await expect(customer.getByTestId("home-products")).toHaveCount(0);
   await expect(hero.locator("svg").first()).toBeVisible();
+  // The fallback card is white too, line 2 on the brand marker (spec 0032 AC-11).
+  await expect(hero).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(customer.locator("h1 span").nth(1)).toHaveCSS(
+    "background-color",
+    "rgb(247, 147, 30)",
+  );
   await checkA11y(customer);
   await shopper.close();
 });

@@ -5,15 +5,15 @@ import { PageFrame } from "@/components/page-frame";
 import { cn } from "@/lib/utils";
 
 // Home loading (spec 0011 AC-7, spec 0030 AC-14): skeletons of the real layout, announced once as
-// "جارٍ التحميل". The hero's shape first, on the black hero surface: two headline lines, the
-// subline, the centre card, the dots, and the two buttons; then the category cards with their grid
+// "جارٍ التحميل". The hero's shape first, on the white hero surface (spec 0032 AC-12): two
+// headline lines, the subline, the centre card, the dots, and the two buttons; then the category cards with their grid
 // (spec 0031 AC-9) and the trust cards.
 export default async function HomeLoading() {
   const t = await getTranslations("Home");
-  const block = "bg-sidebar-active";
+  const block = "bg-fill-muted";
   return (
     <LoadingStatus label={t("loading")} className="flex flex-col">
-      <div className="mx-(--page-pad) mt-3.5 overflow-hidden rounded-hero bg-ink md:mx-0 md:mt-0 md:rounded-none">
+      <div className="mx-(--page-pad) mt-3.5 overflow-hidden rounded-hero border border-border bg-white md:mx-0 md:mt-0 md:rounded-none md:border-x-0 md:border-t-0">
         <div className="mx-auto flex w-full max-w-(--content-max) flex-col items-start px-5 pt-6.5 pb-5 md:px-(--page-pad) md:pt-8 md:pb-6 lg:items-center lg:pt-10 lg:pb-8">
           <Skeleton className={`h-10 w-44 ${block}`} />
           <Skeleton className={`mt-1 h-10 w-36 ${block}`} />

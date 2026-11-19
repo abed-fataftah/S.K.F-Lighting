@@ -6,7 +6,7 @@ import {
   usePhoneWidth,
 } from "./a11y";
 
-// covers: AC-3 to AC-10, AC-13 (spec 0030): the hero coverflow on the phone, tablet, and desktop
+// covers: AC-3 to AC-10, AC-13 (spec 0030); AC-5, AC-6, AC-15 (spec 0032): the hero coverflow on the phone, tablet, and desktop
 // projects, against whatever Home shows (the picks, else the newest products). It needs three or
 // more products and changes nothing; the homepage flow covers the picks, the small counts, the
 // banners under the hero, and the fallback card.
@@ -51,6 +51,12 @@ test("places the centre card and its neighbours for the width", async ({ page },
 
   // One neighbour each side below lg, two from lg (AC-4); the rest hidden.
   expect(await visibleCards(list)).toBe(Math.min(count, project === "desktop" ? 5 : 3));
+
+  // The hero is white, and line 2 sits on the brand marker under ink text (spec 0032 AC-5, AC-6).
+  await expect(hero).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  const line2 = page.locator("h1 span").nth(1);
+  await expect(line2).toHaveCSS("background-color", "rgb(247, 147, 30)");
+  await expect(line2).toHaveCSS("color", "rgb(17, 17, 17)");
 
   // The band spans the screen from md; on a phone the card keeps the column's side margins, and
   // at least a quarter of each neighbour shows inside it (AC-3, AC-4).
