@@ -35,7 +35,7 @@ shadcn setup: initialized on Base UI with RTL on, so components use logical clas
 ## 3. Approved decisions record
 
 - Look: black and orange on a warm light page, flat, Almarai, radii 4 / 8 / 10 / 12 / 20, 44px touch targets, no shadows, no dark mode. The owner reviewed the boards and approved them page by page on the canvas (final review of all pages: done).
-- Logo: the owner's own logo (white "SKF", orange bolt in the K, orange "lighting"), used on black only. Brand orange `#F7931E` (spec 0032; it replaced the orange measured from the first logo file). The vector in the prototype is a trace made from the owner's PNG.
+- Logo: the owner's own logo (white "SKF" with a swoosh, an orange glowing bulb, orange "LIGHTING"), used on black only. Brand orange `#F7931E` (spec 0032; it replaced the yellow of the first logo). The owner's file is `docs/design/brand/skf-logo-source.png`; the site serves `public/brand/skf-logo.webp` made from it.
 - Product card: orange "أضف للسلة" button plus a small 44x44 green WhatsApp icon button (decision of the owner; applies to Home, Category and Search).
 - The owner circle (photo and name) appears only on the Home page.
 - No cheque or "no online payment" text anywhere in the storefront. The orange info strip (delivery fees) shows on Home only.
@@ -176,7 +176,7 @@ Samples on the boards that are NOT real: order numbers like `26-00123`, status n
 | O-1 | Desktop and tablet layouts of every storefront page are not designed | Closed by spec 0029 (`docs/specs/0029-storefront-desktop-layout/index.md`): tablet and desktop layouts specified in words |
 | O-2 | Digit style (Arabic-Indic or Western), price and date formats, Arabic search matching | Western digits, `₪20`, comma thousands, dates as placeholder; search: ignore diacritics and treat أ إ آ ا as one letter (my suggestion) |
 | O-3 | Final order status names and their order | Use: جديد، قيد التجهيز، جاهز، تم التسليم، ملغي |
-| O-4 | Official logo files | Use the traced SVG on black only |
+| O-4 | Official logo files | Closed 2026-11-19: the owner sent the new logo (`docs/design/brand/skf-logo-source.png`) |
 | O-5 | Real photos: categories, products, hero, owner | Drawings stay as placeholders |
 | O-6 | Real copy: phone, WhatsApp number, address, email, policy texts, owner name, SEO texts | Show the bracket placeholders |
 | O-7 | Icon set and a licensed WhatsApp glyph | lucide-react; WhatsApp glyph from a licensed source |

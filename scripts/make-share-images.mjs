@@ -18,7 +18,7 @@ async function tokenColour() {
 }
 
 async function render({ out, width, height, logoWidth, background, logo }) {
-  const mark = await sharp(logo, { density: 300 }).resize({ width: logoWidth }).png().toBuffer();
+  const mark = await sharp(logo).resize({ width: logoWidth }).png().toBuffer();
   await sharp({ create: { width, height, channels: 3, background } })
     .composite([{ input: mark, gravity: "centre" }])
     .png({ compressionLevel: 9, palette: true })
@@ -27,7 +27,7 @@ async function render({ out, width, height, logoWidth, background, logo }) {
 }
 
 const background = await tokenColour();
-const logo = await readFile(`${root}public/brand/skf-logo.svg`);
+const logo = await readFile(`${root}docs/design/brand/skf-logo-source.png`);
 
 // The share image: 1200 by 630, the logo at 40% of the width, no text.
 await render({ out: "share.png", width: 1200, height: 630, logoWidth: 480, background, logo });
