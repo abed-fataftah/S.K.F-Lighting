@@ -135,7 +135,7 @@ export function circleSteps(index: number, centre: number, count: number): numbe
  * (spec 0030 AC-7). */
 export const changesSide = (before: number, after: number): boolean => before * after < 0;
 
-/** Where "تسوّق الآن" goes: the category cards, else nowhere (hidden) (spec 0030 AC-3, AC-11). */
+/** Where "تسوّق المجموعة" goes: the category cards, else nowhere (hidden) (spec 0030 AC-3, AC-11). */
 export function shopNowTarget(categoryCount: number): "categories" | null {
   return categoryCount > 0 ? "categories" : null;
 }

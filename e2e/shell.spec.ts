@@ -110,7 +110,7 @@ test.describe("storefront shell", () => {
     const cart = header.getByRole("link", { name: "السلة", exact: true });
     await expect(cart).toHaveCount(1);
     await expect(cart).toHaveAttribute("href", "/cart");
-    await expect(page.getByText("توصيل: الضفة ₪20 · الداخل ₪70")).toBeVisible();
+    await expect(page.getByText("التوصيل إلى الضفة ₪20 · الداخل ₪70")).toBeVisible();
     // One search landmark at every width.
     await expect(page.getByRole("search")).toHaveCount(1);
   });
@@ -160,7 +160,7 @@ test.describe("storefront shell", () => {
     ]);
     expect(texts.slice(5, 5 + categoryTexts.length)).toEqual(categoryTexts);
     const whatsapp = new URL((await links.last().getAttribute("href"))!);
-    expect(whatsapp.searchParams.get("text")).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
+    expect(whatsapp.searchParams.get("text")).toBe("مرحبًا S.K.F، لديّ استفسار.");
 
     await page.keyboard.press("Escape");
     await expect(sheet).toBeHidden();
@@ -195,7 +195,7 @@ test.describe("storefront shell", () => {
     await expect(fab(page)).toHaveAttribute("rel", "noopener");
     const href = new URL((await fab(page).getAttribute("href"))!);
     expect(href.origin + href.pathname).toBe("https://wa.me/970500000000");
-    expect(href.searchParams.get("text")).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
+    expect(href.searchParams.get("text")).toBe("مرحبًا S.K.F، لديّ استفسار.");
   });
 
   // covers: AC-7 (spec 0029)
@@ -300,7 +300,7 @@ test.describe("desktop shell", () => {
       "href",
       /^https:\/\/wa\.me\//,
     );
-    const shop = footer.getByRole("navigation", { name: "تسوّق" });
+    const shop = footer.getByRole("navigation", { name: "المتجر" });
     if (await shop.count()) {
       const shopBox = await box(shop);
       expect(shopBox.x).toBeGreaterThan(help.x + help.width - 1);
@@ -315,10 +315,18 @@ test.describe("desktop shell", () => {
   test("lists the navigation categories in the bar and marks the current one", async ({ page }) => {
     const bar = page.getByRole("navigation", { name: "الأقسام" });
     test.skip((await bar.count()) === 0, "needs main categories in navigation (pnpm db:seed)");
-    // The fixed "كل الأقسام" link opens the row; the categories follow in the list.
+    // The fixed "جميع المنتجات" link opens the row; the categories follow in the list.
     await expect(bar.getByTestId("category-bar-all").getByRole("link")).toHaveAttribute(
       "href",
       "/c",
+    );
+    // The fixed "استشارة إنارة" link closes the row and opens WhatsApp with the advice message.
+    const consult = bar
+      .getByTestId("category-bar-consult")
+      .getByRole("link", { name: "استشارة إنارة" });
+    await expect(consult).toHaveAttribute("target", "_blank");
+    expect(new URL((await consult.getAttribute("href"))!).searchParams.get("text")).toBe(
+      "مرحبًا، أرغب في استشارة لاختيار الإنارة المناسبة.",
     );
     const first = bar.getByRole("list").getByRole("link").first();
     const name = (await first.textContent())!.trim();
@@ -335,7 +343,7 @@ test.describe("desktop shell", () => {
     await expect(bar.locator("[aria-current]")).toHaveCount(1);
   });
 
-  test("opens المزيد by keyboard, ends it with كل الأقسام, and closes it with Escape", async ({
+  test("opens المزيد by keyboard, ends it with جميع المنتجات, and closes it with Escape", async ({
     page,
   }) => {
     // Before it fits the row, the bar shows المزيد with every category.
@@ -346,7 +354,7 @@ test.describe("desktop shell", () => {
     await page.keyboard.press("Enter");
     const menu = page.getByRole("menu");
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole("menuitem").last()).toHaveText("كل الأقسام");
+    await expect(menu.getByRole("menuitem").last()).toHaveText("جميع المنتجات");
     await expect(menu.getByRole("menuitem").last()).toHaveAttribute("href", "/c");
     await page.keyboard.press("Escape");
     await expect(menu).toBeHidden();
@@ -431,7 +439,7 @@ test.describe("category bar at 1024", () => {
     const items = page.getByRole("menu").getByRole("menuitem");
     expect((await items.allTextContents()).map((name) => name.trim())).toEqual([
       ...names.slice(shown),
-      "كل الأقسام",
+      "جميع المنتجات",
     ]);
     await page.keyboard.press("Escape");
     await expect(more).toBeFocused();

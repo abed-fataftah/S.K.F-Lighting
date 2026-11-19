@@ -7,7 +7,7 @@ import { CategoryCards } from "./category-cards";
 import { sectionHeadingId } from "../section-ids";
 
 // Home's sections under the hero and the banners (spec 0011 AC-6, spec 0031; pages/home.md layout
-// 4, 7). Each heading takes focus from "تسوّق الآن" (`tabIndex={-1}`), so it needs an id from
+// 4, 7). Each heading takes focus from "تسوّق المجموعة" (`tabIndex={-1}`), so it needs an id from
 // `sectionHeadingId`. The featured grid left with spec 0030: the picks are the hero coverflow.
 
 function SectionHeading({
@@ -25,7 +25,7 @@ function SectionHeading({
 }
 
 /**
- * "تسوّق حسب القسم" (spec 0031 AC-1): the category cards and, under them, the selected category's
+ * "اكتشف المجموعات" (spec 0031 AC-1): the category cards and, under them, the selected category's
  * products. The page leaves it out with no card.
  */
 export function CategoriesSection({
@@ -83,7 +83,7 @@ function TrustCard({
 }
 
 /**
- * "لماذا تشتري من S.K.F": four cards in a 2×2 grid (AC-6). The delivery line is the zone list
+ * "لماذا S.K.F": four cards in a 2×2 grid (AC-6). The delivery line is the zone list
  * (none with no active zone), the pickup line the shop's address or its fallback.
  */
 export function TrustSection({
@@ -101,8 +101,8 @@ export function TrustSection({
       </h2>
       <ul className="grid grid-cols-2 gap-2.5 lg:grid-cols-4" data-testid="home-trust">
         <TrustCard icon={Truck} title={t("trustDelivery")} line={zoneLine} />
-        <TrustCard icon={Banknote} title={t("trustPay")} line={t("trustPayText")} />
-        <TrustCard icon={MessageCircle} title={t("trustMessage")} line={null} />
+        <TrustCard icon={Banknote} title={t("trustPay")} line={null} />
+        <TrustCard icon={MessageCircle} title={t("trustAdvice")} line={t("trustAdviceText")} />
         <TrustCard
           icon={Store}
           title={t("trustPickup")}

@@ -83,6 +83,7 @@ export function SiteHeader({
         <CategoryBar
           key={categories.map((category) => `${category.slug}:${category.name}`).join(" ")}
           categories={categories}
+          whatsappNumber={whatsappNumber}
         />
       ) : null}
     </header>

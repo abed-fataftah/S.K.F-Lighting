@@ -187,7 +187,7 @@ test("a delivery order shows its rows, address, notes, and saved totals, and eve
   // AC-9: elsewhere the float sends W1. Another browser gets the root not found page, which sits
   // outside the shop layout, so it has no float at all (spec 0013 expected W7 there).
   await page.goto("/");
-  expect(await linkText(fab(page))).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
+  expect(await linkText(fab(page))).toBe("مرحبًا S.K.F، لديّ استفسار.");
   const other = await browser.newPage();
   const response = await other.goto(`/checkout/done/${number}`);
   expect(response?.status()).toBe(404);

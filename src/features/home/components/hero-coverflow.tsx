@@ -411,7 +411,7 @@ export function HeroCoverflow({
           <ButtonLink
             variant="whatsapp"
             size="lg"
-            href={whatsappUrl(whatsappNumber, shell("whatsappMessages.general"))}
+            href={whatsappUrl(whatsappNumber, shell("whatsappMessages.consult"))}
             target="_blank"
             rel="noopener"
             className="flex-[1.25]"

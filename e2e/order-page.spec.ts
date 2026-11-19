@@ -209,7 +209,7 @@ test("the lookup page, its misses, and its format errors", async ({ page }, test
   await expect(page.getByText("عدد المحاولات محدود لحماية بيانات الطلبات.")).toBeVisible();
   await expect(page.getByText(/سجّل الدخول/)).toHaveCount(0);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-  expect(await linkText(fab(page))).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
+  expect(await linkText(fab(page))).toBe("مرحبًا S.K.F، لديّ استفسار.");
   await checkA11y(page, testInfo);
 
   // AC-5: a wrong phone, a wrong number, and an unknown number get the same box, values kept. The

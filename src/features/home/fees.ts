@@ -11,7 +11,7 @@ export function buildZoneLine(fees: readonly ZoneFee[] | null): string | null {
 }
 
 /**
- * The orange strip: the zone line inside its words (`Home.strip`, "توصيل: {zones}"), or null to
+ * The orange strip: the zone line inside its words (`Home.strip`, "التوصيل إلى {zones}"), or null to
  * hide the strip. `words` is the translator call, so the copy stays in ar.json.
  */
 export function buildStripText(

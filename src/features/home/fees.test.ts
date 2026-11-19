@@ -11,7 +11,7 @@ const launch = [
 // covers: AC-6 (spec 0011)
 describe("delivery fees on Home", () => {
   it("builds the strip from the active zones in order", () => {
-    expect(buildStripText(launch, words)).toBe("توصيل: الضفة ₪20 · الداخل ₪70");
+    expect(buildStripText(launch, words)).toBe("التوصيل إلى الضفة ₪20 · الداخل ₪70");
   });
 
   it("builds the delivery card line without the strip's words", () => {

@@ -44,7 +44,7 @@ test("places the centre card and its neighbours for the width", async ({ page },
 
   // One h1, the hero headline (AC-1); the centre card's width per breakpoint (AC-10).
   await expect(page.locator("h1")).toHaveCount(1);
-  await expect(page.locator("h1")).toHaveText(/ثريات وإنارة/);
+  await expect(page.locator("h1")).toHaveText(/الإضاءة المناسبة/);
   const link = list.getByRole("link");
   await expect(link).toHaveCount(1);
   expect(Math.round((await link.boundingBox())!.width)).toBe(cardWidth[project]);

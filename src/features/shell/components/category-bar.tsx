@@ -13,6 +13,8 @@ import {
 import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { whatsappUrl } from "@/lib/whatsapp";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { fitCount, isCurrentCategory, splitCategories } from "../nav";
 import type { MenuCategory } from "./menu-sheet";
 
@@ -21,11 +23,13 @@ type Widths = { readonly links: readonly number[]; readonly more: number; readon
 const px = (value: string) => Number.parseFloat(value) || 0;
 
 /** The room left for the category links and المزيد: the row inside its side padding, less the
- * fixed "كل الأقسام" link at its start and the gap after it. */
+ * fixed "جميع المنتجات" link at its start, the "استشارة إنارة" link at its end, and their gaps. */
 function roomOf(row: HTMLElement): number {
   const style = getComputedStyle(row);
-  const fixed = row.querySelector("[data-testid=category-bar-all]");
-  const taken = fixed ? fixed.getBoundingClientRect().width + px(style.columnGap) : 0;
+  const taken = ["category-bar-all", "category-bar-consult"].reduce((sum, id) => {
+    const fixed = row.querySelector(`[data-testid=${id}]`);
+    return fixed ? sum + fixed.getBoundingClientRect().width + px(style.columnGap) : sum;
+  }, 0);
   return row.clientWidth - px(style.paddingInlineStart) - px(style.paddingInlineEnd) - taken;
 }
 
@@ -35,9 +39,9 @@ const underline =
 
 // The desktop category bar (spec 0029 AC-5): from lg, a black row under the header with the
 // navigation mains (the menu sheet's list, same order) as links, the current one marked. The
-// links that do not fit move, in order, into a final "المزيد" menu that ends with "كل الأقسام".
+// links that do not fit move, in order, into a final "المزيد" menu that ends with "جميع المنتجات".
 // Hidden below lg, where the menu sheet lists them. The header leaves it out when the list is
-// empty or its read failed. A fixed orange "كل الأقسام" link to /c opens the row; an orange bar
+// empty or its read failed. A fixed orange "جميع المنتجات" link to /c opens the row; an orange bar
 // grows under a hovered link and stays under the current one.
 //
 // Until it measures, every link sits in the clipped row and the menu lists them all, so nothing
@@ -45,7 +49,13 @@ const underline =
 // are in the row) and a ResizeObserver fits them to the row; the links past the count are
 // `hidden`, so they leave the tab order and the accessibility tree. The header keys it by the
 // list, so new categories mount it again and it measures afresh.
-export function CategoryBar({ categories }: { readonly categories: readonly MenuCategory[] }) {
+export function CategoryBar({
+  categories,
+  whatsappNumber,
+}: {
+  readonly categories: readonly MenuCategory[];
+  readonly whatsappNumber: string;
+}) {
   const t = useTranslations("Shell");
   const pathname = usePathname();
   const rowRef = useRef<HTMLDivElement>(null);
@@ -177,6 +187,21 @@ export function CategoryBar({ categories }: { readonly categories: readonly Menu
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}
+        <div className="flex shrink-0 items-center gap-1" data-testid="category-bar-consult">
+          <span aria-hidden className="h-6 w-px bg-on-dark-muted/40" />
+          <a
+            href={whatsappUrl(whatsappNumber, t("whatsappMessages.consult"))}
+            target="_blank"
+            rel="noopener"
+            className={cn(
+              "flex min-h-11 items-center gap-2 rounded-btn px-3 type-body font-extrabold whitespace-nowrap text-brand",
+              underline,
+            )}
+          >
+            <WhatsAppIcon aria-hidden className="size-4.5" />
+            {t("consult")}
+          </a>
+        </div>
       </div>
     </nav>
   );

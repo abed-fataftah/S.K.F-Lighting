@@ -10,7 +10,7 @@ import { policyLinks } from "../nav";
 import { Logo } from "./logo";
 import type { MenuCategory } from "./menu-sheet";
 
-/** How many navigation mains the desktop footer lists before "كل الأقسام". */
+/** How many navigation mains the desktop footer lists before "جميع المنتجات". */
 const FOOTER_CATEGORIES = 6;
 
 const footerLink =
@@ -22,7 +22,7 @@ const footerLink =
 // link clear of the WhatsApp float and the bottom bar when scrolled to the very end.
 // Below lg exactly that, in one column. From lg (spec 0029 AC-8) three columns inside the content
 // box: the brand (logo, contact line, a WhatsApp button), "تسوّق" (the first navigation mains and
-// "كل الأقسام"), and "مساعدة" (track order and the policies), then a line with the copyright,
+// "جميع المنتجات"), and "خدمة العملاء" (track order and the policies), then a line with the copyright,
 // with room under it for the float alone.
 export function SiteFooter({
   contact,

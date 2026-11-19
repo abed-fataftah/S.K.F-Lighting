@@ -212,7 +212,7 @@ test("a fee change shows on Home and checkout, a stale checkout is refused, and 
   await expect(fee).toHaveValue("25");
 
   await page.goto("/");
-  await expect(page.getByText("توصيل: الضفة ₪25 · الداخل ₪70")).toBeVisible();
+  await expect(page.getByText("التوصيل إلى الضفة ₪25 · الداخل ₪70")).toBeVisible();
   await expect(page.getByTestId("home-trust")).toContainText("₪25");
 
   await openCheckoutWithItem(page);

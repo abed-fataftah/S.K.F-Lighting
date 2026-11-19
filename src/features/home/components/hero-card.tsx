@@ -8,7 +8,7 @@ import { SectionJump } from "./section-jump";
 // The hero card (spec 0011 AC-3; pages/home.md layout 3): the fallback hero, shown when there
 // are no products for the coverflow (spec 0030 AC-11). White with a 1px border (spec 0032 AC-11),
 // radius 20, the chandelier hanging from the top edge on the physical left (the inline end in
-// right to left), the page's one `h1`, line 2 on the orange marker, and the two buttons. "تسوّق الآن" goes to the circles and is hidden when there are none. From
+// right to left), the page's one `h1`, line 2 on the orange marker, and the two buttons. "تسوّق المجموعة" goes to the circles and is hidden when there are none. From
 // md it spans the content width, the words at the start and the chandelier at the end (spec 0029
 // AC-13a).
 export function HeroCard({
@@ -46,7 +46,7 @@ export function HeroCard({
         <ButtonLink
           variant="whatsapp"
           size="lg"
-          href={whatsappUrl(whatsappNumber, shell("whatsappMessages.general"))}
+          href={whatsappUrl(whatsappNumber, shell("whatsappMessages.consult"))}
           target="_blank"
           rel="noopener"
           className="flex-[1.25]"
