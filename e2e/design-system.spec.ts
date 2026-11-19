@@ -175,7 +175,7 @@ test.describe("gallery custom controls", () => {
     await delivery.click();
     await expect(delivery).toHaveAttribute("aria-checked", "true");
     await expect(card).toHaveCSS("border-top-width", "2px");
-    await expect(card).toHaveCSS("background-color", "rgb(255, 246, 208)");
+    await expect(card).toHaveCSS("background-color", "rgb(254, 239, 220)");
     const after = await card.boundingBox();
     expect(after!.height).toBe(before!.height);
   });
@@ -247,7 +247,7 @@ test.describe("gallery shell parts", () => {
     const badge = cart.locator('[data-slot="badge"]');
     await expect(badge).toHaveText("3");
     await expect(badge).toHaveAttribute("aria-hidden", "true");
-    await expect(badge).toHaveCSS("background-color", "rgb(252, 244, 44)");
+    await expect(badge).toHaveCSS("background-color", "rgb(247, 147, 30)");
   });
 
   // covers: AC-15

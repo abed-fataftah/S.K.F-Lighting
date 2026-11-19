@@ -97,7 +97,7 @@ test.describe("storefront shell", () => {
     await search.focus();
     const box = page.locator("label", { has: search });
     await expect(box).toHaveCSS("outline-style", "solid");
-    await expect(box).toHaveCSS("outline-color", "rgb(252, 244, 44)");
+    await expect(box).toHaveCSS("outline-color", "rgb(247, 147, 30)");
   });
 
   // covers: AC-12
