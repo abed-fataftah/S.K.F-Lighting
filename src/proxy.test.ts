@@ -87,6 +87,24 @@ describe("proxy", () => {
       expect(rewrittenTo(response)).toBe("/ar");
     });
 
+    // Regression: the `[...rest]` catch all made Next answer a bare 400 for these (spec 0013 AC-2).
+    it.each(["/checkout/done/%E0%A4%A", "/c/%E0%A4%A", "/zz%E0%A4%A"])(
+      "serves a broken %% sequence at %s the catch all's 404, not Next's 400",
+      async (path) => {
+        const response = await proxy(request(path));
+
+        expect(redirectedTo(response)).toBeNull();
+        expect(rewrittenTo(response)).toBe("/ar/broken-address");
+      },
+    );
+
+    it("still sends a broken order address to the lookup page", async () => {
+      const response = await proxy(request("/orders/%E0%A4%A"));
+
+      expect(response.status).toBe(307);
+      expect(redirectedTo(response)).toBe("/orders/track");
+    });
+
     it("sets no language cookie", async () => {
       const response = await proxy(request("/"));
 

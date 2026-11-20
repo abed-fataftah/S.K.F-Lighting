@@ -30,10 +30,7 @@ function passThrough(request: NextRequest) {
   return NextResponse.next({ request: { headers } });
 }
 
-// A broken `%` under `/orders/` never reaches the order page (Next answers 404 first), so it goes
-// to the plain lookup here, never a 404 (spec 0015 AC-7).
-function isBrokenOrderPath(pathname: string) {
-  if (!pathname.startsWith(routes.order(""))) return false;
+function isBrokenPath(pathname: string) {
   try {
     decodeURIComponent(pathname);
     return false;
@@ -42,6 +39,16 @@ function isBrokenOrderPath(pathname: string) {
   }
 }
 
+// A broken `%` under `/orders/` never reaches the order page, so it goes to the plain lookup here,
+// never a 404 (spec 0015 AC-7).
+const isBrokenOrderPath = (pathname: string) =>
+  pathname.startsWith(routes.order("")) && isBrokenPath(pathname);
+
+// Any other broken `%` on the storefront: Next fails to decode the `[...rest]` catch all's params
+// and answers its bare 400 page. This internal address matches only the catch all, so the browser
+// keeps its address and gets the designed 404 inside the shell (spec 0013 AC-2, spec 0029 AC-17).
+const BROKEN_ADDRESS = `/${routing.defaultLocale}/broken-address`;
+
 async function route(request: NextRequest): Promise<NextResponse> {
   if (isBrokenOrderPath(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL(routes.orderTrack, request.url), 307);
@@ -49,9 +56,12 @@ async function route(request: NextRequest): Promise<NextResponse> {
   if (skipsSession(request.nextUrl.pathname)) return NextResponse.next();
   const applySession = await refreshSession(request);
 
-  const response = isOutsideLocaleRouting(request.nextUrl.pathname)
+  const { pathname } = request.nextUrl;
+  const response = isOutsideLocaleRouting(pathname)
     ? passThrough(request)
-    : handleI18nRouting(request);
+    : isBrokenPath(pathname)
+      ? NextResponse.rewrite(new URL(BROKEN_ADDRESS, request.url))
+      : handleI18nRouting(request);
 
   return applySession(response);
 }
