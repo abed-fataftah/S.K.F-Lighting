@@ -10,6 +10,7 @@ Shared UI built from the approved design in `docs/design/`. `ui/` holds the shad
 |---|---|
 | `ui/` | shadcn primitives on `@base-ui/react` (Button, Field, Sheet, Tabs, and more) |
 | `html-document.tsx` | `<html lang="ar" dir="rtl">` plus Base UI `DirectionProvider` for every layout |
+| `page-frame.tsx` | `<PageFrame width="wide" \| "form" \| "prose">`: the centred root of every storefront page (spec 0029) |
 | `ltr.tsx` | `<Ltr>` wrapper so codes, order numbers, and phone numbers read left to right |
 | `quantity-stepper.tsx`, `radio-card.tsx`, `chip.tsx` | Custom controls from the design handoff |
 | `icons/directional.tsx` | Arrows and chevrons that flip correctly in RTL |
