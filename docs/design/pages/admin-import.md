@@ -40,7 +40,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Desktop (1280) (designed):
-Header h1 "استيراد المنتجات" with outline small "العودة للمنتجات". One column, max 960. Card "1. جدول المنتجات": drop zone (title "اسحب ملف CSV أو Excel إلى هنا", text, yellow small "اختيار ملف") and link button "تحميل قالب الجدول". Card "2. صور المنتجات": drop zone ("اسحب الصور إلى هنا", text, yellow small "اختيار صور"). Card "3. مراجعة النتيجة": three read-only count chips (صفوف سليمة، تحتاج إصلاحاً، صور بلا منتج), and a table (الصف, المشكلة, الإجراء). Bottom: outline small "إلغاء", yellow small "تأكيد الاستيراد".
+Header h1 "استيراد المنتجات" with outline small "العودة للمنتجات". One column, max 960. Card "1. جدول المنتجات": drop zone (title "اسحب ملف CSV أو Excel إلى هنا", text, orange small "اختيار ملف") and link button "تحميل قالب الجدول". Card "2. صور المنتجات": drop zone ("اسحب الصور إلى هنا", text, orange small "اختيار صور"). Card "3. مراجعة النتيجة": three read-only count chips (صفوف سليمة، تحتاج إصلاحاً، صور بلا منتج), and a table (الصف, المشكلة, الإجراء). Bottom: outline small "إلغاء", orange small "تأكيد الاستيراد".
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 

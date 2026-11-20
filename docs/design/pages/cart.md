@@ -41,10 +41,10 @@ Mobile (390) (designed):
 2. Title row: h1 "السلة" 24/800 and the count "N منتجات" 13 muted (padding 12 0 10).
 3. Notice banner (only when an item is unavailable): tint fill, 1px ink border, warning icon, text 700.
 4. One card per line (padding 14, gap 12, margin-bottom 10): image tile 72x72; column with the name link (800, at the start) and a trash icon button 44x44 at the end; option line 13 muted ("الحجم: 60 سم · اللون: ذهبي"); code line 12 muted; bottom row: stepper at the start and line price 16/800 at the end. Unavailable line: tile at 45% opacity, text "غير متوفر حالياً. أزله للمتابعة." (13/700 muted), no stepper, price muted.
-5. Summary card (margin-top 14): "المجموع الفرعي" and amount; "التوصيل" with the text "يُحسب في الخطوة التالية" and "الضفة ₪20 · الداخل ₪70"; divider; yellow large button "متابعة الطلب" (disabled while an unavailable line exists); outline large button "أكمل التسوق".
+5. Summary card (margin-top 14): "المجموع الفرعي" and amount; "التوصيل" with the text "يُحسب في الخطوة التالية" and "الضفة ₪20 · الداخل ₪70"; divider; orange large button "متابعة الطلب" (disabled while an unavailable line exists); outline large button "أكمل التسوق".
 6. Footer, bottom bar (tab: السلة), float.
 
-Desktop (1280) and tablet: NOT designed (open item O-1). Interim: render the mobile layout in one centered column, `max-width: 480px` (`--page-max`), page background on both sides.
+Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
 
 Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: cart) and the WhatsApp float are shared parts defined once in `handoff.md` section 6. They are not repeated below.
 

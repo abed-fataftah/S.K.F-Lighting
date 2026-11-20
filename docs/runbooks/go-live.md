@@ -14,7 +14,7 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 ## 2. First deploy
 
-- [ ] Push to `main`. CI applies the migrations and deploys the Worker. Done when the deploy job is green.
+- [x] Push to `main`. CI applies the migrations and deploys the Worker. Done when the deploy job is green.
 - [ ] Run the RLS check against production once, with `DATABASE_URL_DIRECT` set for that one command only:
   ```
   DATABASE_URL_DIRECT='<session pooler URL>' pnpm db:check-rls
@@ -24,7 +24,7 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 ## 3. Domain on the Worker (AC-1, AC-2)
 
-- [ ] In `wrangler.jsonc`, add the custom domain and turn off the `workers.dev` address, as its own commit (committing it before the domain is bought breaks the deploy):
+- [x] In `wrangler.jsonc`, add the custom domain and turn off the `workers.dev` address, as its own commit (committing it before the domain is bought breaks the deploy):
   ```jsonc
   "routes": [{ "pattern": "<domain>", "custom_domain": true }],
   "workers_dev": false,
@@ -32,13 +32,13 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
   "preview_urls": true,
   ```
   Deploy. Done when `https://<domain>/` shows the shop with a valid padlock.
-- [ ] DNS: a proxied (orange cloud) record `www`, type `AAAA`, value `100::`.
-- [ ] **Rules → Redirect Rules → Single Redirects**: when the hostname equals `www.<domain>`, redirect dynamically to `concat("https://<domain>", http.request.uri.path)`, status **301**, **Preserve query string** on.
-- [ ] **SSL/TLS → Edge Certificates**: **Always Use HTTPS** on, **Minimum TLS Version** 1.2. Leave HSTS off until step 9.
-- [ ] GitHub `production` variable `NEXT_PUBLIC_SITE_URL` = `https://<domain>` (no trailing slash). Deploy again so the build picks it up.
-- [ ] Supabase **Authentication → URL Configuration**: Site URL `https://<domain>`, and `https://<domain>/**` in the redirect URLs.
-- [ ] Google Cloud OAuth client: authorized origin `https://<domain>`. The callback stays Supabase's own (`https://<project ref>.supabase.co/auth/v1/callback`).
-- [ ] Check from a terminal. Done when all three hold:
+- [x] DNS: a proxied (orange cloud) record `www`, type `AAAA`, value `100::`.
+- [x] **Rules → Redirect Rules → Single Redirects**: when the hostname equals `www.<domain>`, redirect dynamically to `concat("https://<domain>", http.request.uri.path)`, status **301**, **Preserve query string** on.
+- [x] **SSL/TLS → Edge Certificates**: **Always Use HTTPS** on, **Minimum TLS Version** 1.2. Leave HSTS off until step 9.
+- [x] GitHub `production` variable `NEXT_PUBLIC_SITE_URL` = `https://<domain>` (no trailing slash). Deploy again so the build picks it up.
+- [x] Supabase **Authentication → URL Configuration**: Site URL `https://<domain>`, and `https://<domain>/**` in the redirect URLs.
+- [x] Google Cloud OAuth client: authorized origin `https://<domain>`. The callback stays Supabase's own (`https://<project ref>.supabase.co/auth/v1/callback`). Not needed at launch: spec 0017 leaves Google sign in out, and the provider is off.
+- [x] Check from a terminal. Done when all three hold:
   ```
   curl -I http://<domain>/                     # 301 to https://<domain>/
   curl -I "https://www.<domain>/c?page=2"      # 301 to https://<domain>/c?page=2
@@ -47,9 +47,9 @@ From spec [0028](../specs/0028-go-live/index.md). One ordered checklist from an 
 
 ## 4. Email (AC-2)
 
-- [ ] Resend: add the domain, then add its SPF and DKIM records in Cloudflare DNS (not proxied). Add a DMARC record: `TXT _dmarc` = `v=DMARC1; p=none; rua=mailto:<your address>`. Done when Resend shows the domain verified.
-- [ ] Supabase custom SMTP through Resend, and the raised auth email rate limit, per [supabase-production.md](supabase-production.md) (Auth).
-- [ ] Ask for a password reset on `https://<domain>` with your own account. Done when the email arrives and its link starts `https://<domain>/auth/confirm`.
+- [x] Resend: add the domain, then add its SPF and DKIM records in Cloudflare DNS (not proxied). Add a DMARC record: `TXT _dmarc` = `v=DMARC1; p=none; rua=mailto:<your address>`. Done when Resend shows the domain verified.
+- [x] Supabase custom SMTP through Resend, and the raised auth email rate limit, per [supabase-production.md](supabase-production.md) (Auth).
+- [x] Ask for a password reset on `https://<domain>` with your own account. Done when the email arrives and its link starts `https://<domain>/auth/confirm`.
 
 ## 5. Monitoring (AC-8, AC-19)
 

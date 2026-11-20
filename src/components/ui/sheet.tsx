@@ -37,13 +37,17 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
 }
 
 // The offset the panel slides from: off the start edge, which flips with the direction, or
-// down off the screen.
+// down off the screen. `responsive` is the bottom sheet below lg and a centred dialog from lg,
+// fading instead of sliding (spec 0029 AC-18); crossing lg while open only changes its look.
+const bottom =
+  "start-0 end-0 bottom-0 mx-auto max-h-[90dvh] w-full max-w-(--page-max) rounded-t-card border-t pb-[env(safe-area-inset-bottom)] data-ending-style:translate-y-full data-starting-style:translate-y-full";
+
 const sides = {
   start:
     "inset-y-0 start-0 h-full w-[min(var(--w-sheet),85vw)] border-e [--sheet-from:-100%] rtl:[--sheet-from:100%] data-ending-style:translate-x-(--sheet-from) data-starting-style:translate-x-(--sheet-from)",
   end: "inset-y-0 end-0 h-full w-[min(var(--w-sheet),85vw)] border-s [--sheet-from:100%] rtl:[--sheet-from:-100%] data-ending-style:translate-x-(--sheet-from) data-starting-style:translate-x-(--sheet-from)",
-  bottom:
-    "start-0 end-0 bottom-0 mx-auto max-h-[90dvh] w-full max-w-(--page-max) rounded-t-card border-t pb-[env(safe-area-inset-bottom)] data-ending-style:translate-y-full data-starting-style:translate-y-full",
+  bottom,
+  responsive: `${bottom} lg:top-1/2 lg:bottom-auto lg:max-w-(--form-max) lg:-translate-y-1/2 lg:rounded-card lg:border lg:pb-0 lg:transition-opacity lg:data-ending-style:-translate-y-1/2 lg:data-ending-style:opacity-0 lg:data-starting-style:-translate-y-1/2 lg:data-starting-style:opacity-0`,
 } as const;
 
 function SheetContent({

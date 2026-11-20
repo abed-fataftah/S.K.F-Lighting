@@ -39,7 +39,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Desktop (1280) (designed):
-Header h1 "الأقسام" with yellow small "+ قسم رئيسي". One column, max 900, gap 12. One card per main category: name 17/800 (build 18) with "· [N] منتج" 12 muted; buttons: ↑ and ↓ (44x44 outline), "تعديل", "+ قسم فرعي". Sub-categories under a 1px line: name with count, outline small "تعديل", outline icon trash 44x44. Note 13 muted: "القسم له مستويان فقط: رئيسي وفرعي.".
+Header h1 "الأقسام" with orange small "+ قسم رئيسي". One column, max 900, gap 12. One card per main category: name 17/800 (build 18) with "· [N] منتج" 12 muted; buttons: ↑ and ↓ (44x44 outline), "تعديل", "+ قسم فرعي". Sub-categories under a 1px line: name with count, outline small "تعديل", outline icon trash 44x44. Note 13 muted: "القسم له مستويان فقط: رئيسي وفرعي.".
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 

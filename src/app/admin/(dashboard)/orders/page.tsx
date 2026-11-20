@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // The orders list (spec 0004 AC-13, spec 0014; docs/design/pages/admin-orders.md without the
 // payment column, which comes with feature 24). Search, filters in the address, newest first,
-// 50 a page; unseen orders carry the yellow dot.
+// 50 a page; unseen orders carry the orange dot.
 export default async function AdminOrdersPage({ searchParams }: PageProps<"/admin/orders">) {
   const { filters, days } = parseOrderFilters(await searchParams, shopDateKey(new Date()));
   const [t, { rows, hasNext }] = await Promise.all([

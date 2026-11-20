@@ -1,5 +1,5 @@
 // The delivery fees Home shows (spec 0011 AC-6), from the same `delivery_zones` rows checkout uses.
-// Pure: the shop layout builds the strip, the delivery trust card builds its line.
+// Pure: the shop layout builds the strip; the delivery trust card lays out the same fees itself.
 import { formatPrice } from "@/lib/money";
 
 export type ZoneFee = { readonly shortName: string; readonly fee: number };
@@ -11,7 +11,7 @@ export function buildZoneLine(fees: readonly ZoneFee[] | null): string | null {
 }
 
 /**
- * The yellow strip: the zone line inside its words (`Home.strip`, "توصيل: {zones}"), or null to
+ * The orange strip: the zone line inside its words (`Home.strip`, "التوصيل إلى {zones}"), or null to
  * hide the strip. `words` is the translator call, so the copy stays in ar.json.
  */
 export function buildStripText(

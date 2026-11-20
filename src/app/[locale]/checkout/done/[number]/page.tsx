@@ -17,11 +17,7 @@ import { Link } from "@/i18n/navigation";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
-
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("PageTitles");
-  return { title: t("confirmation"), robots: { index: false } };
-}
+import { PageFrame } from "@/components/page-frame";
 
 // A broken `%` in the segment is a 404, never a server error (spec 0013 AC-2).
 function decodeSegment(raw: string): string | null {
@@ -30,6 +26,19 @@ function decodeSegment(raw: string): string | null {
   } catch {
     return null;
   }
+}
+
+// The not found title whenever the page shows the not found card (spec 0029 AC-17); the order
+// read is cached, so the page below reuses it.
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/checkout/done/[number]">): Promise<Metadata> {
+  const orderNumber = decodeSegment((await params).number);
+  const [t, order] = await Promise.all([
+    getTranslations("PageTitles"),
+    orderNumber === null ? null : getPlacedOrder(orderNumber),
+  ]);
+  return { title: order ? t("confirmation") : t("notFound"), robots: { index: false } };
 }
 
 // The confirmation (spec 0004 AC-11, AC-12; spec 0013; docs/design/pages/confirmation.md). Opens only in the
@@ -58,11 +67,11 @@ export default async function ConfirmationPage({
   const url = whatsappUrl(whatsappNumber, text);
 
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="form" className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
       <WhatsAppHandoff orderId={order.id} url={url} autoOpen={query.wa === "1"} />
 
       <Card className="items-center gap-3 px-5 py-7 text-center">
-        <span className="flex size-18 items-center justify-center rounded-full border-2 border-ink bg-yellow text-ink">
+        <span className="flex size-18 items-center justify-center rounded-full border-2 border-ink bg-brand text-ink">
           <Check aria-hidden className="size-9" strokeWidth={3} />
         </span>
         <FocusHeading className="type-title-l">{t("title")}</FocusHeading>
@@ -129,6 +138,6 @@ export default async function ConfirmationPage({
         deliveryFee={order.deliveryFee}
         total={order.total}
       />
-    </div>
+    </PageFrame>
   );
 }

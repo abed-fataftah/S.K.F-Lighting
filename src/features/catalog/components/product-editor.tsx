@@ -247,7 +247,7 @@ export function ProductEditor({
         </div>
 
         {archived ? (
-          <Card className="border-ink bg-yellow-tint" data-testid="product-archived">
+          <Card className="border-ink bg-brand-tint" data-testid="product-archived">
             <h2 className="flex items-center gap-2 type-title-s">
               <Archive aria-hidden className="size-6" />
               {t("archivedTitle")}

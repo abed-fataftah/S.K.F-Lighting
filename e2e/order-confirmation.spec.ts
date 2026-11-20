@@ -184,27 +184,34 @@ test("a delivery order shows its rows, address, notes, and saved totals, and eve
     expect(logged.join("\n")).not.toContain(value);
   }
 
-  // AC-9: elsewhere the float sends W1. Another browser gets the root not found page, which sits
-  // outside the shop layout, so it has no float at all (spec 0013 expected W7 there).
+  // AC-9: elsewhere the float sends W1. Another browser gets the designed not found page inside
+  // the shop layout (spec 0029 AC-17), whose float sends W7 with the typed number, as spec 0013
+  // foresaw: it reveals nothing and goes only to the shop.
   await page.goto("/");
-  expect(await linkText(fab(page))).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
+  expect(await linkText(fab(page))).toBe("مرحبًا S.K.F، لديّ استفسار.");
   const other = await browser.newPage();
   const response = await other.goto(`/checkout/done/${number}`);
   expect(response?.status()).toBe(404);
   await expect(other.getByText("الصفحة غير موجودة")).toBeVisible();
-  await expect(fab(other)).toHaveCount(0);
+  expect(await linkText(fab(other))).toBe(`مرحباً، بخصوص الطلب رقم ${number}.`);
   await other.close();
 });
 
-test("an unknown number and a broken segment get the not found page, with no float", async ({
+test("an unknown number and a broken segment get the not found page, with the float", async ({
   page,
 }) => {
-  // AC-2, AC-9, AC-13: both are a 404 on the root not found page, never a 500.
-  for (const segment of ["99-99999", "%E0%A4%A"]) {
+  // AC-2, AC-9, AC-13: both are a 404 on the not found page inside the shop layout (spec 0029
+  // AC-17), never a 500. The float sends W7 for a well formed number and W1 for a broken segment.
+  for (const [segment, message] of [
+    ["99-99999", "مرحباً، بخصوص الطلب رقم 99-99999."],
+    ["%E0%A4%A", "مرحبًا S.K.F، لديّ استفسار."],
+  ] as const) {
     const response = await page.goto(`/checkout/done/${segment}`);
     expect(response?.status()).toBe(404);
     await expect(page.getByText("الصفحة غير موجودة")).toBeVisible();
-    await expect(fab(page)).toHaveCount(0);
+    // Spec 0029 AC-17: the not found title, never the confirmation's "تم استلام طلبك".
+    await expect(page).toHaveTitle("الصفحة غير موجودة | S.K.F للإنارة");
+    expect(await linkText(fab(page))).toBe(message);
   }
 });
 

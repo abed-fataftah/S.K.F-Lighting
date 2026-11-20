@@ -97,7 +97,7 @@ export async function ControlsSection({ whatsappNumber }: { readonly whatsappNum
       </SampleGroup>
 
       <SampleGroup title={c("placeholderGroup")}>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
           {([1, 2, 3, 4] as const).map((tone) => (
             <Labelled key={tone} label={c("placeholderTone", { tone })} className="items-stretch">
               <ImagePlaceholder tone={tone} className="h-(--h-card-image) rounded-card" />

@@ -14,7 +14,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border-ink bg-yellow text-ink hover:brightness-95 active:brightness-90 data-disabled:border-fill-muted data-disabled:bg-fill-muted data-disabled:text-muted data-disabled:brightness-100 data-[preview=hover]:brightness-95 data-[preview=pressed]:brightness-90",
+          "border-ink bg-brand text-ink hover:brightness-95 active:brightness-90 data-disabled:border-fill-muted data-disabled:bg-fill-muted data-disabled:text-muted data-disabled:brightness-100 data-[preview=hover]:brightness-95 data-[preview=pressed]:brightness-90",
         whatsapp: "bg-whatsapp text-white data-disabled:bg-fill-muted data-disabled:text-muted",
         outline:
           "border-ink bg-white text-ink hover:brightness-95 active:brightness-90 data-disabled:border-fill-muted data-disabled:bg-fill-muted data-disabled:text-muted data-disabled:brightness-100 data-[preview=hover]:brightness-95 data-[preview=pressed]:brightness-90",

@@ -38,6 +38,7 @@ import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { supabaseEnv } from "@/server/auth/env";
+import { PageFrame } from "@/components/page-frame";
 
 // The page and its metadata share one read per request, keyed on the decoded slug (AC-16).
 // Arabic slugs arrive percent encoded (spec 0004, Value sourcing: slug lookup).
@@ -129,7 +130,12 @@ export default async function ProductPage({
           __html: serializeJsonLd(structuredData(data, t("home"), siteUrl)),
         }}
       />
-      <div className="flex flex-col px-(--page-pad) pt-2 pb-8">
+      {/* At md one centred column; from lg the gallery at the start and the purchase box at the
+          end, sticky when the window is tall enough (spec 0029 AC-12). */}
+      <PageFrame
+        width="wide"
+        className="flex flex-col px-(--page-pad) pt-2 pb-8 md:max-w-(--prose-max) lg:max-w-(--content-max)"
+      >
         <Breadcrumb aria-label={t("breadcrumb")}>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -158,42 +164,49 @@ export default async function ProductPage({
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="mt-2">
-          <ProductGallery
-            items={galleryItems(data.photos, data.video, (n) =>
-              t("photoAlt", { name: data.name, n: formatNumber(n) }),
-            )}
-            name={data.name}
-            inStock={data.inStock}
-            videoSrc={data.video ? mediaObjectUrl(supabaseEnv().url, data.video.key) : null}
-          />
-        </div>
-
-        <section className="flex flex-col gap-1.5 pt-5">
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="type-title-m">{data.name}</h1>
-            <ShareButton siteUrl={siteUrl} />
+        <div className="lg:grid lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:items-start lg:gap-8">
+          <div className="mt-2" data-testid="product-media">
+            <ProductGallery
+              items={galleryItems(data.photos, data.video, (n) =>
+                t("photoAlt", { name: data.name, n: formatNumber(n) }),
+              )}
+              name={data.name}
+              inStock={data.inStock}
+              videoSrc={data.video ? mediaObjectUrl(supabaseEnv().url, data.video.key) : null}
+            />
           </div>
-          <p className="flex flex-wrap items-center gap-x-2 type-small text-muted">
-            <span>
-              {t("codeLabel")} <Ltr>{data.code}</Ltr>
-            </span>
-            <span
-              className={cn("font-bold", data.inStock ? "text-whatsapp" : "text-muted")}
-              data-testid="product-stock"
-            >
-              {data.inStock ? t("inStock") : t("outOfStock")}
-            </span>
-          </p>
-          <ProductPrice />
-        </section>
 
-        <div className="mt-4 flex flex-col gap-4">
-          <ProductOptions />
-          <div className="flex flex-col gap-2.5">
-            <ProductAddToCart />
-            {draftButton ? <ProductAddToDraft /> : null}
-            <ProductWhatsApp place="buy" whatsappNumber={whatsappNumber} siteUrl={siteUrl} />
+          <div
+            className="lg-tall:sticky lg-tall:top-(--sticky-top) lg-tall:self-start"
+            data-testid="product-purchase"
+          >
+            <section className="flex flex-col gap-1.5 pt-5 lg:pt-2">
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="type-title-m">{data.name}</h1>
+                <ShareButton siteUrl={siteUrl} />
+              </div>
+              <p className="flex flex-wrap items-center gap-x-2 type-small text-muted">
+                <span>
+                  {t("codeLabel")} <Ltr>{data.code}</Ltr>
+                </span>
+                <span
+                  className={cn("font-bold", data.inStock ? "text-whatsapp" : "text-muted")}
+                  data-testid="product-stock"
+                >
+                  {data.inStock ? t("inStock") : t("outOfStock")}
+                </span>
+              </p>
+              <ProductPrice />
+            </section>
+
+            <div className="mt-4 flex flex-col gap-4">
+              <ProductOptions />
+              <div className="flex flex-col gap-2.5">
+                <ProductAddToCart />
+                {draftButton ? <ProductAddToDraft /> : null}
+                <ProductWhatsApp place="buy" whatsappNumber={whatsappNumber} siteUrl={siteUrl} />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -228,7 +241,7 @@ export default async function ProductPage({
             <ProductWhatsApp place="help" whatsappNumber={whatsappNumber} siteUrl={siteUrl} />
           </Card>
         </div>
-      </div>
+      </PageFrame>
     </ProductSelectionProvider>
   );
 }

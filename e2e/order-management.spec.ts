@@ -241,7 +241,7 @@ test("a new order shows its dot and the count within a minute, and opening it cl
     await expect(page.getByTestId("orders-unseen-count")).toBeVisible();
     expect(await sidebarCount(page)).toBeGreaterThan(0);
   }
-  await expect(page.getByText("الطلبات التي لم تفتحها بعد مميّزة بنقطة صفراء.")).toBeVisible();
+  await expect(page.getByText("الطلبات التي لم تفتحها بعد مميّزة بنقطة برتقالية.")).toBeVisible();
   await checkA11y(page, testInfo);
 
   await row.getByRole("link", { name: order.number }).click();

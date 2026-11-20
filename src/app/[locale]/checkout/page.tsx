@@ -9,6 +9,7 @@ import { CheckoutForm } from "@/features/checkout/components/checkout-form";
 import { getCheckoutOptions } from "@/features/checkout/server/queries";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -26,7 +27,7 @@ export default async function CheckoutPage() {
 
   if (cart.lines.length === 0) {
     return (
-      <div className="px-(--page-pad) pt-7 pb-8">
+      <PageFrame width="form" className="px-(--page-pad) pt-7 pb-8">
         <StateCard
           icon={ShoppingCart}
           heading="h1"
@@ -38,7 +39,7 @@ export default async function CheckoutPage() {
             </ButtonLink>
           }
         />
-      </div>
+      </PageFrame>
     );
   }
 
@@ -48,8 +49,12 @@ export default async function CheckoutPage() {
     getAccountProfile(),
   ]);
 
+  // At md one centred column; from lg the form's two columns (spec 0029 AC-14).
   return (
-    <div className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
+    <PageFrame
+      width="wide"
+      className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8 md:max-w-(--prose-max) lg:max-w-(--content-max)"
+    >
       <h1 className="type-title-l">{t("title")}</h1>
       <CheckoutForm
         cart={cart}
@@ -59,6 +64,6 @@ export default async function CheckoutPage() {
         initialName={account?.profile?.fullName ?? ""}
         initialPhone={account?.profile?.phone ?? ""}
       />
-    </div>
+    </PageFrame>
   );
 }

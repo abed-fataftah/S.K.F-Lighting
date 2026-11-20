@@ -52,10 +52,10 @@ Details view:
 3. Card "المنتجات": rows with a 52px tile, name 700, option line 12 muted, price 800; then delivery row and the total 18/800.
 4. Card "الدفع": text "الدفع عند الاستلام" and a payment-status badge (off: "لم يُسجَّل دفع"; ok: "مدفوع").
 5. Buttons: green large "تواصل معنا عبر واتساب"; outline large "إلغاء الطلب عبر واتساب"; note 13 muted.
-Lookup view: h1 "تتبّع طلبك"; text 14 muted; card with fields رقم الطلب (`dir="ltr"`, placeholder `26-00123`) and رقم الهاتف, yellow large "تتبّع الطلب", note "عدد المحاولات محدود لحماية بيانات الطلبات."; centered link button "لديك حساب؟ سجّل الدخول لرؤية كل طلباتك". Error: bordered danger box with icon above the fields: "لم نجد طلباً بهذه البيانات. تأكد من الرقمين وحاول مرة أخرى."
+Lookup view: h1 "تتبّع طلبك"; text 14 muted; card with fields رقم الطلب (`dir="ltr"`, placeholder `26-00123`) and رقم الهاتف, orange large "تتبّع الطلب", note "عدد المحاولات محدود لحماية بيانات الطلبات."; centered link button "لديك حساب؟ سجّل الدخول لرؤية كل طلباتك". Error: bordered danger box with icon above the fields: "لم نجد طلباً بهذه البيانات. تأكد من الرقمين وحاول مرة أخرى."
 Footer, bottom bar (tab: حسابي), float.
 
-Desktop (1280) and tablet: NOT designed (open item O-1). Interim: render the mobile layout in one centered column, `max-width: 480px` (`--page-max`), page background on both sides.
+Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
 
 Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: account) and the WhatsApp float are shared parts defined once in `handoff.md` section 6. They are not repeated below.
 

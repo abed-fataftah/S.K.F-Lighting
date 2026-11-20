@@ -1,23 +1,37 @@
 import { describe, expect, it } from "vitest";
 import {
   bannerHref,
-  buildHomeCircles,
+  buildHomeCategories,
   builtCircleLines,
+  categoryCacheReducer,
+  categoryPanelState,
+  categoryTurn,
   changesSide,
   circleSteps,
-  circleSubline,
+  COVERFLOW_SWIPE,
+  coverflowPlacement,
+  firstCategory,
   HOME_LIMITS,
   featuredBadge,
+  heroChoice,
+  indexForKey,
   isStale,
   isTargetLive,
   joinSubNames,
+  needsFetch,
   planHomepageSave,
   planNewBanner,
+  seedCategoryCache,
   shopNowTarget,
+  stepForKey,
+  swipeStep,
   targetLabel,
   type BannerTarget,
+  type CategoryCache,
+  type CategoryCacheAction,
   type HomeCategoryRow,
 } from "./home-rules";
+import type { CardProduct } from "@/features/catalog/card-view";
 
 const row = (
   id: string,
@@ -35,7 +49,7 @@ const row = (
   ...fields,
 });
 
-// covers: AC-4 (spec 0011)
+// covers: AC-4 (spec 0011), AC-2 (spec 0031)
 describe("joinSubNames", () => {
   it.each([
     [[], null],
@@ -48,7 +62,7 @@ describe("joinSubNames", () => {
   });
 });
 
-describe("buildHomeCircles", () => {
+describe("buildHomeCategories", () => {
   const listed = new Map([
     ["lamps", 1],
     ["walls", 2],
@@ -67,7 +81,7 @@ describe("buildHomeCircles", () => {
       row("hidden", { sort: 4, isVisible: false }),
     ];
     const withOff = new Map([...listed, ["off", 4], ["hidden", 4]]);
-    expect(buildHomeCircles(rows, withOff).map((circle) => circle.slug)).toEqual([
+    expect(buildHomeCategories(rows, withOff).map((circle) => circle.slug)).toEqual([
       "lamps",
       "walls",
     ]);
@@ -82,14 +96,14 @@ describe("buildHomeCircles", () => {
       row("empty-sub", { parentId: "walls", name: "فارغ", sort: 2 }),
       row("hidden-sub", { parentId: "walls", name: "مخفي", sort: 3, isVisible: false }),
     ];
-    expect(buildHomeCircles(rows, listed)).toEqual([
+    expect(buildHomeCategories(rows, listed)).toEqual([
       { slug: "lamps", name: "قسم lamps", imageKey: "categories/a.webp", line: "مودرن وكريستال" },
       { slug: "walls", name: "قسم walls", imageKey: null, line: "داخلية و خارجية" },
     ]);
   });
 
   it("gives no line to a main without menu subs or its own line", () => {
-    expect(buildHomeCircles([row("lamps")], listed)[0].line).toBeNull();
+    expect(buildHomeCategories([row("lamps")], listed)[0].line).toBeNull();
   });
 
   it("builds the dialog hint from the same menu subs", () => {
@@ -98,25 +112,117 @@ describe("buildHomeCircles", () => {
   });
 });
 
-describe("circleSubline", () => {
-  it("lists the first six circle names", () => {
-    const circles = Array.from({ length: 8 }, (_, i) => ({
-      slug: `c${i}`,
-      name: `ق${i}`,
-      imageKey: null,
-      line: null,
-    }));
-    expect(circleSubline(circles)).toBe("ق0، ق1، ق2، ق3، ق4، ق5");
+// covers: AC-2, AC-3, AC-5, AC-7, AC-8, AC-11 (spec 0031)
+describe("the category cards", () => {
+  const category = (slug: string) => ({ slug, name: slug, imageKey: null, line: null });
+  const turns = (selected: number, count: number, perRow: number, dir: 1 | -1) =>
+    Array.from({ length: count }, (_, index) => categoryTurn(index, selected, perRow, dir));
+
+  it("selects the first category in the owner's order, none with no card", () => {
+    expect(firstCategory([category("a"), category("b")])?.slug).toBe("a");
+    expect(firstCategory([])).toBeNull();
+  });
+
+  it("keeps the selected card flat and turns the others in its row to face it", () => {
+    // Left to right: the cards before sit on the physical left (positive), after on the right.
+    expect(turns(2, 5, 5, 1)).toEqual([1, 1, 0, -1, -1]);
+    // Right to left: the cards before sit on the physical right.
+    expect(turns(2, 5, 5, -1)).toEqual([-1, -1, 0, 1, 1]);
+    expect(turns(0, 3, 3, 1)).toEqual([0, -1, -1]);
+    expect(turns(2, 3, 3, -1)).toEqual([-1, -1, 0]);
+  });
+
+  it("turns only the selected card's own visual row; the other rows rest flat", () => {
+    expect(turns(1, 7, 3, 1)).toEqual([1, 0, -1, 0, 0, 0, 0]);
+    expect(turns(4, 7, 3, 1)).toEqual([0, 0, 0, 1, 0, -1, 0]);
+    expect(turns(6, 7, 3, 1)).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    // A bad count never divides by zero.
+    expect(turns(0, 2, 0, 1)).toEqual([0, 0]);
+  });
+
+  it("maps the keys to the physical side, with Home, End, and wrapping", () => {
+    expect(indexForKey("ArrowRight", 1, 4, 1)).toBe(2);
+    expect(indexForKey("ArrowLeft", 1, 4, 1)).toBe(0);
+    // Right to left: the physical right is the inline start.
+    expect(indexForKey("ArrowRight", 1, 4, -1)).toBe(0);
+    expect(indexForKey("ArrowLeft", 1, 4, -1)).toBe(2);
+    expect(indexForKey("ArrowLeft", 3, 4, -1)).toBe(0);
+    expect(indexForKey("ArrowRight", 0, 4, -1)).toBe(3);
+    expect(indexForKey("Home", 2, 4, 1)).toBe(0);
+    expect(indexForKey("End", 0, 4, -1)).toBe(3);
+    expect(indexForKey("Enter", 0, 4, 1)).toBeNull();
+    expect(indexForKey("ArrowRight", 0, 0, 1)).toBeNull();
+  });
+
+  it("shows eight products a category", () => {
+    expect(HOME_LIMITS.categoryProducts).toBe(8);
   });
 });
 
-describe("the circle carousel", () => {
+describe("the category grid's cache", () => {
+  const product = (slug: string) => ({ slug }) as unknown as CardProduct;
+  const first = { slug: "a", name: "a", imageKey: null, line: null };
+  const run = (cache: CategoryCache, ...actions: CategoryCacheAction[]) =>
+    actions.reduce(categoryCacheReducer, cache);
+
+  it("seeds the first category ready with the page's eight, or failed when that read failed", () => {
+    expect(seedCategoryCache(first, [product("p")]).get("a")).toEqual({
+      kind: "ready",
+      products: [product("p")],
+    });
+    expect(seedCategoryCache(first, null).get("a")).toEqual({ kind: "failed" });
+    expect(seedCategoryCache(null, null).size).toBe(0);
+  });
+
+  it("fetches an unknown or failed category, never a loading or cached one", () => {
+    expect(needsFetch(undefined)).toBe(true);
+    expect(needsFetch({ kind: "failed" })).toBe(true);
+    expect(needsFetch({ kind: "loading" })).toBe(false);
+    expect(needsFetch({ kind: "ready", products: [] })).toBe(false);
+  });
+
+  it("goes loading, then ready; a ready entry never changes", () => {
+    const ready = run(
+      new Map(),
+      { type: "start", slug: "b" },
+      { type: "done", slug: "b", products: [product("p")] },
+    );
+    expect(ready.get("b")).toEqual({ kind: "ready", products: [product("p")] });
+    expect(run(ready, { type: "start", slug: "b" })).toBe(ready);
+    expect(run(ready, { type: "fail", slug: "b" })).toBe(ready);
+    expect(run(ready, { type: "done", slug: "b", products: [] })).toBe(ready);
+  });
+
+  it("goes failed, then loading again on retry", () => {
+    const failed = run(new Map(), { type: "start", slug: "b" }, { type: "fail", slug: "b" });
+    expect(failed.get("b")).toEqual({ kind: "failed" });
+    expect(run(failed, { type: "start", slug: "b" }).get("b")).toEqual({ kind: "loading" });
+  });
+
+  it("stores a late answer for another category without touching the selected one's panel", () => {
+    const seeded = seedCategoryCache(first, [product("p")]);
+    const after = run(
+      seeded,
+      { type: "start", slug: "b" },
+      { type: "done", slug: "b", products: [product("q")] },
+    );
+    expect(categoryPanelState(after.get("a"))).toBe("grid");
+    expect(after.get("a")).toBe(seeded.get("a"));
+    expect(after.get("b")).toEqual({ kind: "ready", products: [product("q")] });
+  });
+
+  it("shows the grid, the skeleton, the notice, or the empty line", () => {
+    expect(categoryPanelState({ kind: "ready", products: [product("p")] })).toBe("grid");
+    expect(categoryPanelState({ kind: "ready", products: [] })).toBe("empty");
+    expect(categoryPanelState({ kind: "loading" })).toBe("skeleton");
+    expect(categoryPanelState(undefined)).toBe("skeleton");
+    expect(categoryPanelState({ kind: "failed" })).toBe("notice");
+  });
+});
+
+describe("the coverflow's steps", () => {
   const sides = (centre: number, count: number) =>
     Array.from({ length: count }, (_, index) => circleSteps(index, centre, count));
-
-  it("starts at two circles; one shows alone", () => {
-    expect(HOME_LIMITS.carouselFrom).toBe(2);
-  });
 
   it("keeps the other of two circles on the end side, so each step swaps them", () => {
     expect(sides(0, 2)).toEqual([0, 1]);
@@ -145,10 +251,136 @@ describe("the circle carousel", () => {
 });
 
 describe("shopNowTarget", () => {
-  it("goes to the circles, else the featured products, else nowhere", () => {
-    expect(shopNowTarget(3, 2)).toBe("categories");
-    expect(shopNowTarget(0, 2)).toBe("featured");
-    expect(shopNowTarget(0, 0)).toBeNull();
+  it("goes to the category cards, else nowhere (spec 0030 AC-3)", () => {
+    expect(shopNowTarget(3)).toBe("categories");
+    expect(shopNowTarget(0)).toBeNull();
+  });
+});
+
+// covers: AC-2, AC-4, AC-6, AC-7, AC-9, AC-11 (spec 0030)
+describe("the hero coverflow", () => {
+  const sides = (centre: number, count: number) =>
+    Array.from({ length: count }, (_, index) => circleSteps(index, centre, count));
+
+  it("shows the coverflow with one or more products, else the fallback card", () => {
+    expect(heroChoice([{}])).toBe("coverflow");
+    expect(heroChoice([])).toBe("card");
+    expect(heroChoice(null)).toBe("card");
+  });
+
+  it("places 1, 2, 3, and 8 products by their signed steps from the centre", () => {
+    expect(sides(0, 1)).toEqual([0]);
+    // Two: the other one waits on the inline end side and each step swaps them.
+    expect(sides(0, 2)).toEqual([0, 1]);
+    expect(sides(1, 2)).toEqual([1, 0]);
+    expect(sides(1, 3)).toEqual([-1, 0, 1]);
+    expect(sides(0, 8)).toEqual([0, 1, 2, 3, 4, -3, -2, -1]);
+    expect(sides(5, 8)).toEqual([3, 4, -3, -2, -1, 0, 1, 2]);
+  });
+
+  it("gives the centre card full size, facing, top of the stack", () => {
+    expect(coverflowPlacement(0, 1, -1)).toEqual({
+      x: 0,
+      angle: 0,
+      scale: 1,
+      opacity: 1,
+      tint: 0,
+      z: 10,
+      hidden: false,
+    });
+  });
+
+  it("turns a neighbour toward the centre, smaller and tinted, below lg", () => {
+    // One step toward the inline end, the physical right in left to right: moved right, its
+    // inner (left) edge back, so a negative rotateY.
+    expect(coverflowPlacement(1, 1, 1)).toEqual({
+      x: 0.78,
+      angle: -35,
+      scale: 0.74,
+      opacity: 0.75,
+      tint: 0.3,
+      z: 9,
+      hidden: false,
+    });
+    // The same step in right to left sits on the physical left and turns the other way.
+    expect(coverflowPlacement(1, 1, -1)).toMatchObject({ x: -0.78, angle: 35 });
+    expect(coverflowPlacement(-1, 1, -1)).toMatchObject({ x: 0.78, angle: -35 });
+  });
+
+  it("hides the second card out below lg at the next out place, and the third from lg", () => {
+    expect(coverflowPlacement(2, 1, 1)).toEqual({
+      x: 1.4,
+      angle: -45,
+      scale: 0.56,
+      opacity: 0,
+      tint: 0.5,
+      z: 8,
+      hidden: true,
+    });
+    expect(coverflowPlacement(2, 2, 1)).toMatchObject({
+      x: 1.4,
+      angle: -45,
+      scale: 0.56,
+      opacity: 0.5,
+      z: 8,
+      hidden: false,
+    });
+    expect(coverflowPlacement(3, 2, 1)).toMatchObject({
+      x: 1.9,
+      scale: 0.42,
+      angle: -50,
+      opacity: 0,
+      z: 7,
+      hidden: true,
+    });
+    // Anything further sits at the same place, hidden.
+    expect(coverflowPlacement(-4, 2, 1)).toEqual(coverflowPlacement(-3, 2, 1));
+    expect(coverflowPlacement(-4, 1, 1)).toEqual(coverflowPlacement(-2, 1, 1));
+  });
+
+  it("fades only a card that crosses to the other side", () => {
+    // Eight products, next: the furthest start side one (-3) wraps to the end side (4).
+    expect(changesSide(circleSteps(5, 0, 8), circleSteps(5, 1, 8))).toBe(true);
+    expect(changesSide(circleSteps(1, 0, 8), circleSteps(1, 1, 8))).toBe(false);
+    // The tie card (4) only comes one step nearer: no crossing.
+    expect(changesSide(circleSteps(4, 0, 8), circleSteps(4, 1, 8))).toBe(false);
+    // Three products, back: the end side one crosses to the start side.
+    expect(changesSide(circleSteps(1, 0, 3), circleSteps(1, 2, 3))).toBe(true);
+    // Two products swap through the centre, never across it.
+    expect(changesSide(circleSteps(1, 0, 2), circleSteps(1, 1, 2))).toBe(false);
+  });
+
+  it("maps the arrow keys to the physical side, in both directions", () => {
+    const press = (key: string, mod: Partial<Parameters<typeof stepForKey>[0]> = {}) => ({
+      key,
+      ctrlKey: false,
+      altKey: false,
+      metaKey: false,
+      shiftKey: false,
+      ...mod,
+    });
+    // Right to left: the physical left card is the inline end, one step on.
+    expect(stepForKey(press("ArrowLeft"), -1)).toBe(1);
+    expect(stepForKey(press("ArrowRight"), -1)).toBe(-1);
+    expect(stepForKey(press("ArrowLeft"), 1)).toBe(-1);
+    expect(stepForKey(press("ArrowRight"), 1)).toBe(1);
+    expect(stepForKey(press("ArrowUp"), -1)).toBeNull();
+    expect(stepForKey(press("Enter"), -1)).toBeNull();
+    expect(stepForKey(press("ArrowLeft", { shiftKey: true }), -1)).toBeNull();
+    expect(stepForKey(press("ArrowRight", { ctrlKey: true }), -1)).toBeNull();
+  });
+
+  it("steps on a sideways move of 40px or more, the cards following the finger", () => {
+    expect(COVERFLOW_SWIPE).toEqual({ step: 40, tap: 10 });
+    // Right to left: a move to the right brings the physical left (inline end) card in.
+    expect(swipeStep(40, 0, -1)).toBe(1);
+    expect(swipeStep(-40, 10, -1)).toBe(-1);
+    expect(swipeStep(60, 0, 1)).toBe(-1);
+    expect(swipeStep(-60, 0, 1)).toBe(1);
+    expect(swipeStep(39, 0, -1)).toBe(0);
+    // More up and down than sideways is the page scrolling, not a swipe.
+    expect(swipeStep(50, 60, -1)).toBe(0);
+    expect(swipeStep(50, 50, -1)).toBe(0);
   });
 });
 

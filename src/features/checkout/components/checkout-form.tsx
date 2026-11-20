@@ -155,8 +155,15 @@ export function CheckoutForm({
   const banner = state && state.error !== "invalid" ? t(`errors.${state.error}`) : null;
   const blocked = cart.hasUnsellable;
 
+  // From lg the form cards sit at the start and the summary at the end (spec 0029 AC-14). The
+  // summary stays last in source, so every field comes before its submit button in tab order.
   return (
-    <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-3">
+    <form
+      ref={formRef}
+      onSubmit={submit}
+      noValidate
+      className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_var(--summary-col)] lg:items-start lg:gap-6"
+    >
       <input type="hidden" name="idempotencyKey" value={key} />
       <input type="hidden" name="expectedTotal" value={total} />
       <input type="hidden" name="fulfilment" value={delivery ? "delivery" : "pickup"} />
@@ -175,149 +182,153 @@ export function CheckoutForm({
         />
       </div>
 
-      <Card>
-        <h2 className="type-lead">{t("contact")}</h2>
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor={fieldId("name")}>{t("name")}</FieldLabel>
-            <Input
-              id={fieldId("name")}
-              name="name"
-              autoComplete="name"
-              defaultValue={initialName}
-              maxLength={NAME_LIMITS.max * 2}
-              required
-              {...liveCheck("name")}
-              {...invalid("name")}
-            />
-            {errorFor("name")}
-          </Field>
-          <Field>
-            <FieldLabel htmlFor={fieldId("phone")}>{t("phone")}</FieldLabel>
-            <Input
-              id={fieldId("phone")}
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              dir="ltr"
-              defaultValue={initialPhone}
-              required
-              {...liveCheck("phone")}
-              aria-describedby={errorOf("phone") ? errorId("phone") : "checkout-phone-help"}
-              aria-invalid={errorOf("phone") ? true : undefined}
-            />
-            <FieldDescription id="checkout-phone-help">{t("phoneHelp")}</FieldDescription>
-            {errorFor("phone")}
-          </Field>
-        </FieldGroup>
-      </Card>
-
-      <Card>
-        <h2 id="checkout-method" className="type-lead">
-          {t("method")}
-        </h2>
-        <RadioGroup
-          id={fieldId("fulfilment")}
-          aria-labelledby="checkout-method"
-          value={delivery ? "delivery" : "pickup"}
-          onValueChange={(value) => chooseFulfilment(value as Fulfilment)}
-          className="gap-2"
-        >
-          <RadioCard
-            value="pickup"
-            title={t("pickup")}
-            description={pickupAddress ? `${pickupAddress} · ${t("free")}` : t("free")}
-          />
-          <RadioCard
-            value="delivery"
-            title={t("delivery")}
-            description={zones.length > 0 ? t("deliveryText") : t("deliveryOff")}
-            disabled={zones.length === 0}
-          />
-        </RadioGroup>
-
-        {delivery ? (
+      <div className="flex flex-col gap-3" data-testid="checkout-fields">
+        <Card>
+          <h2 className="type-lead">{t("contact")}</h2>
           <FieldGroup>
-            <div className="flex flex-col gap-2">
-              <h3 id="checkout-zone" className="font-bold">
-                {t("zone")}
-              </h3>
-              <RadioGroup
-                id={fieldId("zoneId")}
-                aria-labelledby="checkout-zone"
-                value={zone?.id}
-                onValueChange={(value) => setZoneId(String(value))}
-                className="gap-2"
-                {...invalid("zoneId")}
-              >
-                {zones.map((option) => (
-                  <RadioCard
-                    key={option.id}
-                    value={option.id}
-                    title={option.name}
-                    description={<Ltr>{formatPrice(option.fee)}</Ltr>}
-                  />
-                ))}
-              </RadioGroup>
-              {errorFor("zoneId")}
-            </div>
             <Field>
-              <FieldLabel htmlFor={fieldId("city")}>{t("city")}</FieldLabel>
+              <FieldLabel htmlFor={fieldId("name")}>{t("name")}</FieldLabel>
               <Input
-                id={fieldId("city")}
-                name="city"
-                autoComplete="address-level2"
-                maxLength={CITY_LIMITS.max * 2}
+                id={fieldId("name")}
+                name="name"
+                autoComplete="name"
+                defaultValue={initialName}
+                maxLength={NAME_LIMITS.max * 2}
                 required
-                {...liveCheck("city")}
-                {...invalid("city")}
+                {...liveCheck("name")}
+                {...invalid("name")}
               />
-              {errorFor("city")}
+              {errorFor("name")}
             </Field>
             <Field>
-              <FieldLabel htmlFor={fieldId("address")}>{t("address")}</FieldLabel>
-              <Textarea
-                id={fieldId("address")}
-                name="address"
-                autoComplete="street-address"
-                maxLength={ADDRESS_LIMITS.max * 2}
+              <FieldLabel htmlFor={fieldId("phone")}>{t("phone")}</FieldLabel>
+              <Input
+                id={fieldId("phone")}
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                dir="ltr"
+                defaultValue={initialPhone}
                 required
-                className="min-h-22"
-                {...liveCheck("address")}
-                aria-invalid={errorOf("address") ? true : undefined}
-                aria-describedby={errorOf("address") ? errorId("address") : "checkout-address-help"}
+                {...liveCheck("phone")}
+                aria-describedby={errorOf("phone") ? errorId("phone") : "checkout-phone-help"}
+                aria-invalid={errorOf("phone") ? true : undefined}
               />
-              <FieldDescription id="checkout-address-help">{t("addressHelp")}</FieldDescription>
-              {errorFor("address")}
+              <FieldDescription id="checkout-phone-help">{t("phoneHelp")}</FieldDescription>
+              {errorFor("phone")}
             </Field>
           </FieldGroup>
-        ) : null}
+        </Card>
 
-        <Field>
-          <FieldLabel htmlFor={fieldId("notes")}>{t("notes")}</FieldLabel>
-          <Textarea
-            id={fieldId("notes")}
-            name="notes"
-            maxLength={NOTES_MAX * 2}
-            {...liveCheck("notes")}
-            {...invalid("notes")}
-          />
-          {errorFor("notes")}
-        </Field>
-      </Card>
+        <Card>
+          <h2 id="checkout-method" className="type-lead">
+            {t("method")}
+          </h2>
+          <RadioGroup
+            id={fieldId("fulfilment")}
+            aria-labelledby="checkout-method"
+            value={delivery ? "delivery" : "pickup"}
+            onValueChange={(value) => chooseFulfilment(value as Fulfilment)}
+            className="gap-2"
+          >
+            <RadioCard
+              value="pickup"
+              title={t("pickup")}
+              description={pickupAddress ? `${pickupAddress} · ${t("free")}` : t("free")}
+            />
+            <RadioCard
+              value="delivery"
+              title={t("delivery")}
+              description={zones.length > 0 ? t("deliveryText") : t("deliveryOff")}
+              disabled={zones.length === 0}
+            />
+          </RadioGroup>
 
-      <Card className="flex-row items-center gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-tile bg-yellow text-ink">
-          <Banknote aria-hidden className="size-5.5" />
-        </span>
-        <div className="flex flex-col">
-          <h2 className="type-lead">{t("payOnDelivery")}</h2>
-          <p className="type-small text-muted">{t("payText")}</p>
-        </div>
-      </Card>
+          {delivery ? (
+            <FieldGroup>
+              <div className="flex flex-col gap-2">
+                <h3 id="checkout-zone" className="font-bold">
+                  {t("zone")}
+                </h3>
+                <RadioGroup
+                  id={fieldId("zoneId")}
+                  aria-labelledby="checkout-zone"
+                  value={zone?.id}
+                  onValueChange={(value) => setZoneId(String(value))}
+                  className="gap-2"
+                  {...invalid("zoneId")}
+                >
+                  {zones.map((option) => (
+                    <RadioCard
+                      key={option.id}
+                      value={option.id}
+                      title={option.name}
+                      description={<Ltr>{formatPrice(option.fee)}</Ltr>}
+                    />
+                  ))}
+                </RadioGroup>
+                {errorFor("zoneId")}
+              </div>
+              <Field>
+                <FieldLabel htmlFor={fieldId("city")}>{t("city")}</FieldLabel>
+                <Input
+                  id={fieldId("city")}
+                  name="city"
+                  autoComplete="address-level2"
+                  maxLength={CITY_LIMITS.max * 2}
+                  required
+                  {...liveCheck("city")}
+                  {...invalid("city")}
+                />
+                {errorFor("city")}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor={fieldId("address")}>{t("address")}</FieldLabel>
+                <Textarea
+                  id={fieldId("address")}
+                  name="address"
+                  autoComplete="street-address"
+                  maxLength={ADDRESS_LIMITS.max * 2}
+                  required
+                  className="min-h-22"
+                  {...liveCheck("address")}
+                  aria-invalid={errorOf("address") ? true : undefined}
+                  aria-describedby={
+                    errorOf("address") ? errorId("address") : "checkout-address-help"
+                  }
+                />
+                <FieldDescription id="checkout-address-help">{t("addressHelp")}</FieldDescription>
+                {errorFor("address")}
+              </Field>
+            </FieldGroup>
+          ) : null}
 
-      <Card>
+          <Field>
+            <FieldLabel htmlFor={fieldId("notes")}>{t("notes")}</FieldLabel>
+            <Textarea
+              id={fieldId("notes")}
+              name="notes"
+              maxLength={NOTES_MAX * 2}
+              {...liveCheck("notes")}
+              {...invalid("notes")}
+            />
+            {errorFor("notes")}
+          </Field>
+        </Card>
+
+        <Card className="flex-row items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-tile bg-brand text-ink">
+            <Banknote aria-hidden className="size-5.5" />
+          </span>
+          <div className="flex flex-col">
+            <h2 className="type-lead">{t("payOnDelivery")}</h2>
+            <p className="type-small text-muted">{t("payText")}</p>
+          </div>
+        </Card>
+      </div>
+
+      <Card className="lg-tall:sticky lg-tall:top-(--sticky-top)" data-testid="checkout-summary">
         <h2 className="type-lead">{t("summary")}</h2>
         <ul className="flex flex-col gap-2" data-testid="checkout-lines">
           {cart.lines.map((line) => (

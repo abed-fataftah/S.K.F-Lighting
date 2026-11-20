@@ -87,6 +87,43 @@ describe("proxy", () => {
       expect(rewrittenTo(response)).toBe("/ar");
     });
 
+    // Regression: the `[...rest]` catch all made Next answer a bare 400 for these (spec 0013 AC-2).
+    it.each(["/checkout/done/%E0%A4%A", "/c/%E0%A4%A", "/zz%E0%A4%A"])(
+      "serves a broken %% sequence at %s the catch all's 404, not Next's 400",
+      async (path) => {
+        const response = await proxy(request(path));
+
+        expect(redirectedTo(response)).toBeNull();
+        expect(rewrittenTo(response)).toBe("/ar/broken-address");
+      },
+    );
+
+    it("drops the query string when it rewrites a broken address", async () => {
+      const response = await proxy(request("/c/%E0%A4%A?x=1"));
+
+      const target = new URL(response.headers.get("x-middleware-rewrite")!);
+      expect(target.pathname).toBe("/ar/broken-address");
+      expect(target.search).toBe("");
+    });
+
+    it.each([
+      ["a well formed Arabic slug", "/c/%D8%AB%D8%B1%D9%8A%D8%A7"],
+      ["an encoded slash", "/p/lamp%2Fwhite"],
+      ["a broken % only in the query", "/c/lamp?x=%E0%A4%A"],
+    ])("locale routes %s as usual", async (_label, path) => {
+      const response = await proxy(request(path));
+
+      expect(redirectedTo(response)).toBeNull();
+      expect(rewrittenTo(response)).toBe(`/ar${path.split("?")[0]}`);
+    });
+
+    it("still sends a broken order address to the lookup page", async () => {
+      const response = await proxy(request("/orders/%E0%A4%A"));
+
+      expect(response.status).toBe(307);
+      expect(redirectedTo(response)).toBe("/orders/track");
+    });
+
     it("sets no language cookie", async () => {
       const response = await proxy(request("/"));
 
@@ -118,6 +155,18 @@ describe("proxy", () => {
       expect(redirectedTo(response)).toBeNull();
       expect(response.headers.get("x-middleware-next")).toBe("1");
     });
+
+    // On purpose: these are not storefront pages, so a broken `%` keeps Next's own answer.
+    it.each(["/admin/%E0%A4%A", "/auth/%E0%A4%A", "/api/other/%E0%A4%A"])(
+      "passes a broken %% sequence at %s through, with no rewrite to the storefront 404",
+      async (path) => {
+        const response = await proxy(request(path));
+
+        expect(rewrittenTo(response)).toBeNull();
+        expect(redirectedTo(response)).toBeNull();
+        expect(response.headers.get("x-middleware-next")).toBe("1");
+      },
+    );
 
     // covers: AC-1 (spec 0004), the guard's `?next=`
     it("tells the dashboard which path was asked for, over any value the browser sent", async () => {

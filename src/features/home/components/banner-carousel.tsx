@@ -10,7 +10,8 @@ import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { HomeBanner } from "../server/home";
 
-const SIZES = "(max-width: 480px) 100vw, 480px";
+// Its width at each breakpoint (spec 0029 AC-20; at most 720 from md, spec 0030 AC-12).
+const SIZES = "(min-width: 768px) 720px, (min-width: 480px) 448px, 100vw";
 
 function BannerPicture({
   banner,
@@ -65,7 +66,7 @@ export function BannerCarousel({ banners }: { readonly banners: readonly HomeBan
 
   if (count === 1) {
     return (
-      <div className="px-(--page-pad)" data-testid="home-banners">
+      <div className="px-(--page-pad) lg:px-0" data-testid="home-banners">
         <BannerPicture banner={banners[0]} first />
       </div>
     );
@@ -104,7 +105,7 @@ export function BannerCarousel({ banners }: { readonly banners: readonly HomeBan
     <section
       aria-roledescription="carousel"
       aria-label={t("bannersLabel")}
-      className="flex flex-col gap-2 px-(--page-pad)"
+      className="flex flex-col gap-2 px-(--page-pad) lg:px-0"
       data-testid="home-banners"
     >
       <div

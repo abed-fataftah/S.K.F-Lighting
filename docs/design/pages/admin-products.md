@@ -41,7 +41,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Desktop (1280) (designed):
-Header h1 "المنتجات" with outline small "استيراد من جدول" and yellow small "+ إضافة منتج". Filter card: search (placeholder "الاسم أو الكود"), select "القسم", toggle chips (الكل، متوفر، غير متوفر، مخفي). Table: image tile 44, المنتج (link, 800), الكود, القسم ("<main> › <sub>"), السعر ("من ₪ [السعر]"), الخيارات ("N أحجام · N ألوان"), الحالة (badge متوفر = ok, غير متوفر = off, مخفي = off), outline small "تعديل".
+Header h1 "المنتجات" with outline small "استيراد من جدول" and orange small "+ إضافة منتج". Filter card: search (placeholder "الاسم أو الكود"), select "القسم", toggle chips (الكل، متوفر، غير متوفر، مخفي). Table: image tile 44, المنتج (link, 800), الكود, القسم ("<main> › <sub>"), السعر ("من ₪ [السعر]"), الخيارات ("N أحجام · N ألوان"), الحالة (badge متوفر = ok, غير متوفر = off, مخفي = off), outline small "تعديل".
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 

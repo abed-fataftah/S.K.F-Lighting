@@ -76,6 +76,9 @@ export const routes = {
   checkoutDone: (number: string) => `/checkout/done/${segment(number)}`,
   order: (number: string) => `/orders/${segment(number)}`,
   orderTrack: "/orders/track",
+  /** Never linked: where the proxy rewrites an address with a broken `%`. It always answers 404,
+   * so the word is reserved and no real page may use it (src/proxy.ts). */
+  brokenAddress: "/broken-address",
   /** The lookup with its number field filled (spec 0015 AC-7). */
   orderTrackWith: (number: string) => `/orders/track?number=${encodeURIComponent(number)}`,
   signIn: "/account/sign-in",
@@ -114,10 +117,13 @@ export const routes = {
       slug
     ],
   designSystem: "/design-system",
-  /** Route handlers outside the catalog's public reads. */
+  /** Route handlers fetched from the browser. */
   api: {
     /** The quick order product search (spec 0020 AC-7). */
     quickOrderProducts: (q: string) => `/api/quick-order/products?q=${encodeURIComponent(q)}`,
+    /** The eight products of a Home category card (spec 0031 AC-7). */
+    homeCategoryProducts: (category: string) =>
+      `/api/catalog/home-products?category=${encodeURIComponent(category)}`,
   },
   /** Outside locale routing, like the dashboard (spec 0017 AC-8). */
   auth: { confirm: "/auth/confirm" },

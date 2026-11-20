@@ -51,7 +51,9 @@ export function CardAddToCart({
   };
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+    // Its own width counts when the card row wraps below 360 (narrow:basis-auto), so the WhatsApp
+    // square moves under it instead of squeezing it.
+    <div className="flex min-w-0 flex-1 flex-col gap-1.5 narrow:basis-auto">
       <Button
         onClick={add}
         disabled={pending}

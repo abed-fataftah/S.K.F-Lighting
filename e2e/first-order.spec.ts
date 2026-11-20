@@ -91,6 +91,10 @@ test("the owner adds a product, a guest orders it, and the owner sees the order 
   });
   const guest = await guestContext.newPage();
   await guest.goto("/");
+  // The hero coverflow links only the centred product (spec 0030 AC-5): its named dot brings it
+  // to the centre first (AC-8); with one product there is no dot and it is centred already.
+  const dot = guest.getByTestId("home-hero").getByRole("button", { name });
+  if (await dot.count()) await dot.click();
   await guest.getByTestId("home-products").getByRole("link", { name }).first().click();
   await expect(guest.getByRole("heading", { level: 1, name })).toBeVisible();
   await guest.getByTestId("add-to-cart").click();

@@ -16,21 +16,26 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 - **Catalog loading:** you fill a spreadsheet template, upload it once, then add photos in bulk, matched by product code in the file name.
 - **Electrician orders for a customer** (written like "ali / mo"): the order belongs to the electrician's account, with the customer's name, phone, and delivery address on it.
 - **Timeline:** no fixed date. Launch when the launch set is done and tested.
+- **Responsive (decided 2026-11-18):** the storefront's phone, tablet, and desktop layouts (feature 36) get verified, then a sweep adds small phones, landscape, and large monitors (39); the dashboard gets real phone and tablet layouts (38).
+- **Home hero (decided 2026-11-18):** a 3D coverflow of the featured products is the hero at every width, with the headline above it; the banner carousel shows below it when banners are on (37).
+- **Light hero and orange brand (decided 2026-11-19):** the Home hero sits on white instead of the black band, and the brand colour is orange #F7931E everywhere, logo included, named `brand` in code (43).
+- **Home categories (decided 2026-11-18):** the category circles become 3D photo cards that act as tabs, with the pressed category's first eight products in a grid under them (42).
+- **App stores (decided 2026-11-18):** installable web app first (40), then Google Play as a wrapped web app (41). The App Store waits: Apple often rejects a plain website wrapper, and an iOS build needs a Mac and a yearly developer account.
 
 ## At a glance
 
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
-| 1 | Stack & architecture | Foundation | in-progress |
+| 1 | Stack & architecture | Foundation | done |
 | 2 | Coding standards & tooling | Foundation | done |
-| 3 | Data model | Foundation | in-progress |
-| 4 | Design system & UI foundation | Foundation | in-progress |
-| 5 | Arabic language | Foundation | in-progress |
-| 6 | First order end to end | Slice 1 | in-progress |
-| 7 | Product management | Slice 2 | in-progress |
-| 8 | Spreadsheet import & bulk photos | Slice 2 | in-progress |
+| 3 | Data model | Foundation | done |
+| 4 | Design system & UI foundation | Foundation | done |
+| 5 | Arabic language | Foundation | done |
+| 6 | First order end to end | Slice 1 | done |
+| 7 | Product management | Slice 2 | done |
+| 8 | Spreadsheet import & bulk photos | Slice 2 | done |
 | 9 | Categories & browsing | Slice 2 | in-progress |
-| 10 | Product page | Slice 2 | in-progress |
+| 10 | Product page | Slice 2 | done |
 | 11 | Search & filters | Slice 2 | in-progress |
 | 12 | Cart | Slice 3 | done |
 | 13 | Checkout & delivery | Slice 3 | in-progress |
@@ -45,7 +50,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 22 | Add to draft from the catalog | Slice 6 | in-progress |
 | 23 | Electrician price adjustments | Slice 6 | in-progress |
 | 24 | Payments & balances | Slice 7 | in-progress |
-| 25 | Homepage, banners & featured products | Slice 8 | in-progress |
+| 25 | Homepage, banners & featured products | Slice 8 | done |
 | 26 | Shop settings & policy pages | Slice 8 | in-progress |
 | 27 | Sales reports | Slice 8 | in-progress |
 | 28 | Search engine visibility | Slice 8 | in-progress |
@@ -56,34 +61,45 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 33 | Return requests | Slice 10 | planned |
 | 34 | Returns & exchanges | Slice 10 | planned |
 | 35 | Dashboard home | Slice 4 | planned |
+| 36 | Storefront desktop & tablet layout | Slice 8 | in-progress |
+| 37 | Hero product coverflow | Slice 8 | in-progress |
+| 38 | Dashboard on phone and tablet | Slice 8 | planned |
+| 39 | Small phone, landscape & large monitor sweep | Slice 8 | in-progress |
+| 40 | Installable web app | Slice 11 | planned |
+| 41 | Google Play listing | Slice 11 | planned |
+| 42 | Home category cards & their products | Slice 8 | in-progress |
+| 43 | Light hero & orange brand | Slice 8 | in-progress |
 
 ## Areas
 
-- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 1 of 6 done.
-- [Catalog](catalog.md): features 7 to 11 and 25 (products, import, categories, product page, search, homepage). 0 of 6 done.
+- [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 6 of 6 done.
+- [Catalog](catalog.md): features 7 to 11, 25, 37, and 42 (products, import, categories, product page, search, homepage, hero coverflow, category cards). 4 of 8 done.
 - [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
-- [Site & launch](site.md): features 26, 28 to 30 (settings and policies, search visibility, stats, go live). 0 of 4 done.
+- [Site & launch](site.md): features 26, 28 to 30, 36, 38, 39, and 43 (settings and policies, search visibility, stats, desktop and tablet layout, dashboard on phone and tablet, the width sweep, light hero and orange brand, go live). 0 of 8 done.
 - [Loyalty](loyalty.md): features 31 and 32, after launch. 0 of 2 done.
 - [Returns](returns.md): features 33 and 34, after launch. 0 of 2 done.
+- [Mobile app](app.md): features 40 and 41, after launch (installable web app, Google Play). 0 of 2 done.
 
 ## Deferred
 
 Out of scope for now, kept so the plan stays honest.
+- **App Store listing**: the shop on the iPhone App Store through a native shell; needs a Mac, an Apple developer account (99 USD a year), and enough app only features to pass Apple's review · needs a decision · after feature 41
 - **Online card payment at checkout**: pay on the website instead of cash or cheque · needs a decision · GA
 - **Automatic WhatsApp sending**: the site messages you from the shop number by itself, through a business messaging service · needs a decision
 - **Opening hours and map position for search**: shop settings hold hours, location, and social page links, so the home Store block can carry them · from spec 0026 · needs a decision
 - **PDF of a draft or order**: a clean quote electricians can share · needs a decision
 - **Items outside the catalog**: electricians type a free item that you price later · needs a decision
 - **Owner profile on Home**: your display name and a circle photo, edited in settings and shown on Home · from spec 0025, waits for your approval (O-28)
-- **Quick order on computers**: a wide table layout for building drafts at a desk, once design O-1 is drawn · from spec 0020
 - **Copy an order into a new draft**: start a new draft from one of an electrician's past orders, for repeat jobs · from spec 0020
 - **JSON export of an order** · needs a decision
 - **Cheques list**: a dashboard page of live cheques sorted by due date, optionally with a "cleared" mark; the data is already stored · from spec 0023
 - **Colour tagged product photos**: choosing a colour on the product page jumps to its photos (a `colour_id` on `product_media`, the editor, and the import) · needs a decision · from spec 0009
 - **Cloudflare Turnstile at checkout**: a stronger bot check, only if the honeypot and rate limit logs show real spam · needs a decision · from spec 0012
-- **Product page desktop layout and loading skeleton**: a designed wide screen layout (O-1) and a skeleton that keeps the real 404 · needs a decision · from spec 0009
+- **Product page loading skeleton**: a skeleton that keeps the real 404 (the desktop layout half moved into feature 36) · needs a decision · from spec 0009
+- **Wide banner image**: a wider banner variant if the 16:9 carousel at two thirds width looks short on large monitors · from spec 0029
+- **Designer pass on desktop layouts**: review the built tablet and desktop pages from real screenshots, since they are specified in words, not drawn · from spec 0029
 - **Edit customer details on an order**: fix a typo in the name, phone, city, or address after placing · needs a decision · from spec 0014
 - **Printable order slip**: a print friendly view for packing or the driver · needs a decision · from spec 0014
 - **Private owner notes on an order**: short notes saved as `note` events and shown in the history · needs a decision · from spec 0014

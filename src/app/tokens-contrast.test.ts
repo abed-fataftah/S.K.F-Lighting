@@ -40,8 +40,8 @@ const pairs: readonly Pair[] = [
 }));
 
 describe("tokens contrast table", () => {
-  it("lists all 18 approved pairs", () => {
-    expect(pairs).toHaveLength(18);
+  it("lists all 19 approved pairs", () => {
+    expect(pairs).toHaveLength(19);
   });
 
   it.each(pairs)("$fg on $bg is $stated:1 and meets $min:1", ({ fg, bg, stated, min }) => {
@@ -51,10 +51,10 @@ describe("tokens contrast table", () => {
     expect(ratio).toBeGreaterThanOrEqual(min);
   });
 
-  it("keeps yellow text on a light surface forbidden (below 3:1)", () => {
-    const yellow = colours.get("--skf-yellow")!;
+  it("keeps orange text on a light surface forbidden (below 3:1)", () => {
+    const brand = colours.get("--skf-brand")!;
 
-    expect(contrast(yellow, colours.get("--skf-white")!)).toBeLessThan(3);
-    expect(contrast(yellow, colours.get("--skf-page")!)).toBeLessThan(3);
+    expect(contrast(brand, colours.get("--skf-white")!)).toBeLessThan(3);
+    expect(contrast(brand, colours.get("--skf-page")!)).toBeLessThan(3);
   });
 });

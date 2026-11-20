@@ -201,6 +201,21 @@ export async function getNavigation(): Promise<readonly NavMain[]> {
   return buildNavigation(tree.categories, tree.listed);
 }
 
+/** A main on `/c` with its photo, for the picture cards. */
+export type CategoryCard = NavMain & { readonly imageKey: string | null };
+
+/** `/c`: navigation plus each main's photo, from the same cached tree read. */
+export async function getCategoryCards(): Promise<readonly CategoryCard[]> {
+  const tree = await loadCatalogTree();
+  const imageOf = new Map(
+    tree.categories.filter((row) => row.parentId === null).map((row) => [row.slug, row.imageKey]),
+  );
+  return buildNavigation(tree.categories, tree.listed).map((main) => ({
+    ...main,
+    imageKey: imageOf.get(main.slug) ?? null,
+  }));
+}
+
 type PageHead = {
   readonly slug: string;
   readonly name: string;

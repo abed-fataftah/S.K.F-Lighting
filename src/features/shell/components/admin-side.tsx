@@ -16,7 +16,7 @@ import { adminIcons } from "./nav-icons";
 
 // AdminSide (handoff section 6, spec 0003 AC-18): the black dashboard sidebar. Logo and
 // caption, eight links 48 high, then "عرض المتجر". The current link has the active fill, a
-// 4px yellow bar on the inline start edge, and aria-current="page". In the dashboard's
+// 4px orange bar on the inline start edge, and aria-current="page". In the dashboard's
 // flex row it takes 220px up to 260px and wraps above the content below 780px.
 // `pathname` overrides the current path (the gallery); `children` sit under "عرض المتجر"
 // (the dashboard layout puts the sign out button there). `unseenOrders` puts the count badge on
@@ -63,7 +63,7 @@ export function AdminSide({
                   className={cn(
                     "relative flex h-12 items-center gap-3 px-5 type-body",
                     active &&
-                      "bg-sidebar-active font-extrabold text-white before:absolute before:inset-y-0 before:start-0 before:w-1 before:bg-yellow",
+                      "bg-sidebar-active font-extrabold text-white before:absolute before:inset-y-0 before:start-0 before:w-1 before:bg-brand",
                   )}
                 >
                   <Icon aria-hidden className="size-5.5 shrink-0" />

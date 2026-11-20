@@ -3,6 +3,7 @@
 import { ErrorState } from "@/components/error-state";
 import { ReportToSentry } from "@/components/report-to-sentry";
 import { parsePublicEnv } from "@/lib/public-env";
+import { PageFrame } from "@/components/page-frame";
 
 // A storefront page that failed to load (design.md section 7): the error card inside the shell,
 // with retry and WhatsApp, so a down database never leaves the shopper on a bare 500. The error
@@ -17,9 +18,9 @@ export default function StorefrontError({
   const { whatsappNumber } = parsePublicEnv();
 
   return (
-    <div className="px-(--page-pad) pt-5 pb-8">
+    <PageFrame width="form" className="px-(--page-pad) pt-5 pb-8">
       <ErrorState onRetry={retry} whatsappNumber={whatsappNumber} />
       <ReportToSentry error={error} />
-    </div>
+    </PageFrame>
   );
 }

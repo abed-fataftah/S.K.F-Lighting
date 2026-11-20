@@ -35,7 +35,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Desktop (1280) (designed):
-Header h1 "إعدادات المتجر" with yellow small "حفظ الإعدادات". One column, max 900, gap 16, card titles 18/800. "بيانات التواصل": رقم الهاتف, رقم واتساب, البريد الإلكتروني, العنوان (two columns, wrap). "رسوم التوصيل": الضفة (₪) value 20, الداخل (₪) value 70. "صاحب المتجر": 96px circle with a 4px yellow ring and a person icon, field "الاسم الظاهر", outline small "رفع صورة", note "يظهر في الصفحة الرئيسية فقط.". "صفحات السياسات": three textareas (100 high): سياسة الخصوصية, الشروط والأحكام, سياسة الإرجاع.
+Header h1 "إعدادات المتجر" with orange small "حفظ الإعدادات". One column, max 900, gap 16, card titles 18/800. "بيانات التواصل": رقم الهاتف, رقم واتساب, البريد الإلكتروني, العنوان (two columns, wrap). "رسوم التوصيل": الضفة (₪) value 20, الداخل (₪) value 70. "صاحب المتجر": 96px circle with a 4px orange ring and a person icon, field "الاسم الظاهر", outline small "رفع صورة", note "يظهر في الصفحة الرئيسية فقط.". "صفحات السياسات": three textareas (100 high): سياسة الخصوصية, الشروط والأحكام, سياسة الإرجاع.
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 

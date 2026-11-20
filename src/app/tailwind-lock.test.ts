@@ -21,6 +21,8 @@ const produces = (cls: string) => build([cls]).includes(selector(cls));
 describe("Tailwind lock", () => {
   it.each([
     "bg-red-500",
+    // The old colour name is gone (spec 0032 AC-1).
+    "bg-yellow",
     "text-gray-600",
     "bg-black",
     "rounded-lg",
@@ -39,6 +41,10 @@ describe("Tailwind lock", () => {
     "ease-in",
     "animate-pulse",
     "animate-spin",
+    // Only md and lg (spec 0029 AC-2).
+    "sm:flex",
+    "xl:flex",
+    "2xl:flex",
   ])("removes %s", (cls) => {
     expect(produces(cls)).toBe(false);
   });
@@ -49,7 +55,7 @@ describe("Tailwind lock", () => {
     "bg-transparent",
     "text-current",
     "font-sans",
-    "bg-yellow",
+    "bg-brand",
     "text-ink",
     "border-control-border",
     "bg-product-1",
@@ -62,6 +68,11 @@ describe("Tailwind lock", () => {
     "animate-skeleton",
     "max-w-(--page-max)",
     "h-13",
+    "md:flex",
+    "lg:flex",
+    "lg-tall:sticky",
+    "narrow:flex-wrap",
+    "max-w-(--content-max)",
   ])("keeps %s", (cls) => {
     expect(produces(cls)).toBe(true);
   });
@@ -71,6 +82,18 @@ describe("Tailwind lock", () => {
     expect(css).toContain("font-size: var(--fs-title-m)");
     expect(css).toContain("font-weight: var(--fw-heavy)");
     expect(css).toContain("line-height: var(--lh-card-title)");
+  });
+
+  // covers: AC-2, AC-12 (spec 0029)
+  it("puts md at 48rem, lg at 64rem, and lg-tall at 64rem wide and 45rem high", () => {
+    expect(build(["md:flex"])).toContain("(width >= 48rem)");
+    expect(build(["lg:flex"])).toContain("(width >= 64rem)");
+    expect(build(["lg-tall:sticky"])).toMatch(/\(width >= 64rem\) and \(height >= 45rem\)/);
+  });
+
+  // A phone below 360px (scope feature 39), the only rule a small phone gets of its own.
+  it("puts narrow below 22.5rem", () => {
+    expect(build(["narrow:flex-wrap"])).toContain("(width < 22.5rem)");
   });
 
   it("lets a weight class override a type role's weight", () => {

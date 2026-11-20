@@ -114,12 +114,17 @@ test("a signed out visitor signs in, lands back here, and finds the links both w
   await page.getByTestId("orders-link").click();
   await expect(page).toHaveURL(/\/account\/orders$/);
 
-  // AC-8: the account tab goes to My Orders and stays current here.
-  const tab = page
-    .getByRole("navigation", { name: "التنقل الرئيسي" })
-    .getByRole("link", { name: "حسابي" });
-  await expect(tab).toHaveAttribute("href", "/account/orders");
-  await expect(tab).toHaveAttribute("aria-current", "page");
+  // AC-8: the account tab goes to My Orders and stays current here. From lg there is no bottom
+  // bar; the header's account link goes there instead (spec 0029 AC-4).
+  if (testInfo.project.name === "desktop") {
+    await expect(page.getByTestId("header-account")).toHaveAttribute("href", "/account/orders");
+  } else {
+    const tab = page
+      .getByRole("navigation", { name: "التنقل الرئيسي" })
+      .getByRole("link", { name: "حسابي" });
+    await expect(tab).toHaveAttribute("href", "/account/orders");
+    await expect(tab).toHaveAttribute("aria-current", "page");
+  }
 });
 
 test("a customer follows their orders, what is still owed, and opens one", async ({
@@ -161,10 +166,14 @@ test("a customer follows their orders, what is still owed, and opens one", async
 
   // AC-2, AC-3: from the account tab, both orders newest first.
   await page.goto("/");
-  await page
-    .getByRole("navigation", { name: "التنقل الرئيسي" })
-    .getByRole("link", { name: "حسابي" })
-    .click();
+  // The bottom bar's tab, or from lg the header's account link (spec 0029 AC-4).
+  await (
+    testInfo.project.name === "desktop"
+      ? page.getByTestId("header-account")
+      : page
+          .getByRole("navigation", { name: "التنقل الرئيسي" })
+          .getByRole("link", { name: "حسابي" })
+  ).click();
   await expect(page).toHaveURL(/\/account\/orders$/);
   await expect(page.getByTestId("my-order-number")).toHaveText([newer.number, older.number]);
   const first = card(page, newer.number);

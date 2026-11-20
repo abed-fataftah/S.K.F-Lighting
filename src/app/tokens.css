@@ -9,8 +9,8 @@
 
 /* ---- 1. Brand and UI colors (roles) ------------------------------------- */
 :root {
-  --skf-yellow: #fcf42c; /* brand yellow, measured from the logo. FILL ONLY, with ink text. Never text on white. */
-  --skf-yellow-tint: #fff6d0; /* selected radio card, notice banner, highlight rows */
+  --skf-brand: #f7931e; /* brand orange (spec 0032). FILL ONLY under ink text, or text and outlines on black. Never text on white. */
+  --skf-brand-tint: #feefdc; /* selected radio card, notice banner, highlight rows */
   --skf-ink: #111111; /* primary text, black header, black footer, black sidebar */
   --skf-white: #ffffff; /* cards, inputs, bottom bar */
   --skf-page: #f5f5f3; /* page background (warm gray) */
@@ -35,8 +35,8 @@
 
 /* ---- 2. Illustration palette (the hero drawing only) ---------------------- */
 :root {
-  --illus-08: #e9d58a; /* chandelier chain and drop wires */
-  --illus-09: #f5efd0; /* chandelier candle sleeves */
+  --illus-08: #d98b3a; /* chandelier chain and drop wires */
+  --illus-09: #f0b878; /* chandelier candle sleeves */
 }
 
 /* ---- 3. shadcn/ui variable names (map the roles onto what the components read) */
@@ -47,13 +47,13 @@
   --card-foreground: var(--skf-ink);
   --popover: var(--skf-white);
   --popover-foreground: var(--skf-ink);
-  --primary: var(--skf-yellow);
+  --primary: var(--skf-brand);
   --primary-foreground: var(--skf-ink);
   --secondary: var(--skf-white);
   --secondary-foreground: var(--skf-ink);
   --muted: var(--skf-fill-muted);
   --muted-foreground: var(--skf-muted);
-  --accent: var(--skf-yellow-tint);
+  --accent: var(--skf-brand-tint);
   --accent-foreground: var(--skf-ink);
   --destructive: var(--skf-danger);
   --destructive-foreground: var(--skf-white);
@@ -111,8 +111,15 @@
   --sp-28: 28px;
   --sp-34: 34px;
   --sp-48: 48px;
-  --page-pad: 16px; /* side padding of every storefront page */
-  --page-max: 480px; /* storefront column width, centered */
+  --page-pad: 16px; /* side padding of every storefront page; 24px from md, 32px from lg (spec 0029) */
+  --page-max: 480px; /* storefront phone column below md, centered; dialogs and sheets below lg */
+  /* Added in spec 0029 for the tablet and desktop storefront. */
+  --content-max: 1280px; /* the storefront content box from md */
+  --form-max: 560px; /* narrow pages, and the add to draft dialog at lg */
+  --prose-max: 720px; /* policies; product, cart, checkout, and banners at md */
+  --filter-col: 260px; /* filter column at lg */
+  --summary-col: 360px; /* cart, checkout, and quick order totals at lg */
+  --sticky-top: 16px; /* top offset of the sticky summary and purchase boxes */
   --admin-sidebar-max: 260px; /* sidebar flex-basis 220px, max 260px */
   --admin-sidebar-basis: 220px; /* sidebar flex-basis (design.md section 4; added in spec 0003) */
   --admin-content-basis: 560px; /* below this the sidebar wraps above the content */
@@ -132,7 +139,11 @@
   --skf-radius-hero: 20px; /* home hero card only */
   --skf-radius-full: 9999px; /* circles: category circles, owner circle, WhatsApp float, gallery arrows */
   --border-w: 1px; /* all borders; selected radio cards and selected photo thumbnails use 2px */
-  --shadow-none: none; /* THE DESIGN HAS NO SHADOWS. Do not add any. */
+  --shadow-none: none; /* THE DESIGN HAS NO SHADOWS, except the raised category card below. */
+  /* Owner request: the /c category cards look raised (3D). Used only by .card-raised. */
+  --skf-raised-edge: #cfcfc8; /* the card's solid bottom edge */
+  --skf-raised-shadow: 0 1px 2px rgb(17 17 17 / 0.06), 0 10px 24px -8px rgb(17 17 17 / 0.18);
+  --skf-raised-shadow-hover: 0 2px 4px rgb(17 17 17 / 0.08), 0 22px 36px -12px rgb(17 17 17 / 0.28);
 }
 
 /* ---- 7. Sizes of controls ------------------------------------------------ */
@@ -150,16 +161,39 @@
   --size-thumb: 56px; /* product gallery thumbnails */
   --h-card-image: 128px; /* product card image area */
   --h-gallery: 300px; /* product page main image area */
+  --gallery-h-lg: 520px; /* product page main image area at lg (spec 0029) */
+  --h-cat-bar: 48px; /* desktop category bar row (spec 0029) */
   /* Added in spec 0003 for the fixed shell parts. */
   --h-bottom-bar: 64px; /* bottom bar height, without the safe area */
-  --fab-bottom: 84px; /* WhatsApp float offset above the bottom */
+  --fab-bottom: 84px; /* WhatsApp float offset above the bottom; 24px from lg (spec 0029) */
+  --fab-inset: 14px; /* WhatsApp float distance from the screen's end edge; 24px from md (spec 0029) */
   --w-sheet: 320px; /* menu sheet width (capped at 85vw where used) */
+  --coverflow-card: 220px; /* Home hero coverflow centre card width; 260px from md, 300px from lg (spec 0030) */
+  --category-card: 140px; /* Home category card width (4:5); 180px from md, 200px from lg (spec 0031) */
+}
+
+/* Tablet (md, 48rem) and desktop (lg, 64rem) values (spec 0029). Below md every value above holds. */
+@media (width >= 48rem) {
+  :root {
+    --page-pad: 24px;
+    --fab-inset: 24px;
+    --coverflow-card: 260px;
+    --category-card: 180px;
+  }
+}
+@media (width >= 64rem) {
+  :root {
+    --page-pad: 32px;
+    --fab-bottom: 24px;
+    --coverflow-card: 300px;
+    --category-card: 200px;
+  }
 }
 
 /* ---- 8. Focus ------------------------------------------------------------ */
 :root {
   --focus-ring: 3px solid var(--skf-ink); /* on light surfaces */
-  --focus-ring-on-dark: 3px solid var(--skf-yellow); /* on black header, footer, sidebar */
+  --focus-ring-on-dark: 3px solid var(--skf-brand); /* on black header, footer, sidebar */
   --focus-offset: 2px;
 }
 /* Unlayered on purpose, so no Tailwind utility can override it. Widened in spec 0003
@@ -240,23 +274,35 @@
   --z-fab: 40; /* floating WhatsApp button */
   --z-sheet: 50; /* menu sheet and its overlay (added in spec 0003) */
   --dur-skeleton: 1.4s; /* skeleton pulse: opacity 1 -> .55 -> 1, ease-in-out, infinite */
-  --dur-carousel-auto: 3500ms; /* category carousel auto-advance */
   --dur-carousel-move: 0.7s; /* carousel item move: transform .7s and opacity .7s, cubic-bezier(.3,.7,.3,1) */
   --ease-carousel: cubic-bezier(0.3, 0.7, 0.3, 1);
   --dur-sheet: 0.2s; /* menu sheet slide (added in spec 0003) */
+  --dur-hover: 0.2s; /* hover and focus colour, underline, and photo zoom (spec 0029) */
+  --dur-sway: 6s; /* hero chandelier sway, one full swing (spec 0029) */
+  --coverflow-depth: 1000px; /* perspective of the Home hero coverflow, so side cards read as turned (spec 0030) */
+  --category-turn: 12deg; /* Home category cards: rest turn toward the pressed card, within its row (spec 0031) */
+  --category-tilt: 6deg; /* Home category cards: most hover tilt on each axis, mouse or pen only (spec 0031) */
+  --category-scale: 1.06; /* Home category cards: the pressed card's scale (spec 0031) */
+  --category-tint: 0.25; /* Home category cards: black tint over an unpressed card (spec 0031) */
 }
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur-skeleton: 0s;
     --dur-sheet: 0s;
+    --dur-hover: 0s;
+    --dur-sway: 0s;
   }
-  /* Also: no carousel auto-advance, no skeleton pulse, no sheet slide. */
+  /* Also: no skeleton pulse, no sheet slide. Carousel moves use motion-reduce:transition-none. */
 }
 
 /* ---- 10. Breakpoints (CSS variables cannot hold these; use them in Tailwind config / media queries) */
-/* Storefront: one column, max 480px, any width. Desktop layout NOT designed (open item O-1).
+/* Storefront (spec 0029): two breakpoints only, Tailwind's md (768px, tablet) and lg (1024px, desktop);
+   sm, xl, and 2xl are removed in section 12. Below md the 480px phone column; from md the content box
+   (--content-max) with --page-pad. lg-tall (lg and at least 720px high) gates the sticky boxes.
    Dashboard: designed at 1280. Sidebar wraps above content below (220 + 560) = 780px of available width (flex-wrap, no media query).
-   Test widths: 390 (phone), 1280 (desktop). */
+   Test widths: 390 (phone), 820 (tablet), 1280 (desktop); the width sweep (scope feature 39) adds
+   320 (small phone), 844 by 390 (a phone held sideways), and 2560 (large monitor). The `narrow`
+   variant (below 360px, section 12) is the one place a small phone gets its own rule. */
 
 /* ---- 11. Right to left --------------------------------------------------- */
 html {
@@ -283,6 +329,10 @@ html {
   --blur-*: initial;
   --ease-*: initial;
   --animate-*: initial;
+  /* Only md and lg (spec 0029 AC-2). */
+  --breakpoint-sm: initial;
+  --breakpoint-xl: initial;
+  --breakpoint-2xl: initial;
   /* Almarai has three weights; only they exist. */
   --font-weight-*: initial;
   --font-weight-bold: 700;
@@ -290,13 +340,18 @@ html {
   --font-weight-normal: 400;
 }
 
+/* Desktop with a window tall enough for a sticky box (spec 0029 AC-12, AC-14). */
+@custom-variant lg-tall (@media (width >= 64rem) and (height >= 45rem));
+/* A phone narrower than 360px (scope feature 39): a button pair that fits at 390 wraps there. */
+@custom-variant narrow (@media (width < 22.5rem));
+
 @theme inline {
   --font-sans: var(--skf-font);
 
   /* Colour names: the only colour classes. */
   --color-ink: var(--skf-ink);
-  --color-yellow: var(--skf-yellow);
-  --color-yellow-tint: var(--skf-yellow-tint);
+  --color-brand: var(--skf-brand);
+  --color-brand-tint: var(--skf-brand-tint);
   --color-white: var(--skf-white);
   --color-page: var(--skf-page);
   --color-muted: var(--skf-muted);
@@ -427,21 +482,38 @@ html {
   animation: skeleton var(--dur-skeleton) ease-in-out infinite;
 }
 
+/* Hero chandelier sway (spec 0029): a slow swing from the ceiling wire. At 0s (reduced motion) it
+   does not run. */
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+@utility animate-sway {
+  transform-origin: 50% 0;
+  transform-box: view-box;
+  animation: sway var(--dur-sway) ease-in-out infinite;
+}
+
 /* ---- 13. Contrast table (computed by code, WCAG 2.x) ---------------------
    src/app/tokens-contrast.test.ts recomputes every pair below from the hex values.
    Text pairs (need 4.5:1 for text under 24px, 3:1 for large text)
-   --skf-ink on --skf-yellow ............ 16.29   buttons, chips, selected states
+   --skf-ink on --skf-brand ............. 8.22    buttons, chips, selected states
    --skf-ink on --skf-white ............. 18.88   card text
    --skf-ink on --skf-page .............. 17.30   page text
-   --skf-ink on --skf-yellow-tint ....... 17.40   selected radio card, notice
+   --skf-ink on --skf-brand-tint ........ 16.72   selected radio card, notice
    --skf-ink on --skf-fill-muted ........ 14.53   skeleton, disabled areas
    --skf-muted on --skf-white ........... 7.46    secondary text on cards
    --skf-muted on --skf-page ............ 6.83    secondary text on page
-   --skf-muted on --skf-yellow-tint ..... 6.87    secondary text on tint
+   --skf-muted on --skf-brand-tint ...... 6.60    secondary text on tint
    --skf-muted on --skf-fill-muted ...... 5.74    disabled button text
    --skf-white on --skf-whatsapp ........ 5.25    WhatsApp buttons
    --skf-whatsapp on --skf-white ........ 5.25    "in stock" text, "paid" badge text
-   --skf-yellow on --skf-ink ............ 16.29   text on black
+   --skf-brand on --skf-ink ............. 8.22    text on black
    --skf-white on --skf-ink ............. 18.88   text on black
    --skf-on-dark-muted on --skf-ink ..... 13.19   footer and sidebar links
    --skf-white on --skf-sidebar-active .. 14.35   active sidebar item
@@ -449,5 +521,6 @@ html {
    Non-text pairs (need 3:1)
    --skf-control-border on --skf-white .. 3.47    input and chip edges on cards
    --skf-control-border on --skf-page ... 3.18    input and chip edges on page
-   FORBIDDEN: --skf-yellow as text on white or on --skf-page (about 1.2:1).
+   --skf-control-border on --skf-brand-tint . 3.07    input and chip edges on tint
+   FORBIDDEN: --skf-brand as text on white (2.30:1) or on --skf-page (2.10:1).
    -------------------------------------------------------------------------- */

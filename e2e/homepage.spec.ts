@@ -8,14 +8,16 @@ import {
 } from "./a11y";
 import { localSql } from "./local-db";
 
-// covers: AC-1 to AC-5, AC-8 to AC-11, AC-16 (spec 0011). On a phone sized right to left screen:
-// the owner adds two banners (one linked to a category), reorders them, unticks one and saves,
-// picks two featured products, unticks a main, and gives a main a photo and a line; a customer
-// sees the banner, follows its link, and sees the circles and the featured cards; with every banner
-// off the hero shows; the circle carousel's pause button stops its movement, three and two circles
-// still form the carousel, and one circle shows alone. Axe runs on Home (both versions) and on the
-// editor. Home is shared by every flow, so this one runs in its own project
-// after the others (playwright.config.ts) and puts Home back as it found it.
+// covers: AC-2, AC-8 to AC-11, AC-16 (spec 0011); AC-1, AC-2, AC-9, AC-11, AC-12 (spec 0030);
+// AC-2, AC-11 (spec 0031). On a phone sized right to left screen: the owner adds two banners (one
+// linked to a category), reorders them, unticks one and saves, picks two featured products, unticks
+// a main, and gives a main a photo and a line; a customer sees the picks as the hero coverflow with
+// the banner under it, follows its link, and sees the ticked mains as category cards (the photo and
+// line on the card, the unticked one absent); the two picks swap on every move, one pick shows
+// alone, no picks show the newest products, and no sellable product shows the fallback card; three,
+// two, and one category still render as cards. Axe runs on Home (both heroes) and on the editor.
+// Home is shared by every flow, so this one runs in its own project after the others
+// (playwright.config.ts) and puts Home back as it found it.
 
 const expect = baseExpect.configure({ timeout: 15_000 });
 const accounts = adminAccounts();
@@ -33,8 +35,10 @@ const LINKED = `عرض الثريات ${tag}`;
 const PLAIN = `عرض الأباجورات ${tag}`;
 const LINE = `سطر ${tag}`;
 
-// The mains ticked for Home before the flow; the circle steps untick them in the editor.
+// The mains ticked for Home before the flow; the category card steps untick them in the editor.
 let homeMainIds: readonly string[] = [];
+// The products hidden to show the fallback hero; put back at the end.
+let hiddenProductIds: readonly string[] = [];
 
 /** Four mains, each with a listed product (so four or more circles), and the two picks. */
 async function seed() {
@@ -76,10 +80,28 @@ test.afterAll(async () => {
     if (homeMainIds.length) {
       await sql`update categories set show_on_home = true where id in ${sql(homeMainIds)}`;
     }
+    if (hiddenProductIds.length) {
+      await sql`update products set status = 'active' where id in ${sql(hiddenProductIds)}`;
+    }
   } finally {
     await sql.end();
   }
 });
+
+/** Replaces the picks with the products of these codes, in this order. */
+async function setPicks(codes: readonly string[]) {
+  const sql = localSql();
+  try {
+    await sql`delete from featured_products`;
+    for (const [sort, code] of codes.entries()) {
+      await sql`
+        insert into featured_products (product_id, sort)
+        select id, ${sort} from products where code = ${code}`;
+    }
+  } finally {
+    await sql.end();
+  }
+}
 
 /** A plain coloured picture made by the browser, `width` by `height`, as a file to pick. */
 async function picture(page: Page, width: number, height: number) {
@@ -91,7 +113,7 @@ async function picture(page: Page, width: number, height: number) {
       const context = canvas.getContext("2d")!;
       context.fillStyle = "#1b1714";
       context.fillRect(0, 0, w, h);
-      context.fillStyle = "#fcf42c";
+      context.fillStyle = "#3a7bd5";
       context.fillRect(w / 4, h / 4, w / 2, h / 2);
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9),
@@ -157,14 +179,6 @@ async function showOnlyMains(page: Page, names: readonly string[]) {
   await saveEditor(page);
 }
 
-/** True once the circle named `name` has settled on the left of the centred one named `centred`. */
-async function leftOf(circles: ReturnType<Page["getByTestId"]>, name: string, centred: string) {
-  const [side, middle] = await Promise.all(
-    [name, centred].map((n) => circles.locator("li").filter({ hasText: n }).boundingBox()),
-  );
-  return !!side && !!middle && side.x + side.width / 2 < middle.x + middle.width / 2 - 50;
-}
-
 test("the owner runs Home and a customer sees it", async ({ page, browser }, testInfo) => {
   test.skip(testInfo.project.name !== "homepage", "runs once, after the other flows");
   test.setTimeout(300_000);
@@ -199,7 +213,7 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
   await saveEditor(page);
   await checkA11y(page);
 
-  // A main's circle photo and line, from the category dialog (AC-11).
+  // A main's card photo and line, from the category dialog (AC-11; spec 0031 AC-2).
   await page.goto("/admin/categories");
   await page.getByRole("button", { name: `تعديل: ${MAINS[0]}` }).click();
   const categoryDialog = page.getByTestId("category-dialog");
@@ -209,76 +223,135 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
   await categoryDialog.getByTestId("category-save").click();
   await expect(categoryDialog).toBeHidden();
 
-  // The customer: the one active banner, its link, the circles, and the picks (AC-1 to AC-5).
+  // The customer: the picks as the hero coverflow, the one active banner under it, its link, and
+  // the category cards (spec 0011 AC-2; spec 0030 AC-1, AC-2, AC-12; spec 0031 AC-2).
   const shopper = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const customer = await shopper.newPage();
   await customer.goto("/");
   const banner = customer.getByTestId("home-banners");
   await expect(banner.getByRole("img", { name: LINKED })).toBeVisible();
   await expect(banner.getByRole("img", { name: PLAIN })).toHaveCount(0);
-  await expect(customer.locator("h1")).toHaveText("S.K.F للإنارة");
-  const circles = customer.getByTestId("home-circles");
-  await expect(circles.getByText(LINE)).toBeAttached();
-  await expect(circles.getByText(MAINS[3])).toHaveCount(0);
+  await expect(customer.locator("h1")).toHaveText(/الإضاءة المناسبة/);
+  const hero = customer.getByTestId("home-hero");
+  const heroBox = await hero.boundingBox();
+  const bannerBox = await banner.boundingBox();
+  expect(bannerBox!.y).toBeGreaterThanOrEqual(heroBox!.y + heroBox!.height);
+  const cards = customer.getByTestId("home-category-tabs");
+  for (const name of MAINS.slice(0, 3)) {
+    await expect(cards.getByRole("tab", { name })).toBeAttached();
+  }
+  await expect(cards.getByRole("tab", { name: MAINS[3] })).toHaveCount(0);
+  const photoCard = cards.getByRole("tab", { name: MAINS[0] });
+  await expect(photoCard.getByText(LINE)).toBeAttached();
+  await expect(photoCard.locator("img")).toHaveCount(1);
   const featured = customer.getByTestId("home-products");
-  await expect(featured.getByTestId("product-card")).toHaveCount(2);
-  await expect(featured).toContainText(FEATURED[0]);
-  await expect(featured).toContainText(FEATURED[1]);
+  await expect(featured.locator("li")).toHaveCount(2);
+  await expect(featured.getByRole("link")).toHaveCount(1);
+  await expect(featured.getByRole("link")).toContainText(FEATURED[0]);
+  await expect(customer.getByRole("button", { name: FEATURED[1] })).toBeVisible();
   await checkA11y(customer);
 
-  // The carousel moves by itself; the pause button stops it (AC-4).
-  const pause = customer.getByTestId("circles-pause");
-  await expect(pause).toHaveAttribute("aria-pressed", "false");
-  await pause.click();
-  await expect(pause).toHaveAttribute("aria-pressed", "true");
-  const centred = await customer.getByTestId("circles-browse").textContent();
-  await customer.waitForTimeout(4000);
-  await expect(customer.getByTestId("circles-browse")).toHaveText(centred ?? "");
+  // Two picks swap on every move: the other one's dot, then either arrow key (spec 0030 AC-9).
+  await customer.getByRole("button", { name: FEATURED[1] }).click();
+  await expect(featured.getByRole("link")).toContainText(FEATURED[1]);
+  await customer.keyboard.press("ArrowLeft");
+  await expect(featured.getByRole("link")).toContainText(FEATURED[0]);
+  await customer.keyboard.press("ArrowRight");
+  await expect(featured.getByRole("link")).toContainText(FEATURED[1]);
+
+  // From md the banner sits centred at most 720 wide under the hero band, with no side card, and
+  // the h1 stays the hero headline (spec 0030 AC-1, AC-12); the cards wrap (spec 0031 AC-4).
+  const wide = await browser.newContext({ viewport: { width: 820, height: 1180 } });
+  const tablet = await wide.newPage();
+  await tablet.goto("/");
+  const tabletBanner = await tablet
+    .getByTestId("home-banners")
+    .locator("img")
+    .first()
+    .boundingBox();
+  expect(tabletBanner!.width).toBeLessThanOrEqual(720);
+  await expect(tablet.getByTestId("home-side-card")).toHaveCount(0);
+  await expect(
+    tablet.getByTestId("home-category-tabs").getByRole("tab", { name: MAINS[0] }),
+  ).toBeVisible();
+  await tablet.setViewportSize({ width: 1280, height: 800 });
+  await expect(tablet.getByTestId("home-side-card")).toHaveCount(0);
+  await expect(tablet.locator("h1")).toHaveText(/الإضاءة المناسبة/);
+  const desktopHero = await tablet.getByTestId("home-hero").boundingBox();
+  const desktopBanner = await tablet
+    .getByTestId("home-banners")
+    .locator("img")
+    .first()
+    .boundingBox();
+  expect(desktopBanner!.width).toBeLessThanOrEqual(720);
+  expect(desktopBanner!.y).toBeGreaterThanOrEqual(desktopHero!.y + desktopHero!.height);
+  expect(Math.round(desktopHero!.width)).toBe(
+    await tablet.evaluate(() => document.documentElement.clientWidth),
+  );
+  await expect(tablet.getByTestId("home-products").locator("li")).toHaveCount(2);
+  await checkA11y(tablet);
+  await wide.close();
 
   await banner.getByTestId("banner-link").click();
   await expect(customer).toHaveURL(new RegExp(`/c/hp-e2e-${tag}-0$`));
 
-  // Three circles still form the carousel: it loops after three steps (AC-4).
-  const browse = customer.getByTestId("circles-browse");
-  await showOnlyMains(page, MAINS.slice(0, 3));
-  await customer.goto("/");
-  await customer.getByTestId("circles-pause").click();
-  const first = await browse.textContent();
-  for (let i = 0; i < 3; i++) await circles.getByRole("button", { name: "القسم التالي" }).click();
-  await expect(browse).toHaveText(first ?? "");
-
-  // Two circles: the other one always waits on the left, and either arrow swaps them (AC-4).
-  await showOnlyMains(page, MAINS.slice(0, 2));
-  await customer.goto("/");
-  await customer.getByTestId("circles-pause").click();
-  const [a, b] = (await browse.textContent())?.includes(MAINS[0])
-    ? [MAINS[0], MAINS[1]]
-    : [MAINS[1], MAINS[0]];
-  await expect.poll(() => leftOf(circles, b, a)).toBe(true);
-  await circles.getByRole("button", { name: "القسم السابق" }).click();
-  await expect(browse).toContainText(b);
-  await expect.poll(() => leftOf(circles, a, b)).toBe(true);
-  await circles.getByRole("button", { name: "القسم التالي" }).click();
-  await expect(browse).toContainText(a);
+  // Three, two, and one category still render as cards, the first selected (spec 0031 AC-2, AC-3).
+  for (const count of [3, 2, 1]) {
+    await showOnlyMains(page, MAINS.slice(0, count));
+    await customer.goto("/");
+    await expect(cards.getByRole("tab")).toHaveCount(count);
+    await expect(cards.getByRole("tab", { name: MAINS[0] })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(customer.getByTestId("home-category-heading")).toHaveText(MAINS[0]);
+  }
   await checkA11y(customer);
 
-  // One circle shows alone as a plain link: no arrows, no pause, no yellow button (AC-4).
-  await showOnlyMains(page, MAINS.slice(0, 1));
-  await customer.goto("/");
-  await expect(circles.getByRole("link")).toHaveCount(1);
-  await expect(circles.getByRole("link")).toContainText(MAINS[0]);
-  await expect(circles.getByRole("button")).toHaveCount(0);
-  await expect(customer.getByTestId("circles-pause")).toHaveCount(0);
-  await expect(browse).toHaveCount(0);
-  await checkA11y(customer);
-
-  // Every banner off: the hero comes back with its own h1 (AC-3).
+  // Every banner off: the hero stays, with its h1, and the banners go (spec 0030 AC-1).
   await openEditor(page);
   await page.getByTestId("banner-row").filter({ hasText: LINKED }).getByRole("checkbox").click();
   await saveEditor(page);
   await customer.goto("/");
-  await expect(customer.getByRole("heading", { level: 1 })).toHaveText(/ثريات وإنارة/);
+  await expect(customer.getByRole("heading", { level: 1 })).toHaveText(/الإضاءة المناسبة/);
   await expect(customer.getByTestId("home-banners")).toHaveCount(0);
+  await checkA11y(customer);
+
+  // One pick shows alone: its link, no arrows, no dots, no live text (spec 0030 AC-9).
+  await setPicks([`${CODE}-0`]);
+  await customer.goto("/");
+  await expect(featured.locator("li")).toHaveCount(1);
+  await expect(featured.getByRole("link")).toContainText(FEATURED[0]);
+  await expect(customer.getByTestId("hero-dots")).toHaveCount(0);
+  await expect(hero.getByRole("button")).toHaveCount(0);
+  await expect(hero.locator("[aria-live]")).toHaveCount(0);
+  await checkA11y(customer);
+
+  // No picks: the newest sellable products fill the hero, the newest centred (spec 0030 AC-2).
+  await setPicks([]);
+  await customer.goto("/");
+  expect(await featured.locator("li").count()).toBeGreaterThanOrEqual(4);
+  await expect(featured.getByRole("link")).toContainText(`منتج ${tag} 3`);
+
+  // No sellable product at all: the fallback card with the chandelier and the same h1 (AC-11).
+  const sql = localSql();
+  try {
+    const hidden = await sql<{ id: string }[]>`
+      update products set status = 'hidden' where status = 'active' returning id`;
+    hiddenProductIds = hidden.map((row) => row.id);
+  } finally {
+    await sql.end();
+  }
+  await customer.goto("/");
+  await expect(customer.getByRole("heading", { level: 1 })).toHaveText(/الإضاءة المناسبة/);
+  await expect(customer.getByTestId("home-products")).toHaveCount(0);
+  await expect(hero.locator("svg").first()).toBeVisible();
+  // The fallback card is white too, line 2 on the brand marker (spec 0032 AC-11).
+  await expect(hero).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(customer.locator("h1 span").nth(1)).toHaveCSS(
+    "background-color",
+    "rgb(247, 147, 30)",
+  );
   await checkA11y(customer);
   await shopper.close();
 });

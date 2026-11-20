@@ -353,7 +353,7 @@ export function ImportProducts() {
       {running ? <p className="type-small text-muted">{t("runningNote")}</p> : null}
 
       {done ? (
-        <Card className="border-ink bg-yellow-tint" data-testid="import-done">
+        <Card className="border-ink bg-brand-tint" data-testid="import-done">
           <h2 ref={resultRef} tabIndex={-1} className="flex items-center gap-2 type-title-s">
             <CircleCheck aria-hidden className="size-6" />
             {t("resultTitle")}

@@ -24,12 +24,12 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 ## Layout
 Mobile (390) (designed):
 1. Header (shared).
-2. Card (padding 28 20, centered, margin-top 20): check disc 72px (yellow fill, 2px ink border, ink check); h1 "تم استلام طلبك" 24/800; "رقم طلبك" 14 muted; the number in a dashed box (1px dashed ink, radius 8, 28/800, `dir="ltr"`); note 13 muted.
+2. Card (padding 28 20, centered, margin-top 20): check disc 72px (orange fill, 2px ink border, ink check); h1 "تم استلام طلبك" 24/800; "رقم طلبك" 14 muted; the number in a dashed box (1px dashed ink, radius 8, 28/800, `dir="ltr"`); note 13 muted.
 3. Card "ما الخطوة التالية؟": ordered list of three steps.
-4. Buttons stacked (gap 10): green large "لم يفتح واتساب؟ افتحه من هنا"; yellow large "متابعة الطلب"; outline large "العودة للتسوق".
+4. Buttons stacked (gap 10): green large "لم يفتح واتساب؟ افتحه من هنا"; orange large "متابعة الطلب"; outline large "العودة للتسوق".
 5. Footer, bottom bar (tab: السلة), float.
 
-Desktop (1280) and tablet: NOT designed (open item O-1). Interim: render the mobile layout in one centered column, `max-width: 480px` (`--page-max`), page background on both sides.
+Desktop (1280) and tablet: specified in spec 0029 ([storefront desktop and tablet layout](../../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Phones keep the layout above.
 
 Header (SiteHeader), footer (SiteFooter), bottom bar (BottomBar, active tab: cart) and the WhatsApp float are shared parts defined once in `handoff.md` section 6. They are not repeated below.
 

@@ -20,7 +20,9 @@ const tones = [1, 2, 3, 4] as const;
 // category pages. The name link covers the photo and text; the add and WhatsApp buttons sit below
 // it. Out of stock: the photo at 45%, the black label, a disabled button, the price muted, and the
 // WhatsApp button asks about availability (W4) instead of the product (W3). Electricians also get
-// the "add to draft" button in the photo's end corner (spec 0021 AC-3).
+// the "add to draft" button in the photo's end corner (spec 0021 AC-3). On a device that can hover
+// the border turns ink and the photo zooms in a little inside its frame (spec 0029 AC-19;
+// Tailwind's hover: applies only there).
 export function ProductCard({
   product,
   index,
@@ -36,8 +38,8 @@ export function ProductCard({
   readonly id?: string;
   readonly whatsappNumber: string;
   readonly siteUrl: string;
-  /** `h3` under a section heading (Home's featured products, spec 0011 AC-5). */
-  readonly heading?: "h2" | "h3";
+  /** `h3` under a section heading; `h4` under Home's category grid heading. */
+  readonly heading?: "h2" | "h3" | "h4";
   /** The visitor is an electrician (spec 0021 AC-1); read per request by the page. */
   readonly canAddToDraft?: boolean;
 }) {
@@ -51,18 +53,24 @@ export function ProductCard({
     <article
       id={id}
       data-testid="product-card"
-      className="flex w-full scroll-mt-4 flex-col overflow-hidden rounded-card border border-border bg-white"
+      className="group/card flex w-full scroll-mt-4 flex-col overflow-hidden rounded-card border border-border bg-white transition-colors duration-(--dur-hover) hover:border-ink"
     >
       <div className="relative flex flex-1 flex-col">
         <div className="relative h-(--h-card-image)">
           {product.imageKey ? (
-            <Image
-              src={product.imageKey}
-              alt={product.name}
-              fill
-              sizes="(max-width: 480px) 50vw, 240px"
-              className={cn("bg-product-1 object-cover", !product.inStock && "opacity-45")}
-            />
+            // Its own clip, so the hover zoom never spills over the words or the corner button.
+            <span className="absolute inset-0 overflow-hidden">
+              <Image
+                src={product.imageKey}
+                alt={product.name}
+                fill
+                sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, (min-width: 480px) 240px, 50vw"
+                className={cn(
+                  "bg-product-1 object-cover transition-transform duration-(--dur-hover) group-hover/card:scale-104",
+                  !product.inStock && "opacity-45",
+                )}
+              />
+            </span>
           ) : (
             <ImagePlaceholder
               tone={tones[index % tones.length]}
@@ -135,7 +143,9 @@ export function ProductCard({
           />
         ) : null}
       </div>
-      <div className="flex items-start gap-1.5 p-3">
+      {/* The add button and the WhatsApp square side by side; on a card too narrow for both
+          (2 across on a phone below 360) the square wraps under the button. */}
+      <div className="flex items-start gap-1.5 p-3 narrow:flex-wrap">
         {product.addVariantId ? (
           <CardAddToCart variantId={product.addVariantId} name={product.name} />
         ) : (

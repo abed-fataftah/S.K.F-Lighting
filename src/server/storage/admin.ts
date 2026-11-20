@@ -92,6 +92,12 @@ export async function listHomeImages(
     .map((entry) => ({ ...toStored(entry), key: `${folder}/${entry.name}` }));
 }
 
+/** Uploads one file under a server chosen key, never overwriting (the sample pictures, spec 0032). */
+export async function uploadObject(key: string, body: Buffer, contentType: string): Promise<void> {
+  const { error } = await bucket().upload(key, body, { contentType, upsert: false });
+  if (error) throw error;
+}
+
 export async function removeKeys(keys: readonly string[]): Promise<void> {
   for (let i = 0; i < keys.length; i += PAGE) {
     const { error } = await bucket().remove(keys.slice(i, i + PAGE));

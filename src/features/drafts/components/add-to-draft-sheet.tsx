@@ -142,7 +142,7 @@ export function AddToDraftSheet({
   return (
     <Sheet open={open} onOpenChange={openChange}>
       <SheetTrigger render={trigger} />
-      <SheetContent side="bottom" closeLabel={t("close")} data-testid="draft-picker">
+      <SheetContent side="responsive" closeLabel={t("close")} data-testid="draft-picker">
         <SheetHeader className="pb-1">
           <SheetTitle>{t("title")}</SheetTitle>
           <p className="font-bold">{name}</p>

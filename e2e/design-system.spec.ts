@@ -26,7 +26,7 @@ test.describe("design system gallery", () => {
   });
 
   test("shows every contrast pair, every type role, and the button matrix", async ({ page }) => {
-    await expect(page.locator("#colours li")).toHaveCount(18);
+    await expect(page.locator("#colours li")).toHaveCount(19);
     await expect(page.locator("#type li")).toHaveCount(14);
     await expect(page.getByRole("button", { name: "متابعة الطلب" })).toHaveCount(5);
     await expect(page.getByRole("button", { name: "أضف للسلة" }).last()).toBeDisabled();
@@ -55,10 +55,10 @@ test.describe("design system gallery", () => {
     await expect(page.locator("main#main")).toHaveCSS("outline-style", "none");
   });
 
-  test("draws a yellow focus outline on black and an ink one on light", async ({ page }) => {
+  test("draws an orange focus outline on black and an ink one on light", async ({ page }) => {
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
-    await expectFocusOutline(page.getByRole("link", { name: "الألوان وتباينها" }), "yellow");
+    await expectFocusOutline(page.getByRole("link", { name: "الألوان وتباينها" }), "brand");
 
     const button = page.getByRole("button", { name: "متابعة الطلب" }).first();
     await button.focus();
@@ -175,7 +175,7 @@ test.describe("gallery custom controls", () => {
     await delivery.click();
     await expect(delivery).toHaveAttribute("aria-checked", "true");
     await expect(card).toHaveCSS("border-top-width", "2px");
-    await expect(card).toHaveCSS("background-color", "rgb(255, 246, 208)");
+    await expect(card).toHaveCSS("background-color", "rgb(254, 239, 220)");
     const after = await card.boundingBox();
     expect(after!.height).toBe(before!.height);
   });
@@ -247,7 +247,7 @@ test.describe("gallery shell parts", () => {
     const badge = cart.locator('[data-slot="badge"]');
     await expect(badge).toHaveText("3");
     await expect(badge).toHaveAttribute("aria-hidden", "true");
-    await expect(badge).toHaveCSS("background-color", "rgb(252, 244, 44)");
+    await expect(badge).toHaveCSS("background-color", "rgb(247, 147, 30)");
   });
 
   // covers: AC-15

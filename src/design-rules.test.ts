@@ -55,6 +55,11 @@ const rules: readonly Rule[] = [
         String.raw`leading-(?:none|tight|snug|normal|relaxed|loose)(?![\w-])`,
     ),
   },
+  // Only md and lg exist (spec 0029 AC-2); these prefixes would make no CSS.
+  {
+    name: "removed breakpoint",
+    pattern: new RegExp(String.raw`(?<![\w-])(?:max-)?(?:sm|xl|2xl):(?=[\w[(!-])`),
+  },
   { name: "dark mode", pattern: /(?<![\w-])dark:|\.dark(?![\w-])|prefers-color-scheme/ },
   {
     name: "ring or removed outline",
@@ -149,6 +154,8 @@ describe("design rules: planted fixtures", () => {
     ["a physical slide", `className="slide-in-from-` + `left"`, "ts"],
     ["a physical CSS property", `.x { margin-` + `left: 4px; }`, "css"],
     ["a physical inset in CSS", `.x { ri` + `ght: 0; }`, "css"],
+    ["a removed breakpoint", `className="s` + `m:grid-cols-2"`, "ts"],
+    ["a removed wide breakpoint", `className="x` + `l:flex"`, "ts"],
     ["a colour scheme query", `@media (prefers-color-` + `scheme: dark) {}`, "css"],
   ];
 
@@ -162,9 +169,12 @@ describe("design rules: planted fixtures", () => {
     ["a logical inset", `className="start-0 end-3.5"`],
     ["a logical text align", `className="text-start"`],
     ["a token radius", `className="rounded-card rounded-btn rounded-full"`],
-    ["a token colour", `className="bg-yellow text-ink border-control-border bg-yellow-tint"`],
+    ["a token colour", `className="bg-brand text-ink border-control-border bg-brand-tint"`],
     ["the kept weights", `className="font-bold font-extrabold"`],
     ["a type role", `className="type-caption type-404"`],
+    ["the md and lg breakpoints", `className="md:grid-cols-3 lg:grid-cols-4 lg-tall:sticky"`],
+    ["the narrow phone variant", `className="narrow:flex-wrap narrow:basis-auto"`],
+    ["a size key in an object", `size: { sm: "h-11", lg: "h-13" }`],
     ["a URL inside a string", `const url = "https://wa.me/970500000000";`],
     ["a comment that mentions blur and left", `// clamp on blur; never use ml-2 or left`],
   ];

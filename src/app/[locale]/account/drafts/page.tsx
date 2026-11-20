@@ -11,6 +11,7 @@ import { Link } from "@/i18n/navigation";
 import { formatDate, formatNumber } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { getDb } from "@/server/db";
+import { PageFrame } from "@/components/page-frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("PageTitles");
@@ -33,7 +34,7 @@ export default async function DraftsPage({ searchParams }: PageProps<"/[locale]/
   );
 
   return (
-    <div className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
+    <PageFrame width="wide" className="flex flex-col gap-2.5 px-(--page-pad) pt-3 pb-8">
       <div className="flex flex-col gap-1 pb-1">
         <div className="flex items-center justify-between gap-2">
           <h1 className="type-title-l">{t("title")}</h1>
@@ -50,7 +51,11 @@ export default async function DraftsPage({ searchParams }: PageProps<"/[locale]/
       {drafts.length === 0 ? (
         <EmptyState icon={FileText} title={t("emptyTitle")} text={t("intro")} actions={newDraft} />
       ) : (
-        <ul className="flex flex-col gap-2.5" data-testid="drafts-list">
+        // One card across on a phone, two from md (spec 0029 AC-15).
+        <ul
+          className="flex flex-col gap-2.5 md:grid md:grid-cols-2 md:gap-3"
+          data-testid="drafts-list"
+        >
           {drafts.map((draft) => (
             <li key={draft.id}>
               <Card data-testid="draft-card">
@@ -81,6 +86,6 @@ export default async function DraftsPage({ searchParams }: PageProps<"/[locale]/
           ))}
         </ul>
       )}
-    </div>
+    </PageFrame>
   );
 }

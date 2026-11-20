@@ -8,7 +8,7 @@ describe("whatsappUrl", () => {
     const url = whatsappUrl("970500000000", ar.Shell.whatsappMessages.general);
 
     expect(url.startsWith("https://wa.me/970500000000?text=")).toBe(true);
-    expect(new URL(url).searchParams.get("text")).toBe("مرحباً S.K.F lighting، أريد الاستفسار.");
+    expect(new URL(url).searchParams.get("text")).toBe("مرحبًا S.K.F، لديّ استفسار.");
   });
 
   it("encodes every character that would break the query", () => {

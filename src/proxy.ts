@@ -30,10 +30,7 @@ function passThrough(request: NextRequest) {
   return NextResponse.next({ request: { headers } });
 }
 
-// A broken `%` under `/orders/` never reaches the order page (Next answers 404 first), so it goes
-// to the plain lookup here, never a 404 (spec 0015 AC-7).
-function isBrokenOrderPath(pathname: string) {
-  if (!pathname.startsWith(routes.order(""))) return false;
+function isBrokenPath(pathname: string) {
   try {
     decodeURIComponent(pathname);
     return false;
@@ -42,18 +39,28 @@ function isBrokenOrderPath(pathname: string) {
   }
 }
 
+// Any broken `%` on the storefront: Next fails to decode the `[...rest]` catch all's params and
+// answers its bare 400 page. This internal address matches only the catch all, so the browser
+// keeps its address and gets the designed 404 inside the shell (spec 0013 AC-2, spec 0029 AC-17).
+const BROKEN_ADDRESS = `/${routing.defaultLocale}${routes.brokenAddress}`;
+
 async function route(request: NextRequest): Promise<NextResponse> {
-  if (isBrokenOrderPath(request.nextUrl.pathname)) {
+  const { pathname } = request.nextUrl;
+  const broken = isBrokenPath(pathname);
+
+  // A broken `%` under `/orders/` never reaches the order page, so it goes to the plain lookup
+  // here, never a 404 (spec 0015 AC-7).
+  if (broken && pathname.startsWith(routes.order(""))) {
     return NextResponse.redirect(new URL(routes.orderTrack, request.url), 307);
   }
-  if (skipsSession(request.nextUrl.pathname)) return NextResponse.next();
+  if (skipsSession(pathname)) return NextResponse.next();
   const applySession = await refreshSession(request);
 
-  const response = isOutsideLocaleRouting(request.nextUrl.pathname)
-    ? passThrough(request)
-    : handleI18nRouting(request);
-
-  return applySession(response);
+  // On purpose, a broken `%` here keeps Next's own answer: the dashboard, auth callbacks, and
+  // route handlers are not storefront pages and have no shell to show the designed 404 in.
+  if (isOutsideLocaleRouting(pathname)) return applySession(passThrough(request));
+  if (broken) return applySession(NextResponse.rewrite(new URL(BROKEN_ADDRESS, request.url)));
+  return applySession(handleI18nRouting(request));
 }
 
 // Off the production host (a `workers.dev` or branch preview) every answer says do not index,

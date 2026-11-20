@@ -44,10 +44,12 @@ import {
 import { breadcrumbJsonLd, serializeJsonLd } from "../seo";
 import { AppliedChips } from "./applied-chips";
 import { FilterChipLink } from "./filter-chip-link";
+import { FiltersPanel } from "./filters-panel";
 import { FiltersScreen } from "./filters-screen";
 import { HelpCard } from "./help-card";
 import { canAddToDraft } from "@/features/drafts/server/guard";
 import { GridSkeleton, ListMore, ProductGrid } from "./list-results";
+import { PageFrame } from "@/components/page-frame";
 
 // The category page (spec 0008 AC-8 to AC-13, AC-16; spec 0010 AC-13, AC-14; docs/design/pages/
 // category.md) for `/c/<main>` and `/c/<main>/<sub>`. Both routes render this one server view.
@@ -178,9 +180,9 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   if (!result.ok) {
     await reportError("category_head_read_failed", result.error);
     return (
-      <div className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+      <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <PageErrorState heading="h1" title={t("errorTitle")} whatsappNumber={whatsappNumber} />
-      </div>
+      </PageFrame>
     );
   }
   const data = result.data;
@@ -191,7 +193,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   const jsonLd = serializeJsonLd(breadcrumbJsonLd(breadcrumbItems(data, catalog("home"), siteUrl)));
 
   return (
-    <div className="flex flex-col pb-8">
+    <PageFrame width="wide" className="flex flex-col pb-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
 
       <Breadcrumb aria-label={catalog("breadcrumb")} className="px-(--page-pad) pt-2">
@@ -228,8 +230,11 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
       </header>
 
       {data.chipSubs.length ? (
-        <nav aria-label={t("subsLabel")} className="overflow-x-auto px-(--page-pad) pb-1">
-          <ul className="flex gap-2">
+        <nav
+          aria-label={t("subsLabel")}
+          className="overflow-x-auto px-(--page-pad) pb-1 md:overflow-visible"
+        >
+          <ul className="flex gap-2 md:flex-wrap">
             <li>
               <FilterChipLink
                 href={routes.categoryPage(mainSlug, null, 1, parsed)}
@@ -256,7 +261,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
 
       <div className="flex flex-col gap-3 px-(--page-pad) pt-3">
         {data.total > 0 ? (
-          <Suspense fallback={<GridSkeleton />}>
+          <Suspense fallback={<GridSkeleton wide />}>
             <CategoryList address={address} pageHead={data} page={page} query={query} help={help} />
           </Suspense>
         ) : (
@@ -274,7 +279,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
         )}
         <HelpCard href={help} />
       </div>
-    </div>
+    </PageFrame>
   );
 }
 
@@ -311,68 +316,80 @@ async function CategoryList({
   const mainSlug = pageHead.main.slug;
   const subSlug = pageHead.sub?.slug ?? null;
   const applied = toListFilters(list.filters);
+  const scope = { kind: "category", main: mainSlug, sub: subSlug } as const;
   const hrefFor = (filters: ListFilters) => routes.categoryPage(mainSlug, subSlug, 1, filters);
   const shown = Math.min(list.page * CATEGORY_PAGE_SIZE, list.total);
   const hasMore = shown < list.total;
 
+  // From lg the filter column stands at the start of the list, the results beside it (AC-10).
   return (
-    <>
-      <div className="flex items-center justify-between gap-2">
-        <FiltersScreen
-          scope={{ kind: "category", main: mainSlug, sub: subSlug }}
-          choices={list.choices}
-          applied={applied}
-          badge={appliedChips(list.filters).length}
-          total={list.total}
-        />
-        <p role="status" className="type-small text-muted" data-testid="category-count">
-          {t("count", { shown: formatNumber(list.total) })}
-        </p>
-      </div>
-      <AppliedChips filters={list.filters} hrefFor={hrefFor} />
+    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[var(--filter-col)_minmax(0,1fr)] lg:items-start lg:gap-6">
+      <FiltersPanel
+        scope={scope}
+        choices={list.choices}
+        applied={applied}
+        className="hidden lg:flex"
+      />
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <FiltersScreen
+            scope={scope}
+            choices={list.choices}
+            applied={applied}
+            badge={appliedChips(list.filters).length}
+            total={list.total}
+          />
+          <p role="status" className="type-small text-muted" data-testid="category-count">
+            {t("count", { shown: formatNumber(list.total) })}
+          </p>
+        </div>
+        <AppliedChips filters={list.filters} hrefFor={hrefFor} />
 
-      {list.total > 0 ? (
-        <>
-          <ProductGrid
-            products={list.products}
-            page={list.page}
-            whatsappNumber={whatsappNumber}
-            siteUrl={siteUrl}
-            testId="category-products"
-            canAddToDraft={draftButtons}
-          />
-          <ListMore
-            shownText={t("shownOf", {
-              shown: formatNumber(shown),
-              total: formatNumber(list.total),
-            })}
-            moreText={t("loadMore")}
-            moreHref={
-              hasMore
-                ? routes.categoryMore(mainSlug, subSlug, list.page + 1, shown + 1, applied)
-                : null
+        {list.total > 0 ? (
+          <>
+            <ProductGrid
+              wide
+              besideFilters
+              products={list.products}
+              page={list.page}
+              whatsappNumber={whatsappNumber}
+              siteUrl={siteUrl}
+              testId="category-products"
+              canAddToDraft={draftButtons}
+            />
+            <ListMore
+              shownText={t("shownOf", {
+                shown: formatNumber(shown),
+                total: formatNumber(list.total),
+              })}
+              moreText={t("loadMore")}
+              moreHref={
+                hasMore
+                  ? routes.categoryMore(mainSlug, subSlug, list.page + 1, shown + 1, applied)
+                  : null
+              }
+              testId="category"
+            />
+          </>
+        ) : (
+          <EmptyState
+            icon={SearchX}
+            title={filtersText("emptyTitle")}
+            text={filtersText("emptyText")}
+            actions={
+              <>
+                <ButtonLink size="lg" render={<Link href={`${hrefFor(EMPTY_FILTERS)}#filters`} />}>
+                  {filtersText("clearFilters")}
+                </ButtonLink>
+                <ButtonLink variant="whatsapp" size="lg" href={help} target="_blank" rel="noopener">
+                  <WhatsAppIcon />
+                  {t("emptyAsk")}
+                </ButtonLink>
+              </>
             }
-            testId="category"
           />
-        </>
-      ) : (
-        <EmptyState
-          icon={SearchX}
-          title={filtersText("emptyTitle")}
-          text={filtersText("emptyText")}
-          actions={
-            <>
-              <ButtonLink size="lg" render={<Link href={`${hrefFor(EMPTY_FILTERS)}#filters`} />}>
-                {filtersText("clearFilters")}
-              </ButtonLink>
-              <ButtonLink variant="whatsapp" size="lg" href={help} target="_blank" rel="noopener">
-                <WhatsAppIcon />
-                {t("emptyAsk")}
-              </ButtonLink>
-            </>
-          }
-        />
-      )}
-    </>
+        )}
+      </div>
+    </div>
   );
 }

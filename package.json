@@ -24,6 +24,7 @@
     "admin:promote": "tsx --conditions=react-server scripts/admin-promote.ts",
     "admin:mfa-reset": "tsx scripts/admin-mfa-reset.ts",
     "media:sweep": "tsx --conditions=react-server scripts/media-sweep.ts",
+    "media:samples": "tsx --conditions=react-server scripts/media-samples.ts",
     "backup:run": "tsx --conditions=react-server scripts/backup-run.ts",
     "backup:restore-drill": "tsx --conditions=react-server scripts/restore-drill.ts",
     "launch:check": "tsx scripts/launch-check.mts",

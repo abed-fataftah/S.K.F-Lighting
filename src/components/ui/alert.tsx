@@ -10,7 +10,7 @@ function Alert({ className, children, ...props }: React.ComponentProps<"div">) {
       data-slot="alert"
       role="alert"
       className={cn(
-        "flex w-full items-start gap-2.5 rounded-card border border-ink bg-yellow-tint px-3.5 py-3 type-body font-bold text-ink",
+        "flex w-full items-start gap-2.5 rounded-card border border-ink bg-brand-tint px-3.5 py-3 type-body font-bold text-ink",
         className,
       )}
       {...props}

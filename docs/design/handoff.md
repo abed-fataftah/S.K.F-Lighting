@@ -34,11 +34,11 @@ shadcn setup: initialized on Base UI with RTL on, so components use logical clas
 
 ## 3. Approved decisions record
 
-- Look: black and yellow on a warm light page, flat, Almarai, radii 4 / 8 / 10 / 12 / 20, 44px touch targets, no shadows, no dark mode. The owner reviewed the boards and approved them page by page on the canvas (final review of all pages: done).
-- Logo: the owner's own logo (white "SKF", yellow bolt in the K, yellow "lighting"), used on black only. Brand yellow `#FCF42C` measured from the logo file. The vector in the prototype is a trace made from the owner's PNG.
-- Product card: yellow "أضف للسلة" button plus a small 44x44 green WhatsApp icon button (decision of the owner; applies to Home, Category and Search).
+- Look: black and orange on a warm light page, flat, Almarai, radii 4 / 8 / 10 / 12 / 20, 44px touch targets, no shadows, no dark mode. The owner reviewed the boards and approved them page by page on the canvas (final review of all pages: done).
+- Logo: the owner's own logo (white "SKF" with a swoosh, an orange glowing bulb, orange "LIGHTING"), used on black only. Brand orange `#F7931E` (spec 0032; it replaced the yellow of the first logo). The owner's file is `docs/design/brand/skf-logo-source.png`; the site serves `public/brand/skf-logo.webp` made from it.
+- Product card: orange "أضف للسلة" button plus a small 44x44 green WhatsApp icon button (decision of the owner; applies to Home, Category and Search).
 - The owner circle (photo and name) appears only on the Home page.
-- No cheque or "no online payment" text anywhere in the storefront. The yellow info strip (delivery fees) shows on Home only.
+- No cheque or "no online payment" text anywhere in the storefront. The orange info strip (delivery fees) shows on Home only.
 - Free resources only: Almarai (Google Fonts), shadcn/ui, lucide icons (or the hand-drawn inline SVGs on the boards).
 - References that shaped the structure: Nuqtat Al-Id'a (category tiles with subtitles, trust points, floating WhatsApp, phone bottom bar), Al Janoub (WhatsApp "didn't find it?" help), Kandil October (WhatsApp ordering with a prefilled message), Lumens (guest order tracking, filters). Inspiration only; nothing copied.
 - Prototype method: a clickable design canvas (links and in-page controls work; data is sample).
@@ -92,17 +92,17 @@ Navigation:
 
 Defined once here. Page files refer to them by name.
 
-**SiteHeader** (all storefront pages). Not sticky. Black block, side padding 8: row with menu button 44x44 (icon 26, white, start side), logo link (image 52px high, `alt="S.K.F lighting"`, links to `/`), cart button 44x44 (icon 26, white, end side); row padding 8 8 6. Under it, still black: search block padding 4 14 16 holding a white label, radius 12, 52 high, padding-inline-end 6: `type="search"` input (flex 1, 15px, no border, padding 0 16, placeholder "ابحث بالاسم أو الكود") and a yellow 42x42 search button (radius 8, `aria-label="بحث"`). The Home page adds the yellow info strip above it (12/800, padding 8 12, centered). Focus ring on this block is yellow. Cart count badge: not designed (O-26).
+**SiteHeader** (all storefront pages). Not sticky. Black block, side padding 8: row with menu button 44x44 (icon 26, white, start side), logo link (image 52px high, `alt="S.K.F lighting"`, links to `/`), cart button 44x44 (icon 26, white, end side); row padding 8 8 6. Under it, still black: search block padding 4 14 16 holding a white label, radius 12, 52 high, padding-inline-end 6: `type="search"` input (flex 1, 15px, no border, padding 0 16, placeholder "ابحث بالاسم أو الكود") and an orange 42x42 search button (radius 8, `aria-label="بحث"`). The Home page adds the orange info strip above it (12/800, padding 8 12, centered). Focus ring on this block is orange. Cart count badge: not designed (O-26).
 
 **SiteFooter.** Black, padding 24 18 24, text 13 `--skf-on-dark-muted`: logo 64px high at the end side; line `[رقم الهاتف] · [العنوان]` (margin 12 0 14); three links, each 44px high, flex, centered vertically: سياسة الخصوصية, الشروط والأحكام, سياسة الإرجاع. Margin-top 34 from the content.
 
-**BottomBar.** Phone only. White, 1px top border `--skf-border`, padding 6 4 10, five tabs with equal share, each min 56x44: icon 24 over a 12px label. Active tab: ink text, weight 800, a 3px yellow underline under the label. Others: muted text. `nav aria-label="التنقل الرئيسي"`. Fixed to the bottom in the build.
+**BottomBar.** Phone only. White, 1px top border `--skf-border`, padding 6 4 10, five tabs with equal share, each min 56x44: icon 24 over a 12px label. Active tab: ink text, weight 800, a 3px orange underline under the label. Others: muted text. `nav aria-label="التنقل الرئيسي"`. Fixed to the bottom in the build.
 
 **WhatsAppFab.** 52px circle, `--skf-whatsapp`, white 26px glyph, 2px white border, `z-index: var(--z-fab)`, 14px from the physical left edge (`inset-inline-end: 14px` in RTL), 84px above the bottom (above the bottom bar). `aria-label="واتساب"`, opens message W1.
 
 **ProductCard**, **Chip**, **Radio card**, **Stepper**, **Timeline**, **Empty and error card**, **Skeleton**: `design.md` sections 6 and 7.
 
-**AdminSide** (all dashboard pages). Black, padding 20 0 24: logo 56px high with the caption "لوحة التحكم" (12px `--skf-on-dark-muted`) in a block padded 0 20 18; `nav` of eight links (48 high, padding 0 20, icon 22, text 14, 12px gap); at the bottom the outline button "عرض المتجر" (44 high, 1px `--skf-on-dark-muted` border, white text, radius 8) inside padding 18 20 0. Active link: `--skf-sidebar-active` fill, white 800, 4px yellow bar on the inline-start edge, `aria-current="page"`.
+**AdminSide** (all dashboard pages). Black, padding 20 0 24: logo 56px high with the caption "لوحة التحكم" (12px `--skf-on-dark-muted`) in a block padded 0 20 18; `nav` of eight links (48 high, padding 0 20, icon 22, text 14, 12px gap); at the bottom the outline button "عرض المتجر" (44 high, 1px `--skf-on-dark-muted` border, white text, radius 8) inside padding 18 20 0. Active link: `--skf-sidebar-active` fill, white 800, 4px orange bar on the inline-start edge, `aria-current="page"`.
 
 **Dashboard page header.** Row, wrap, space between, gap 12, margin-bottom 20: h1 (26/800) at the start and action buttons (gap 8) at the end.
 
@@ -173,10 +173,10 @@ Samples on the boards that are NOT real: order numbers like `26-00123`, status n
 
 | ID | Item | Interim rule |
 |---|---|---|
-| O-1 | Desktop and tablet layouts of every storefront page are not designed | One centered column, max 480px |
+| O-1 | Desktop and tablet layouts of every storefront page are not designed | Closed by spec 0029 (`docs/specs/0029-storefront-desktop-layout/index.md`): tablet and desktop layouts specified in words |
 | O-2 | Digit style (Arabic-Indic or Western), price and date formats, Arabic search matching | Western digits, `₪20`, comma thousands, dates as placeholder; search: ignore diacritics and treat أ إ آ ا as one letter (my suggestion) |
 | O-3 | Final order status names and their order | Use: جديد، قيد التجهيز، جاهز، تم التسليم، ملغي |
-| O-4 | Official logo files | Use the traced SVG on black only |
+| O-4 | Official logo files | Closed 2026-11-19: the owner sent the new logo (`docs/design/brand/skf-logo-source.png`) |
 | O-5 | Real photos: categories, products, hero, owner | Drawings stay as placeholders |
 | O-6 | Real copy: phone, WhatsApp number, address, email, policy texts, owner name, SEO texts | Show the bracket placeholders |
 | O-7 | Icon set and a licensed WhatsApp glyph | lucide-react; WhatsApp glyph from a licensed source |
@@ -217,7 +217,7 @@ Samples on the boards that are NOT real: order numbers like `26-00123`, status n
 Recorded by spec 0003 (the build follows these, not the boards):
 
 9. The header search button is 44x44, not 42x42 (the 44px rule wins).
-10. BottomBar and the WhatsApp float show at every width inside the 480px column (interim for O-1; section 6 said phone only).
+10. BottomBar shows below 1024px and the WhatsApp float at every width (spec 0029 closed O-1; section 6 said phone only).
 11. The footer hides a missing phone or address instead of showing a bracket placeholder (overrides the O-6 interim rule for customer facing text).
 12. The product image placeholder icon uses `--skf-on-dark-muted` on the product background (the muted grey fails contrast there).
 13. AdminSide is built and shown in the design system gallery inside a dashboard frame (the flex layout from `design.md` section 4). The `/admin` layout itself, with its guard, is built by the first feature that ships a dashboard page.
@@ -239,12 +239,12 @@ Run after building each page, and again for the whole site.
 3. Only tokens from `tokens.css` are used: search the code for `#` followed by six characters outside `tokens.css`; there must be none.
 4. Every tappable element measures at least 44 by 44 px (check with the browser inspector on the cart, checkout, footer, bottom bar and filter chips).
 5. Every pair of text and background colors is in the contrast table in `tokens.css`.
-6. Tab through each page: focus ring visible everywhere, yellow on black surfaces; order follows reading order; the first stop is the skip link.
+6. Tab through each page: focus ring visible everywhere, orange on black surfaces; order follows reading order; the first stop is the skip link.
 7. Every input has a label; every icon-only button has an `aria-label`; the current sidebar item has `aria-current="page"`.
 8. Each page has one `h1` and the landmarks in `design.md` section 9.
 9. States exist and look as described: loading, empty, error, out of stock (Category, Product, Cart, Orders).
 10. The storefront contains none of these words: "شيك", "بشيك", "دفع إلكتروني", "تعديل الأسعار". The owner circle appears only on Home.
-11. Product card: yellow add button plus 44x44 green WhatsApp icon button on Home, Category and Search; out-of-stock card has the disabled button and the label.
+11. Product card: orange add button plus 44x44 green WhatsApp icon button on Home, Category and Search; out-of-stock card has the disabled button and the label.
 12. Checkout: choosing delivery shows zone and address; the fee row shows `₪20` or `₪70`; pickup shows "بدون رسوم".
 13. Order page: the timeline connector lines never cross a circle; the current step has the tag "الحالة الحالية".
 14. Quick order: the 31st line cannot be added; a line with no quantity blocks sending and shows the inline error.

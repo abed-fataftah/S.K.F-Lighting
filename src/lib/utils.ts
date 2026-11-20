@@ -21,8 +21,8 @@ export const typeRoles = [
 
 const colourNames = [
   "ink",
-  "yellow",
-  "yellow-tint",
+  "brand",
+  "brand-tint",
   "white",
   "page",
   "muted",

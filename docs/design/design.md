@@ -6,8 +6,8 @@ Stack: Next.js (App Router), Tailwind v4, shadcn/ui with `rtl: true`. Arabic onl
 
 ## 1. Principles
 
-1. Black and yellow on a warm light page. Black (`--skf-ink`) for header, hero, footer and the dashboard sidebar. Light page (`--skf-page`) for content. White cards on the page.
-2. Yellow (`--skf-yellow`) is a FILL with ink text, or text on black. Never yellow text on a light surface.
+1. Black and brand orange on a warm light page. Black (`--skf-ink`) for header, footer and the dashboard sidebar; the Home hero is white (spec 0032). Light page (`--skf-page`) for content. White cards on the page.
+2. Brand orange (`--skf-brand`) is only a fill under ink text, or text or an outline on black. Never orange text on white or on the page colour.
 3. Green (`--skf-whatsapp`) is used for WhatsApp actions only. Nothing else is green except the "in stock" and "paid" text.
 4. Flat. No shadows, no gradients in the interface. Borders (1px) separate surfaces.
 5. Every tappable thing is at least 44px high and 44px wide. Every control has a visible label or an `aria-label`.
@@ -18,9 +18,9 @@ Stack: Next.js (App Router), Tailwind v4, shadcn/ui with `rtl: true`. Arabic onl
 
 | Token | Value | Use | Contrast notes |
 |---|---|---|---|
-| `--skf-yellow` | `#FCF42C` | Primary button fill, selected chip fill, search button, info highlights, focus ring on dark | Ink on it 16.29. As text on white 1.2: forbidden |
-| `--skf-yellow-tint` | `#FFF6D0` | Selected radio card, notice banner | Ink on it 17.40 |
-| `--skf-ink` | `#111111` | Text, header, hero, footer, sidebar, 1px border of yellow and outline buttons, focus ring | White on it 18.88 |
+| `--skf-brand` | `#F7931E` | Primary button fill, selected chip fill, search button, info highlights, hero marker, focus ring on dark | Ink on it 8.22. As text on white 2.30, on page 2.10: forbidden |
+| `--skf-brand-tint` | `#FEEFDC` | Selected radio card, notice banner | Ink on it 16.72, muted 6.60, control border 3.07 |
+| `--skf-ink` | `#111111` | Text, header, hero, footer, sidebar, 1px border of orange and outline buttons, focus ring | White on it 18.88 |
 | `--skf-white` | `#FFFFFF` | Cards, inputs, bottom bar, table body | |
 | `--skf-page` | `#F5F5F3` | Page background | Ink on it 17.30 |
 | `--skf-muted` | `#555555` | Secondary text | On white 7.46, on page 6.83 |
@@ -53,7 +53,7 @@ Family: Almarai only (`--skf-font`). Weights 400, 700, 800. Load with `next/font
 | Display S | `--fs-display-s` | 26 / 800 | Dashboard page title |
 | Price | `--fs-price` | 28 / 800 | Product price, order number on confirmation |
 | KPI | `--fs-kpi` | 30 / 800 / 1.3 | Dashboard numbers |
-| Hero | `--fs-hero` | 32 / 800 / 1.25 | Home hero headline (white line plus yellow line) |
+| Hero | `--fs-hero` | 32 / 800 / 1.25 | Home hero headline (ink line plus an ink line on an orange marker) |
 | 404 | `--fs-404` | 64 / 800 / 1.1 | Not-found code |
 
 Policy text: 14 / 400 / `--lh-prose` 1.8.
@@ -65,10 +65,11 @@ Numerals: the boards use Western digits (0 to 9). The decision (Arabic-Indic or 
 Scale (px): 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 34, 48 (`--sp-N`).
 
 Storefront:
-- One column, `max-width: 480px` (`--page-max`), centered, page background on both sides. Side padding 16px (`--page-pad`).
+- Phone (below 768px): one column, `max-width: 480px` (`--page-max`), centered, page background on both sides. Side padding 16px (`--page-pad`).
 - Vertical rhythm: cards separated by 12px (`--sp-12`), product grid gap 10px, chip row gap 8px, form field gap 12px, section gap 24px to 34px.
-- Product grid: 2 columns of `minmax(0,1fr)`, gap 10px.
-- Desktop and tablet layouts: NOT designed (O-1). Interim: the same column, centered.
+- Product grid: 2 columns of `minmax(0,1fr)`, gap 10px; 3 at tablet, 4 at desktop (3 beside the filter column).
+- Tablet (`md`, 768px) and desktop (`lg`, 1024px): specified in spec 0029 ([storefront desktop and tablet layout](../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Each page sits in a centered box of its width (`--content-max`, `--form-max`, or `--prose-max`), side padding 24px at tablet and 32px at desktop; desktop has the one row header with the category bar and no bottom bar. These layouts are written in words, not drawn on the board.
+- Small phones from 320px, phones held sideways (390px tall), and monitors wider than 1920px get no layout of their own (scope feature 39): below 768 the phone column shrinks with the screen, above 1280 the content box stays centred with the shell backgrounds full width, and the `small-phone`, `landscape`, and `monitor` Playwright projects sweep every storefront page there.
 
 Dashboard (designed at 1280):
 - Flex row, wrap. Sidebar: `flex: 1 1 220px; max-width: 260px`, black. Content: `flex: 999 1 560px; min-width: 0`, padding `24px 28px 48px`. The sidebar wraps above the content below 780px with no media query. The sidebar is not sticky and not 100vh.
@@ -80,9 +81,9 @@ Dashboard (designed at 1280):
 ## 5. Shape
 
 - Radii: 4 (`--skf-radius-chip`), 8 (`--skf-radius-btn`), 10 (`--skf-radius-tile`), 12 (`--skf-radius-card`), 20 (`--skf-radius-hero`, hero only), full (circles).
-- Borders: 1px solid `--skf-border` on cards; 1px solid `--skf-control-border` on controls; 1px solid ink on yellow and outline buttons; 2px solid ink on a selected radio card and 2px solid yellow on a selected gallery thumbnail.
+- Borders: 1px solid `--skf-border` on cards; 1px solid `--skf-control-border` on controls; 1px solid ink on orange and outline buttons; 2px solid ink on a selected radio card and 2px solid orange on a selected gallery thumbnail.
 - Shadows: none.
-- Focus ring: 3px solid ink, offset 2px, on every focusable element (`:focus-visible`). On black surfaces (header, footer, sidebar) the ring is yellow. Never remove it.
+- Focus ring: 3px solid ink, offset 2px, on every focusable element (`:focus-visible`). On black surfaces (header, footer, sidebar) the ring is orange. Never remove it.
 
 ## 6. Components
 
@@ -90,41 +91,41 @@ shadcn/ui components are the base. Style them with the tokens above. "Custom" me
 
 | Component | Base | Variants and sizes | States |
 |---|---|---|---|
-| Button, primary | shadcn `Button` | Large: 52px high, radius 12, 16/800, full width. Small: 44px high, radius 8, 14/800, padding 0 16px. Fill yellow, 1px ink border, ink text | default; hover: brightness 0.95; pressed: brightness 0.9; focus: ring; disabled: fill `--skf-fill-muted`, text muted, border same as fill, `cursor: not-allowed`; loading: label replaced by the loading label in the page file, button disabled. (Hover, pressed and loading are build decisions, not drawn on boards.) |
+| Button, primary | shadcn `Button` | Large: 52px high, radius 12, 16/800, full width. Small: 44px high, radius 8, 14/800, padding 0 16px. Fill orange, 1px ink border, ink text | default; hover: brightness 0.95; pressed: brightness 0.9; focus: ring; disabled: fill `--skf-fill-muted`, text muted, border same as fill, `cursor: not-allowed`; loading: label replaced by the loading label in the page file, button disabled. (Hover, pressed and loading are build decisions, not drawn on boards.) |
 | Button, WhatsApp | `Button` | Large 52px radius 12 15/800 full width; small 44px radius 8 14/700; icon-only 44x44 radius 8. Fill `--skf-whatsapp`, white text, 22px glyph | same states; icon-only needs `aria-label` naming the product or action |
 | Button, outline | `Button` variant outline | Large 52px radius 12 15/700; small 44px radius 8 14/700. White fill, 1px ink border, ink text | same states |
 | Link button | `Button` variant link | 44px min height, ink text, underlined, 13 or 14px | default, focus |
-| Icon button | `Button` size icon | 44x44, no border. On black: white glyph | default, focus (yellow ring on black), pressed |
+| Icon button | `Button` size icon | 44x44, no border. On black: white glyph | default, focus (orange ring on black), pressed |
 | Input, Textarea | shadcn `Input`, `Textarea` | Height 48 (textarea 72 to 110), radius 12, 1px `--skf-control-border`, white fill, 15px, padding 0 14px (textarea 12px 14px). Label above: 13px muted, 4px gap | default; focus: ring; disabled: fill-muted; error: border `--skf-danger`, `aria-invalid="true"`, message below (13/700, danger, icon, `role="alert"`, linked by `aria-describedby`) |
 | Select | shadcn `Select` (native `<select>` acceptable) | Same box as Input, padding 0 10px | same |
 | Checkbox, radio | shadcn `Checkbox`, `RadioGroup` | 22px control, accent ink, row min height 44 | default, checked, focus, disabled |
-| Radio card | `RadioGroup` item, custom wrapper | Min height 56, radius 12, padding 8 14. Unselected: white, 1px control border. Selected: fill `--skf-yellow-tint`, 2px ink border | default, selected, focus |
-| Chip (toggle) | `ToggleGroup` item | 44 high, radius 8, padding 0 16, 14px. Unselected: white, 1px control border, weight 400. Selected: yellow fill, 1px ink border, weight 800, check icon 16px before the label. `aria-pressed` | default, selected, focus, disabled (fill-muted, struck through, text "غير متوفر") |
+| Radio card | `RadioGroup` item, custom wrapper | Min height 56, radius 12, padding 8 14. Unselected: white, 1px control border. Selected: fill `--skf-brand-tint`, 2px ink border | default, selected, focus |
+| Chip (toggle) | `ToggleGroup` item | 44 high, radius 8, padding 0 16, 14px. Unselected: white, 1px control border, weight 400. Selected: orange fill, 1px ink border, weight 800, check icon 16px before the label. `aria-pressed` | default, selected, focus, disabled (fill-muted, struck through, text "غير متوفر") |
 | Removable chip | custom | 44 high, radius 8, 13px, white, 1px control border, label plus x icon 16px, `aria-label="إزالة <label>"` | default, focus |
-| Status badge | shadcn `Badge` | Radius 4, padding 0 8, 12/800. new: yellow fill, 1px ink border. proc: white, 1px ink border. ok: white, 1px green border, green text. off: fill-muted, muted text | static |
+| Status badge | shadcn `Badge` | Radius 4, padding 0 8, 12/800. new: orange fill, 1px ink border. proc: white, 1px ink border. ok: white, 1px green border, green text. off: fill-muted, muted text | static |
 | Spec chip | `Badge` outline | Radius 4, padding 0 6, 12px, 1px `--skf-chip-border` | static |
 | Card | shadcn `Card` | White, 1px `--skf-border`, radius 12, padding 14 | static |
 | Product card | custom (Card) | See section 7 "Product card" | default, out of stock, added, loading |
 | Quantity stepper | custom | Inline, 1px ink border, radius 8, white. Buttons 44x44, glyphs − and + at 22px; value 16/800, min width 36 (cart) or 48 (product). Minimum 1, maximum 99. Value in `aria-live="polite"` | default, focus, minus disabled at 1 |
-| Tabs (sign in) | shadcn `Tabs` or two `aria-pressed` buttons | Two buttons, equal width, 48 high, radius 8, 15px. Selected: yellow fill, 1px ink border, 800. Unselected: white, 1px control border | default, selected, focus |
+| Tabs (sign in) | shadcn `Tabs` or two `aria-pressed` buttons | Two buttons, equal width, 48 high, radius 8, 15px. Selected: orange fill, 1px ink border, 800. Unselected: white, 1px control border | default, selected, focus |
 | Breadcrumb | shadcn `Breadcrumb` | 13px muted, links min height 44, current page 700 ink, separator = chevron pointing to the start side (flip in RTL) | default, focus |
 | Notice banner | shadcn `Alert` | Fill tint, 1px ink border, radius 12, padding 12 14, 700, warning icon 22px, `role="alert"` | static |
 | Skeleton | shadcn `Skeleton` | Fill `--skf-fill-muted`, radius 4 (blocks), 8 (buttons), 12 (large areas); pulse `--dur-skeleton` | animated; static when reduced motion |
 | Empty and error card | custom (Card) | White, 1px border, radius 12, padding 28 20 (page) or 32 20, centered. Disc 72 (80 for cart) fill-muted with 34px muted icon, title 18/800, text 14 muted, buttons stacked 10px apart | static; error card has `role="alert"` |
 | Table (dashboard) | shadcn `Table` | White box, 1px border, radius 12, `overflow-x: auto`. Header row fill page, 13/700 muted, padding 10 12, `scope="col"`. Cells padding 10 12, row line 1px `--skf-border` | row focus via links |
-| Gallery | custom | Main area 300 high, radius 12, dark bg; arrows 44 round white 1px ink; counter 12px white on ink; thumbnails 56x56 radius 8 | selected thumb: 2px yellow border |
-| Timeline | custom `ol` | Circle 28; done: ink fill, white check; current: yellow fill, 2px ink border plus "الحالة الحالية" tag; next: white, 2px `--skf-control-border`. Row min height 56, `align-items: flex-start`. Connector 2px wide, starts 4px below the circle and ends 4px above the next (ink when the step is done, `--skf-border` otherwise). Connector must never cross a circle | static |
+| Gallery | custom | Main area 300 high, radius 12, dark bg; arrows 44 round white 1px ink; counter 12px white on ink; thumbnails 56x56 radius 8 | selected thumb: 2px orange border |
+| Timeline | custom `ol` | Circle 28; done: ink fill, white check; current: orange fill, 2px ink border plus "الحالة الحالية" tag; next: white, 2px `--skf-control-border`. Row min height 56, `align-items: flex-start`. Connector 2px wide, starts 4px below the circle and ends 4px above the next (ink when the step is done, `--skf-border` otherwise). Connector must never cross a circle | static |
 | Category circle carousel | custom (Embla not required) | Home only. See `pages/home.md` | auto, paused on touch, off for reduced motion |
-| Info strip | custom | Home only. Yellow fill, 12/800 ink, centered, padding 8 12 | static |
+| Info strip | custom | Home only. Orange fill, 12/800 ink, centered, padding 8 12 | static |
 | Header, footer, bottom bar, WhatsApp float | custom | Section 7 and `handoff.md` section 6 | see there |
-| Dashboard sidebar | custom `nav` | Black, links 48 high, padding 0 20, 14px, icon 22. Active: fill `--skf-sidebar-active`, white 800, 4px yellow bar on the inline-start edge. Others `--skf-on-dark-muted` | default, active (`aria-current="page"`), focus (yellow ring) |
+| Dashboard sidebar | custom `nav` | Black, links 48 high, padding 0 20, 14px, icon 22. Active: fill `--skf-sidebar-active`, white 800, 4px orange bar on the inline-start edge. Others `--skf-on-dark-muted` | default, active (`aria-current="page"`), focus (orange ring) |
 | Drop zone | custom | 2px dashed `--skf-control-border`, radius 12, padding 28 16, white, centered | default, drag-over: fill tint, error |
 
 ## 7. Patterns
 
 **Forms and validation.** Label above each field. Required fields are validated on submit, not on every key. On error: field border danger, message under the field, focus moves to the first invalid field, a summary is not needed. Messages say what to do ("أدخل الكمية لهذا السطر."). Phone fields: `type="tel"`, `autocomplete="tel"`. Email: `type="email"`. Numbers: `inputmode="numeric"`.
 
-**Product card.** White card, 1px border, radius 12. Image area 128 high on a dark product background; name link 14/800 (line height 1.35); code `الكود: [الكود]` 12px muted; spec chips (max three); price 16/800 with stock text 12px (green "متوفر" or muted "غير متوفر"); button row at the bottom (`margin-top: auto`): yellow small button "أضف للسلة" (flex 1) plus a 44x44 green WhatsApp icon button (6px gap). Out of stock: image at 45% opacity, black label "غير متوفر" at the inline-start top corner of the image, disabled button "غير متوفر"; the WhatsApp button stays and asks about availability. After "add": button turns ink with white text "تمت الإضافة" for 2 seconds (`aria-live="polite"`), then returns.
+**Product card.** White card, 1px border, radius 12. Image area 128 high on a dark product background; name link 14/800 (line height 1.35); code `الكود: [الكود]` 12px muted; spec chips (max three); price 16/800 with stock text 12px (green "متوفر" or muted "غير متوفر"); button row at the bottom (`margin-top: auto`): orange small button "أضف للسلة" (flex 1) plus a 44x44 green WhatsApp icon button (6px gap). Out of stock: image at 45% opacity, black label "غير متوفر" at the inline-start top corner of the image, disabled button "غير متوفر"; the WhatsApp button stays and asks about availability. After "add": button turns ink with white text "تمت الإضافة" for 2 seconds (`aria-live="polite"`), then returns.
 
 **Lists and grids.** Product lists: 2-column grid; "تم عرض N من M منتج" then a "عرض المزيد" outline button (48 high). No numbered pagination.
 
@@ -158,7 +159,7 @@ shadcn/ui components are the base. Style them with the tokens above. "Custom" me
 ## 10. Do and do not
 
 1. Do use tokens. Do not write raw hex values or px values that are not in `tokens.css`.
-2. Do use yellow only as a fill with ink text (or as text on black). Do not put yellow text on white.
+2. Do use orange only as a fill under ink text (or as text or an outline on black). Do not put orange text on white or on the page colour.
 3. Do use green only for WhatsApp, "متوفر" and "مدفوع". Do not use it for success banners or links.
 4. Do keep every tap target at 44px or more. Do not shrink a control to fit a row; wrap the row.
 5. Do keep every interactive control edge at `--skf-control-border`. Do not use `--skf-border` on inputs or chips.

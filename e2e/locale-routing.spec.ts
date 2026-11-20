@@ -14,9 +14,7 @@ test.describe("Arabic storefront", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     // Home's one h1 is the hero headline, or the shop's name (hidden) above the banners (spec 0011).
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-    await expect(
-      page.getByRole("heading", { level: 2, name: "لماذا تشتري من S.K.F" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "لماذا S.K.F" })).toBeVisible();
     await expect(page).toHaveTitle("S.K.F للإنارة في الخليل | ثريات وأباجورات ومواد كهربائية");
   });
 
@@ -85,6 +83,17 @@ test.describe("routes outside the storefront", () => {
     await expect(page.getByText("الصفحة غير موجودة")).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   });
+
+  // Spec 0013 AC-2, spec 0029 AC-17: a broken `%` gets the designed 404, never Next's bare 400.
+  // The status comes from the page calling notFound(), so it is checked here, not in the proxy test.
+  for (const path of ["/c/%E0%A4%A", "/zz%E0%A4%A", "/broken-address"]) {
+    test(`shows the not found page with a 404 at ${path}`, async ({ page }) => {
+      const response = await page.goto(path);
+
+      expect(response?.status()).toBe(404);
+      await expect(page.getByText("الصفحة غير موجودة")).toBeVisible();
+    });
+  }
 
   test("serves /favicon.ico directly as an image", async ({ request }) => {
     const response = await request.get("/favicon.ico", { maxRedirects: 0 });

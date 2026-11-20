@@ -22,6 +22,7 @@ import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { getAdminAccess } from "@/server/auth/admin";
 import { getClaims } from "@/server/auth/session";
+import { PageFrame } from "@/components/page-frame";
 
 // A broken `%` in the segment counts as a number the lookup does not accept (spec 0015 AC-7).
 function decodeSegment(raw: string): string | null {
@@ -86,9 +87,15 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
       ? t("pickup")
       : t("delivery", { zone: order.deliveryZoneName ?? "" });
 
+  // From lg the products and payment sit at the start, the timeline and buttons at the end (spec
+  // 0029 AC-15). Source order stays the phone order; only the timeline, which holds nothing
+  // focusable, moves.
   return (
-    <div className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8">
-      <header className="flex flex-col gap-1.5">
+    <PageFrame
+      width="wide"
+      className="flex flex-col gap-3 px-(--page-pad) pt-5 pb-8 md:max-w-(--prose-max) lg:grid lg:max-w-(--content-max) lg:grid-cols-[minmax(0,1fr)_var(--summary-col)] lg:grid-rows-[auto_auto_1fr_auto] lg:items-start lg:gap-x-6 lg:[grid-template-areas:'header_header'_'products_status'_'products_actions'_'payment_actions']"
+    >
+      <header className="flex flex-col gap-1.5 lg:[grid-area:header]">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="type-title-l" data-testid="order-heading">
             {t.rich("heading", {
@@ -111,59 +118,67 @@ export default async function OrderPage({ params }: PageProps<"/[locale]/orders/
         </p>
       </header>
 
-      <OrderTimeline
-        timeline={timeline}
-        fulfilment={order.fulfilment}
-        cancelled={
-          cancelledBy && order.cancelledAt ? { line: cancelledBy, at: order.cancelledAt } : null
-        }
-      />
-
-      <OrderSummary
-        lines={order.lines}
-        fulfilment={order.fulfilment}
-        deliveryZoneName={order.deliveryZoneName}
-        // The address and notes stay off this page (AC-10, AC-13): the zone line alone.
-        city={null}
-        address={null}
-        pickupAddress={order.pickupAddress}
-        notes={null}
-        subtotal={order.subtotal}
-        deliveryFee={order.deliveryFee}
-        total={order.total}
-        catalogSubtotal={order.catalogSubtotal}
-        priceDiscount={order.priceDiscount}
-      />
-
-      <PaymentCard
-        amountPaid={order.amountPaid}
-        total={order.total}
-        cancelled={timeline.kind === "cancelled"}
-      />
-
-      <ButtonLink
-        variant="whatsapp"
-        size="lg"
-        href={byYou ? notifyUrl : message("order")}
-        target="_blank"
-        rel="noopener"
-        data-testid="order-contact"
-      >
-        <WhatsAppIcon />
-        {t(byYou ? "tellCancelled" : "contact")}
-      </ButtonLink>
-
-      {cancelState === "allowed" ? (
-        <CustomerCancel
-          orderId={order.id}
-          number={order.orderNumber}
-          status={order.status}
-          notifyUrl={notifyUrl}
+      <div className="lg:[grid-area:status]">
+        <OrderTimeline
+          timeline={timeline}
+          fulfilment={order.fulfilment}
+          cancelled={
+            cancelledBy && order.cancelledAt ? { line: cancelledBy, at: order.cancelledAt } : null
+          }
         />
-      ) : cancelState === "shipped" || cancelState === "paid" ? (
-        <CancelBlocked reason={cancelState} requestUrl={message("cancelRequest")} />
-      ) : null}
+      </div>
+
+      <div className="lg:[grid-area:products]">
+        <OrderSummary
+          lines={order.lines}
+          fulfilment={order.fulfilment}
+          deliveryZoneName={order.deliveryZoneName}
+          // The address and notes stay off this page (AC-10, AC-13): the zone line alone.
+          city={null}
+          address={null}
+          pickupAddress={order.pickupAddress}
+          notes={null}
+          subtotal={order.subtotal}
+          deliveryFee={order.deliveryFee}
+          total={order.total}
+          catalogSubtotal={order.catalogSubtotal}
+          priceDiscount={order.priceDiscount}
+        />
+      </div>
+
+      <div className="lg:[grid-area:payment]">
+        <PaymentCard
+          amountPaid={order.amountPaid}
+          total={order.total}
+          cancelled={timeline.kind === "cancelled"}
+        />
+      </div>
+
+      <div className="flex flex-col gap-3 lg:[grid-area:actions]" data-testid="order-actions">
+        <ButtonLink
+          variant="whatsapp"
+          size="lg"
+          href={byYou ? notifyUrl : message("order")}
+          target="_blank"
+          rel="noopener"
+          data-testid="order-contact"
+        >
+          <WhatsAppIcon />
+          {t(byYou ? "tellCancelled" : "contact")}
+        </ButtonLink>
+
+        {cancelState === "allowed" ? (
+          <CustomerCancel
+            orderId={order.id}
+            number={order.orderNumber}
+            status={order.status}
+            notifyUrl={notifyUrl}
+          />
+        ) : cancelState === "shipped" || cancelState === "paid" ? (
+          <CancelBlocked reason={cancelState} requestUrl={message("cancelRequest")} />
+        ) : null}
+      </div>
       <RefreshOnRestore />
-    </div>
+    </PageFrame>
   );
 }

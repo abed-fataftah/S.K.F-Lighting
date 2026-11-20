@@ -66,7 +66,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Desktop (1280) (designed):
-Header: h1 "طلب <number>" with the status badge; actions: green small "مراسلة العميل", outline small "العودة للطلبات". Two columns. Left (flex 2): h2 "المنتجات" and a lines table (المنتج with code, الخيار, الكمية, سعر الوحدة (₪) as an editable number field 120 wide and 40 high, المجموع); note 13 muted; totals card (المجموع الفرعي, التوصيل, الإجمالي 18/800); payments card (list of recorded payments, "المتبقي", then the form "تسجيل دفعة": المبلغ (₪), الطريقة select نقداً or شيك, رقم الشيك, التاريخ, yellow small "تسجيل الدفعة"). Right (flex 1): card "حالة الطلب" (select + yellow small button "حفظ الحالة", full width); card "العميل" (name, phone, role badge, delivery info, notes).
+Header: h1 "طلب <number>" with the status badge; actions: green small "مراسلة العميل", outline small "العودة للطلبات". Two columns. Left (flex 2): h2 "المنتجات" and a lines table (المنتج with code, الخيار, الكمية, سعر الوحدة (₪) as an editable number field 120 wide and 40 high, المجموع); note 13 muted; totals card (المجموع الفرعي, التوصيل, الإجمالي 18/800); payments card (list of recorded payments, "المتبقي", then the form "تسجيل دفعة": المبلغ (₪), الطريقة select نقداً or شيك, رقم الشيك, التاريخ, orange small "تسجيل الدفعة"). Right (flex 1): card "حالة الطلب" (select + orange small button "حفظ الحالة", full width); card "العميل" (name, phone, role badge, delivery info, notes).
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 

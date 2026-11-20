@@ -3,7 +3,7 @@ import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-// The help card under a product list (pages/category.md, item 9): a yellow WhatsApp tile, the
+// The help card under a product list (pages/category.md, item 9): an orange WhatsApp tile, the
 // question, a line, and the green button with W2.
 export function HelpCard({ href }: { readonly href: string }) {
   const t = useTranslations("Categories");
@@ -11,7 +11,7 @@ export function HelpCard({ href }: { readonly href: string }) {
     <Card className="mt-4 flex-row items-start gap-3">
       <span
         aria-hidden
-        className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-yellow text-ink"
+        className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand text-ink"
       >
         <WhatsAppIcon className="size-5.5" />
       </span>

@@ -62,7 +62,10 @@ export function ProductGallery({
     return (
       <div className="relative">
         <ImagePlaceholder
-          className={cn("h-(--h-gallery) rounded-card", !inStock && "opacity-45")}
+          className={cn(
+            "h-(--h-gallery) rounded-card lg:h-(--gallery-h-lg)",
+            !inStock && "opacity-45",
+          )}
         />
         {label}
       </div>
@@ -75,7 +78,7 @@ export function ProductGallery({
         <div
           ref={strip}
           className={cn(
-            "flex h-(--h-gallery) snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-card bg-product-1",
+            "flex h-(--h-gallery) snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-card bg-product-1 lg:h-(--gallery-h-lg)",
             !inStock && "opacity-45",
           )}
         >
@@ -101,7 +104,8 @@ export function ProductGallery({
                     src={item.key}
                     alt={item.alt}
                     fill
-                    sizes="(min-width: 480px) 448px, 100vw"
+                    // Its width at each breakpoint (spec 0029 AC-20).
+                    sizes="(min-width: 1024px) 680px, (min-width: 768px) 672px, (min-width: 480px) 448px, 100vw"
                     className="object-contain"
                     {...(index === 0 ? { loading: "eager", fetchPriority: "high" } : {})}
                   />
@@ -171,7 +175,7 @@ export function ProductGallery({
                 onClick={() => goTo(index)}
                 className={cn(
                   "relative size-14 shrink-0 cursor-pointer overflow-hidden rounded-btn bg-product-1",
-                  index === current ? "border-2 border-yellow" : "border border-control-border",
+                  index === current ? "border-2 border-brand" : "border border-control-border",
                 )}
               >
                 {thumb ? (

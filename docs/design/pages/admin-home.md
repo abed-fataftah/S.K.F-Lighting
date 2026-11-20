@@ -51,7 +51,7 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 
 ## Layout
 Desktop (1280) (designed):
-Inside the content column: page header (h1 "الرئيسية" 26/800, small outline button "عرض المتجر"); highlight bar (tint fill, 1px ink border, radius 12, padding 14 16; text 16/800 "لديك [N] طلبات جديدة بانتظار المراجعة"; yellow small button "عرض الطلبات الجديدة"); KPI grid (four cards: "طلبات جديدة", "قيد التجهيز", "مبيعات هذا الشهر", "منتجات غير متوفرة"; label 13 muted, number 30/800, note 12 muted); h2 "أحدث الطلبات" 18/800 and an orders table (4 rows); h2 "إجراءات سريعة" and four buttons.
+Inside the content column: page header (h1 "الرئيسية" 26/800, small outline button "عرض المتجر"); highlight bar (tint fill, 1px ink border, radius 12, padding 14 16; text 16/800 "لديك [N] طلبات جديدة بانتظار المراجعة"; orange small button "عرض الطلبات الجديدة"); KPI grid (four cards: "طلبات جديدة", "قيد التجهيز", "مبيعات هذا الشهر", "منتجات غير متوفرة"; label 13 muted, number 30/800, note 12 muted); h2 "أحدث الطلبات" 18/800 and an orders table (4 rows); h2 "إجراءات سريعة" and four buttons.
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 
@@ -62,7 +62,7 @@ The dashboard sidebar (AdminSide, active item: الرئيسية) is shared and d
 |---|---|---|---|
 | KPI card | Card |  | static |
 | Orders table | Table |  | row link opens the order |
-| Quick actions | Button | yellow small / outline small | "+ إضافة منتج" opens the product editor; the others open import, homepage, settings |
+| Quick actions | Button | orange small / outline small | "+ إضافة منتج" opens the product editor; the others open import, homepage, settings |
 
 ## Data
 Counts and sums from orders (month in Asia/Jerusalem). The highlight bar is hidden when there are no new orders. KPI values are `[N]` and `₪ [المبلغ]` placeholders on the board.

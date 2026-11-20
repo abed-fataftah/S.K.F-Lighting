@@ -93,7 +93,7 @@ test("the tabs move between the pages, and another slug is a 404", async ({ page
   expect(response?.status()).toBe(404);
 });
 
-test("the footer and the menu reach all three pages", async ({ page }) => {
+test("the footer and the menu reach all three pages", async ({ page }, testInfo) => {
   for (const policy of POLICIES) {
     await page.goto("/");
     await page
@@ -104,6 +104,8 @@ test("the footer and the menu reach all three pages", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
 
+  // No menu button from lg (spec 0029 AC-4); the footer is the way there.
+  if (testInfo.project.name === "desktop") return;
   await page.goto("/");
   await page.getByRole("button", { name: "القائمة" }).click();
   await page.getByRole("dialog").getByRole("link", { name: "الشروط والأحكام" }).click();
