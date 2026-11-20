@@ -72,6 +72,7 @@ test.describe("storefront in an ar-PS browser on America/New_York time", () => {
     const slow = expect.configure({ timeout: 15_000 });
     await page.goto("/");
     await page.getByTestId("home-products").getByRole("link").first().click();
+    await slow(page).toHaveURL(/\/p\//);
     await slow(page.getByRole("heading", { level: 1 })).toBeVisible();
     await slow(page.locator("main bdi[dir=ltr]", { hasText: /^[A-Z0-9][A-Z0-9-]*$/ })).toHaveCount(
       1,

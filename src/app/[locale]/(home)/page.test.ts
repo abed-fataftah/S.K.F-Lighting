@@ -46,7 +46,7 @@ type Props = {
   first?: unknown;
   canAddToDraft?: boolean;
   products?: unknown;
-  zoneLine?: string | null;
+  fees?: unknown;
   address?: string | null;
 };
 type Element = ReactElement<Props>;
@@ -177,7 +177,7 @@ describe("home page", () => {
     expect(find(await HomePage(), HeroCard)?.props.jumpTo).toBeNull();
   });
 
-  it("gives the delivery card the zone line and the pickup card the address", async () => {
+  it("gives the delivery card the zone fees and the pickup card the address", async () => {
     answer({}, [
       { shortName: "الضفة", fee: 2000 },
       { shortName: "الداخل", fee: 7000 },
@@ -186,14 +186,17 @@ describe("home page", () => {
 
     const trust = find(await HomePage(), TrustSection);
 
-    expect(trust?.props.zoneLine).toBe("الضفة ₪20 · الداخل ₪70");
+    expect(trust?.props.fees).toEqual([
+      { shortName: "الضفة", fee: 2000 },
+      { shortName: "الداخل", fee: 7000 },
+    ]);
     expect(trust?.props.address).toBe("الخليل، شارع السلام");
   });
 
   it("gives the delivery card no line with no active zone", async () => {
     answer({}, null);
 
-    expect(find(await HomePage(), TrustSection)?.props.zoneLine).toBeNull();
+    expect(find(await HomePage(), TrustSection)?.props.fees).toBeNull();
   });
 });
 

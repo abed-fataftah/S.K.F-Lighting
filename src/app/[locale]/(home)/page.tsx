@@ -14,7 +14,6 @@ import { HeroCard } from "@/features/home/components/hero-card";
 import { HeroCoverflow } from "@/features/home/components/hero-coverflow";
 import { CategoriesSection, TrustSection } from "@/features/home/components/home-sections";
 import { canAddToDraft } from "@/features/drafts/server/guard";
-import { buildZoneLine } from "@/features/home/fees";
 import { heroChoice, shopNowTarget } from "@/features/home/home-rules";
 import { getDeliveryFees, getHomeSections } from "@/features/home/server/home";
 import { parsePublicEnv } from "@/lib/public-env";
@@ -101,7 +100,7 @@ export default async function HomePage() {
             canAddToDraft={draftButtons}
           />
         ) : null}
-        <TrustSection zoneLine={buildZoneLine(fees)} address={address} />
+        <TrustSection fees={fees} address={address} />
       </PageFrame>
     </>
   );

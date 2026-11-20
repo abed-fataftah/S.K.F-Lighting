@@ -301,8 +301,12 @@ test("the confirmation page and the footer lead to the order page and the lookup
   await expect(page).toHaveURL(`/orders/${order.number}`);
   await expect(page.getByTestId("order-heading")).toHaveText(`طلب ${order.number}`);
 
-  // AC-15: the footer link comes before the policy links.
-  const footerLinks = page.locator("footer nav a");
+  // AC-15: the footer link comes before the policy links, in the help column (the shop column of
+  // categories comes first from spec 0029).
+  const footerLinks = page
+    .locator("footer")
+    .getByRole("navigation", { name: "روابط السياسات" })
+    .getByRole("link");
   await expect(footerLinks.first()).toHaveText("تتبّع طلبك");
   await page.waitForLoadState("networkidle");
   await footerLinks.first().click();

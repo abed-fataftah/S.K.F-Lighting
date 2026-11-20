@@ -1,6 +1,9 @@
 import { Banknote, MessageCircle, Store, Truck, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
+import { Ltr } from "@/components/ltr";
+import { formatPrice } from "@/lib/money";
+import type { ZoneFee } from "../fees";
 import type { CardProduct } from "@/features/catalog/card-view";
 import type { HomeCategory } from "../home-rules";
 import { CategoryCards } from "./category-cards";
@@ -69,7 +72,7 @@ function TrustCard({
 }: {
   readonly icon: LucideIcon;
   readonly title: string;
-  readonly line: string | null;
+  readonly line: ReactNode;
 }) {
   return (
     <li className="flex flex-col gap-2 rounded-card border border-border bg-white p-3.5">
@@ -83,17 +86,25 @@ function TrustCard({
 }
 
 /**
- * "لماذا S.K.F": four cards in a 2×2 grid (AC-6). The delivery line is the zone list
- * (none with no active zone), the pickup line the shop's address or its fallback.
+ * "لماذا S.K.F": four cards in a 2×2 grid (AC-6). The delivery line is the zone list, each fee
+ * inside <Ltr> (spec 0005) (none with no active zone), the pickup line the shop's address or its fallback.
  */
 export function TrustSection({
-  zoneLine,
+  fees,
   address,
 }: {
-  readonly zoneLine: string | null;
+  readonly fees: readonly ZoneFee[] | null;
   readonly address: string | null;
 }) {
   const t = useTranslations("Home");
+  const zoneLine = fees?.length
+    ? fees.map((zone, index) => (
+        <Fragment key={zone.shortName}>
+          {index ? " · " : null}
+          {zone.shortName} <Ltr>{formatPrice(zone.fee)}</Ltr>
+        </Fragment>
+      ))
+    : null;
   return (
     <section aria-labelledby="trust-title" className="flex flex-col gap-3 px-(--page-pad) pt-8.5">
       <h2 id="trust-title" className="type-title-m">

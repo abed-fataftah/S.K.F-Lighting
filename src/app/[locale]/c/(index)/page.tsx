@@ -1,4 +1,5 @@
-import { FolderTree } from "lucide-react";
+import { ArrowLeft, FolderTree } from "lucide-react";
+import Image from "next/image";
 import { reportError } from "@/server/monitoring/report";
 import { failureOf } from "@/server/monitoring/throttle";
 import type { Metadata } from "next";
@@ -7,8 +8,8 @@ import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { EmptyState } from "@/components/empty-state";
 import { PageErrorState } from "@/components/error-state";
 import { ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { getNavigation } from "@/features/catalog/server/queries";
+import { ImagePlaceholder } from "@/components/image-placeholder";
+import { getCategoryCards } from "@/features/catalog/server/queries";
 import { shareMetadata, shopImage } from "@/features/seo/share";
 import { getWhatsappNumber } from "@/features/shell/server/shop-contact";
 import { Link } from "@/i18n/navigation";
@@ -20,6 +21,7 @@ import { withTimeLimit } from "@/server/db/time-limit";
 import { PageFrame } from "@/components/page-frame";
 
 const CATEGORIES_READ_TIMEOUT_MS = 3000;
+const tones = [1, 2, 3, 4] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [t, meta, seo] = await Promise.all([
@@ -46,12 +48,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // The categories page (spec 0008 AC-15): every main in navigation, with its count and its
 // navigation subs. Not on the design boards; it reuses the card and link sizes of the others.
-// The cards run 1 across, 2 from md, and 3 from lg (spec 0029 AC-9).
+// The cards run 2 across, 3 from md, and 4 from lg. At the owner's request they are raised (3D)
+// picture cards, the photo on top and the name under it, that lift and tilt on hover; the one
+// place the design allows a shadow (.card-raised in globals.css).
 export default async function CategoriesPage() {
   const [t, shell, result] = await Promise.all([
     getTranslations("Categories"),
     getTranslations("Shell"),
-    withTimeLimit(getNavigation, CATEGORIES_READ_TIMEOUT_MS),
+    withTimeLimit(getCategoryCards, CATEGORIES_READ_TIMEOUT_MS),
   ]);
   const whatsappNumber = await getWhatsappNumber();
   if (!result.ok) await reportError("navigation_read_failed", failureOf(result));
@@ -81,38 +85,57 @@ export default async function CategoriesPage() {
         />
       ) : (
         <ul
-          className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-cols-2 gap-4 pb-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4"
           data-testid="category-list"
         >
-          {result.data.map((main) => (
+          {result.data.map((main, index) => (
             <li key={main.slug} className="flex">
-              <Card className="w-full gap-1 hover:border-ink">
-                <h2 className="flex flex-wrap items-baseline justify-between gap-2">
-                  <Link
-                    href={routes.category(main.slug)}
-                    className="inline-flex min-h-11 items-center type-title-s underline-offset-4 hover:underline"
-                  >
-                    {main.name}
-                  </Link>
-                  <span className="type-small text-muted">
+              <article className="card-raised group/cat flex w-full flex-col overflow-hidden">
+                <div className="card-raised-photo relative aspect-4/3 overflow-hidden">
+                  {main.imageKey ? (
+                    <Image
+                      src={main.imageKey}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, 50vw"
+                      className="bg-product-1 object-cover"
+                    />
+                  ) : (
+                    <ImagePlaceholder tone={tones[index % tones.length]} className="h-full" />
+                  )}
+                  <span className="absolute start-2 top-2 rounded-chip bg-ink px-2 py-1 type-caption font-extrabold text-white">
                     {t("count", { shown: formatNumber(main.productCount) })}
                   </span>
-                </h2>
-                {main.subs.length ? (
-                  <ul className="flex flex-wrap gap-x-4">
-                    {main.subs.map((sub) => (
-                      <li key={sub.slug}>
-                        <Link
-                          href={routes.subcategory(main.slug, sub.slug)}
-                          className="inline-flex min-h-11 items-center underline underline-offset-4"
-                        >
-                          {sub.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </Card>
+                </div>
+                <div className="flex flex-1 flex-col gap-1 p-3">
+                  <h2 className="type-title-s">
+                    <Link
+                      href={routes.category(main.slug)}
+                      className="flex min-h-11 items-center justify-between gap-2 after:absolute after:inset-0"
+                    >
+                      <span className="card-raised-name">{main.name}</span>
+                      <ArrowLeft
+                        aria-hidden
+                        className="card-raised-arrow size-5 shrink-0 ltr:rotate-180"
+                      />
+                    </Link>
+                  </h2>
+                  {main.subs.length ? (
+                    <ul className="relative z-1 flex flex-wrap gap-x-3">
+                      {main.subs.map((sub) => (
+                        <li key={sub.slug}>
+                          <Link
+                            href={routes.subcategory(main.slug, sub.slug)}
+                            className="inline-flex min-h-11 items-center type-small underline underline-offset-4"
+                          >
+                            {sub.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              </article>
             </li>
           ))}
         </ul>

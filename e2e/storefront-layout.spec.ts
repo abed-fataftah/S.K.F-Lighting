@@ -379,7 +379,8 @@ test.describe("search and /c", () => {
         ? getComputedStyle(ul).gridTemplateColumns.split(" ").length
         : 1,
     );
-    expect(tracks).toBe({ phone: 1, tablet: 2, desktop: 3 }[testInfo.project.name]);
+    // Picture cards, at the owner's request: 2 across on a phone, 3 from md, 4 from lg.
+    expect(tracks).toBe({ phone: 2, tablet: 3, desktop: 4 }[testInfo.project.name]);
     await expectNoAxeViolations(page);
     await expectNoSidewaysScroll(page);
   });

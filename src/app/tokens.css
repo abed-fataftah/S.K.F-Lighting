@@ -139,7 +139,11 @@
   --skf-radius-hero: 20px; /* home hero card only */
   --skf-radius-full: 9999px; /* circles: category circles, owner circle, WhatsApp float, gallery arrows */
   --border-w: 1px; /* all borders; selected radio cards and selected photo thumbnails use 2px */
-  --shadow-none: none; /* THE DESIGN HAS NO SHADOWS. Do not add any. */
+  --shadow-none: none; /* THE DESIGN HAS NO SHADOWS, except the raised category card below. */
+  /* Owner request: the /c category cards look raised (3D). Used only by .card-raised. */
+  --skf-raised-edge: #cfcfc8; /* the card's solid bottom edge */
+  --skf-raised-shadow: 0 1px 2px rgb(17 17 17 / 0.06), 0 10px 24px -8px rgb(17 17 17 / 0.18);
+  --skf-raised-shadow-hover: 0 2px 4px rgb(17 17 17 / 0.08), 0 22px 36px -12px rgb(17 17 17 / 0.28);
 }
 
 /* ---- 7. Sizes of controls ------------------------------------------------ */

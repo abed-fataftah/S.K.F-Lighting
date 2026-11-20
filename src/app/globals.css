@@ -24,3 +24,110 @@
 .on-dark :where([data-preview="focus"]) {
   outline: var(--focus-ring-on-dark);
 }
+
+/* Raised (3D) picture card, used by the categories page only (owner request). A solid bottom
+   edge and a soft drop shadow; on hover it lifts and tips back, the photo zooms, a light sweeps
+   across it, the name gets an orange underline, and the arrow slides toward the category. */
+@layer components {
+  .card-raised {
+    position: relative;
+    background: var(--skf-white);
+    border: var(--border-w) solid var(--skf-border);
+    border-radius: var(--skf-radius-card);
+    box-shadow:
+      0 5px 0 var(--skf-raised-edge),
+      var(--skf-raised-shadow);
+    transform: perspective(1000px) translateY(0) rotateX(0) scale(1);
+    transform-origin: 50% 100%;
+    transition:
+      transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 320ms ease,
+      border-color 200ms ease;
+  }
+  .card-raised:hover,
+  .card-raised:focus-within {
+    border-color: var(--skf-brand);
+    transform: perspective(1000px) translateY(-8px) rotateX(6deg) scale(1.02);
+    box-shadow:
+      0 8px 0 var(--skf-brand),
+      var(--skf-raised-shadow-hover);
+  }
+  .card-raised:active {
+    transform: perspective(1000px) translateY(1px) scale(0.99);
+    box-shadow:
+      0 2px 0 var(--skf-raised-edge),
+      var(--skf-raised-shadow);
+  }
+
+  .card-raised-photo img,
+  .card-raised-photo [data-slot="image-placeholder"] {
+    transition: transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .card-raised:hover .card-raised-photo img,
+  .card-raised:hover .card-raised-photo [data-slot="image-placeholder"],
+  .card-raised:focus-within .card-raised-photo img,
+  .card-raised:focus-within .card-raised-photo [data-slot="image-placeholder"] {
+    transform: scale(1.08);
+  }
+  /* the light that sweeps across the photo */
+  .card-raised-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.45) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    pointer-events: none;
+  }
+  .card-raised:hover .card-raised-photo::after,
+  .card-raised:focus-within .card-raised-photo::after {
+    transform: translateX(120%);
+    transition: transform 700ms ease;
+  }
+
+  .card-raised-name {
+    background: linear-gradient(var(--skf-brand), var(--skf-brand)) no-repeat;
+    background-position: 100% 100%;
+    background-size: 0% 3px;
+    padding-bottom: 2px;
+    transition: background-size 300ms ease;
+  }
+  .card-raised:hover .card-raised-name,
+  .card-raised:focus-within .card-raised-name {
+    background-size: 100% 3px;
+  }
+  .card-raised-arrow {
+    transition: translate 300ms ease;
+  }
+  .card-raised:hover .card-raised-arrow,
+  .card-raised:focus-within .card-raised-arrow {
+    translate: -6px 0;
+  }
+  [dir="ltr"] .card-raised-name {
+    background-position: 0 100%;
+  }
+  [dir="ltr"] .card-raised:hover .card-raised-arrow,
+  [dir="ltr"] .card-raised:focus-within .card-raised-arrow {
+    translate: 6px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-raised,
+  .card-raised *,
+  .card-raised-photo::after {
+    transition: none !important;
+  }
+  .card-raised:hover,
+  .card-raised:focus-within,
+  .card-raised:active,
+  .card-raised:hover .card-raised-photo img,
+  .card-raised:hover .card-raised-arrow {
+    transform: none;
+    translate: none;
+  }
+}
