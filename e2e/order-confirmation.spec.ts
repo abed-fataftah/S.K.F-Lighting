@@ -209,6 +209,8 @@ test("an unknown number and a broken segment get the not found page, with the fl
     const response = await page.goto(`/checkout/done/${segment}`);
     expect(response?.status()).toBe(404);
     await expect(page.getByText("الصفحة غير موجودة")).toBeVisible();
+    // Spec 0029 AC-17: the not found title, never the confirmation's "تم استلام طلبك".
+    await expect(page).toHaveTitle("الصفحة غير موجودة | S.K.F للإنارة");
     expect(await linkText(fab(page))).toBe(message);
   }
 });

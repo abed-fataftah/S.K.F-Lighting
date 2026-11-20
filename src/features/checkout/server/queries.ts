@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { cache } from "react";
 import { firstProductImageKey } from "@/features/catalog/server/product-image-sql";
 import type { MessageOrder } from "@/features/orders/whatsapp-message";
 import { getDb } from "@/server/db";
@@ -29,13 +30,14 @@ export type PlacedOrder = MessageOrder & {
 
 /**
  * The order behind a confirmation page (spec 0004 AC-11), only when this browser's `skf_placed`
- * cookie holds its id. A sequential number alone opens nothing.
+ * cookie holds its id. A sequential number alone opens nothing. Cached per request, so the page and
+ * its title share one read.
  */
-export async function getPlacedOrder(orderNumber: string): Promise<PlacedOrder | null> {
+export const getPlacedOrder = cache(async (orderNumber: string): Promise<PlacedOrder | null> => {
   const ids = await readPlacedIds();
   if (ids.length === 0) return null;
   return readPlacedOrder(await getDb(), orderNumber, ids);
-}
+});
 
 /** The saved order with this number among `placedIds`, with what its summary shows (spec 0013). */
 export async function readPlacedOrder(

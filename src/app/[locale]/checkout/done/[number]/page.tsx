@@ -19,11 +19,6 @@ import { routes } from "@/lib/routes";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { PageFrame } from "@/components/page-frame";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("PageTitles");
-  return { title: t("confirmation"), robots: { index: false } };
-}
-
 // A broken `%` in the segment is a 404, never a server error (spec 0013 AC-2).
 function decodeSegment(raw: string): string | null {
   try {
@@ -31,6 +26,19 @@ function decodeSegment(raw: string): string | null {
   } catch {
     return null;
   }
+}
+
+// The not found title whenever the page shows the not found card (spec 0029 AC-17); the order
+// read is cached, so the page below reuses it.
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/checkout/done/[number]">): Promise<Metadata> {
+  const orderNumber = decodeSegment((await params).number);
+  const [t, order] = await Promise.all([
+    getTranslations("PageTitles"),
+    orderNumber === null ? null : getPlacedOrder(orderNumber),
+  ]);
+  return { title: order ? t("confirmation") : t("notFound"), robots: { index: false } };
 }
 
 // The confirmation (spec 0004 AC-11, AC-12; spec 0013; docs/design/pages/confirmation.md). Opens only in the
