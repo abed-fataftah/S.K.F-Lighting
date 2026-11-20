@@ -76,6 +76,9 @@ export const routes = {
   checkoutDone: (number: string) => `/checkout/done/${segment(number)}`,
   order: (number: string) => `/orders/${segment(number)}`,
   orderTrack: "/orders/track",
+  /** Never linked: where the proxy rewrites an address with a broken `%`. It always answers 404,
+   * so the word is reserved and no real page may use it (src/proxy.ts). */
+  brokenAddress: "/broken-address",
   /** The lookup with its number field filled (spec 0015 AC-7). */
   orderTrackWith: (number: string) => `/orders/track?number=${encodeURIComponent(number)}`,
   signIn: "/account/sign-in",
