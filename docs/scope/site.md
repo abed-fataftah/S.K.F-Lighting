@@ -64,10 +64,13 @@ Real phone and tablet layouts for every dashboard page, so you can run orders an
 **Done when:** every dashboard page works at 390 and 820px with no sideways page scroll, every control is at least 44px, the sidebar's unseen orders count stays reachable, and axe passes on each page at both widths.
 - [ ] Design it (spec): `/architect dashboard on phone and tablet`
 
-### 39. Small phone, landscape & large monitor sweep · planned
+### 39. Small phone, landscape & large monitor sweep · in-progress
 Close the gaps spec 0029 left open on the storefront: small phones from 320px, phones held sideways, and monitors wider than 1920px. Runs after feature 36 is verified.
 **Done when:** no storefront page scrolls sideways from 320 to 2560px wide, a phone in landscape (390px tall) keeps the header, bottom bar, and WhatsApp float usable, content stays centred at 1280px on a 2560px screen with the shell backgrounds full width, and the Playwright projects cover 320 and 2560.
-- [ ] Build it: `/develop small phone, landscape & large monitor sweep`
+spec [0029](../specs/0029-storefront-desktop-layout/index.md) (the gaps it left open; no spec of its own) · code in `e2e/width-sweep.spec.ts`, `playwright.config.ts`, `src/app/tokens.css` (the `narrow` variant), `src/features/home/components/hero-coverflow.tsx`, `src/features/catalog/components/product-card.tsx`
+- [x] Build it: `/develop small phone, landscape & large monitor sweep`
+  - [x] The `small-phone` (320 by 568), `landscape` (844 by 390), and `monitor` (2560 by 1440) Playwright projects, running the width sweep over every storefront page: no sideways scroll, axe, 44px targets, the shell parts on a sideways phone, the centred 1280 box and full width backgrounds on a monitor
+  - [x] The two things that broke below 360px: the hero's button pair and a product card's add and WhatsApp buttons wrap, through the one `narrow` variant; everything else held as it was
 
 ### 43. Light hero & orange brand · in-progress · from spec 0032
 The Home hero moves from the black band to a white surface, and the brand colour changes from yellow to orange (#F7931E) across the storefront, dashboard, logo, and link preview pictures; in code the colour is renamed `brand`. A dev only `pnpm media:samples` command gives local products and main categories glowing sample pictures until the real photos are uploaded.

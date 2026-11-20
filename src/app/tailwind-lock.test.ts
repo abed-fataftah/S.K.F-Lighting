@@ -71,6 +71,7 @@ describe("Tailwind lock", () => {
     "md:flex",
     "lg:flex",
     "lg-tall:sticky",
+    "narrow:flex-wrap",
     "max-w-(--content-max)",
   ])("keeps %s", (cls) => {
     expect(produces(cls)).toBe(true);
@@ -88,6 +89,11 @@ describe("Tailwind lock", () => {
     expect(build(["md:flex"])).toContain("(width >= 48rem)");
     expect(build(["lg:flex"])).toContain("(width >= 64rem)");
     expect(build(["lg-tall:sticky"])).toMatch(/\(width >= 64rem\) and \(height >= 45rem\)/);
+  });
+
+  // A phone below 360px (scope feature 39), the only rule a small phone gets of its own.
+  it("puts narrow below 22.5rem", () => {
+    expect(build(["narrow:flex-wrap"])).toContain("(width < 22.5rem)");
   });
 
   it("lets a weight class override a type role's weight", () => {

@@ -402,7 +402,8 @@ export function HeroCoverflow({
           </>
         ) : null}
 
-        <div className="mt-5 flex w-full gap-2.5 md:w-(--form-max) md:max-w-full">
+        {/* Side by side; on a phone too narrow for both (below 360) the second wraps under the first. */}
+        <div className="mt-5 flex w-full gap-2.5 md:w-(--form-max) md:max-w-full narrow:flex-wrap">
           {jumpTo ? (
             <SectionJump section={jumpTo} className="flex-1">
               {t("shopNow")}

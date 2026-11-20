@@ -143,7 +143,9 @@ export function ProductCard({
           />
         ) : null}
       </div>
-      <div className="flex items-start gap-1.5 p-3">
+      {/* The add button and the WhatsApp square side by side; on a card too narrow for both
+          (2 across on a phone below 360) the square wraps under the button. */}
+      <div className="flex items-start gap-1.5 p-3 narrow:flex-wrap">
         {product.addVariantId ? (
           <CardAddToCart variantId={product.addVariantId} name={product.name} />
         ) : (

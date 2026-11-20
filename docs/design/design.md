@@ -69,6 +69,7 @@ Storefront:
 - Vertical rhythm: cards separated by 12px (`--sp-12`), product grid gap 10px, chip row gap 8px, form field gap 12px, section gap 24px to 34px.
 - Product grid: 2 columns of `minmax(0,1fr)`, gap 10px; 3 at tablet, 4 at desktop (3 beside the filter column).
 - Tablet (`md`, 768px) and desktop (`lg`, 1024px): specified in spec 0029 ([storefront desktop and tablet layout](../specs/0029-storefront-desktop-layout/index.md)), which closes O-1. Each page sits in a centered box of its width (`--content-max`, `--form-max`, or `--prose-max`), side padding 24px at tablet and 32px at desktop; desktop has the one row header with the category bar and no bottom bar. These layouts are written in words, not drawn on the board.
+- Small phones from 320px, phones held sideways (390px tall), and monitors wider than 1920px get no layout of their own (scope feature 39): below 768 the phone column shrinks with the screen, above 1280 the content box stays centred with the shell backgrounds full width, and the `small-phone`, `landscape`, and `monitor` Playwright projects sweep every storefront page there.
 
 Dashboard (designed at 1280):
 - Flex row, wrap. Sidebar: `flex: 1 1 220px; max-width: 260px`, black. Content: `flex: 999 1 560px; min-width: 0`, padding `24px 28px 48px`. The sidebar wraps above the content below 780px with no media query. The sidebar is not sticky and not 100vh.

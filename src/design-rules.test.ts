@@ -173,6 +173,7 @@ describe("design rules: planted fixtures", () => {
     ["the kept weights", `className="font-bold font-extrabold"`],
     ["a type role", `className="type-caption type-404"`],
     ["the md and lg breakpoints", `className="md:grid-cols-3 lg:grid-cols-4 lg-tall:sticky"`],
+    ["the narrow phone variant", `className="narrow:flex-wrap narrow:basis-auto"`],
     ["a size key in an object", `size: { sm: "h-11", lg: "h-13" }`],
     ["a URL inside a string", `const url = "https://wa.me/970500000000";`],
     ["a comment that mentions blur and left", `// clamp on blur; never use ml-2 or left`],

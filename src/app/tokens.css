@@ -300,7 +300,9 @@
    sm, xl, and 2xl are removed in section 12. Below md the 480px phone column; from md the content box
    (--content-max) with --page-pad. lg-tall (lg and at least 720px high) gates the sticky boxes.
    Dashboard: designed at 1280. Sidebar wraps above content below (220 + 560) = 780px of available width (flex-wrap, no media query).
-   Test widths: 390 (phone), 820 (tablet), 1280 (desktop). */
+   Test widths: 390 (phone), 820 (tablet), 1280 (desktop); the width sweep (scope feature 39) adds
+   320 (small phone), 844 by 390 (a phone held sideways), and 2560 (large monitor). The `narrow`
+   variant (below 360px, section 12) is the one place a small phone gets its own rule. */
 
 /* ---- 11. Right to left --------------------------------------------------- */
 html {
@@ -340,6 +342,8 @@ html {
 
 /* Desktop with a window tall enough for a sticky box (spec 0029 AC-12, AC-14). */
 @custom-variant lg-tall (@media (width >= 64rem) and (height >= 45rem));
+/* A phone narrower than 360px (scope feature 39): a button pair that fits at 390 wraps there. */
+@custom-variant narrow (@media (width < 22.5rem));
 
 @theme inline {
   --font-sans: var(--skf-font);

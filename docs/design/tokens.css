@@ -197,6 +197,7 @@
 /* Storefront (spec 0029, closes O-1): two breakpoints only, md (768px, tablet) and lg (1024px, desktop).
    Below md the 480px phone column; from md the content box (--content-max) with --page-pad.
    lg-tall (lg and at least 720px high) gates the sticky boxes. The app's src/app/tokens.css holds the values.
+   Checked at 390, 820, and 1280, plus 320, 844 by 390 (sideways phone), and 2560 (scope feature 39).
    Dashboard: designed at 1280. Sidebar wraps above content below (220 + 560) = 780px of available width (flex-wrap, no media query).
    Test widths: 390 (phone), 820 (tablet), 1280 (desktop). */
 

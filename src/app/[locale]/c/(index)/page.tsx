@@ -113,7 +113,7 @@ export default async function CategoriesPage() {
                       href={routes.category(main.slug)}
                       className="flex min-h-11 items-center justify-between gap-2 after:absolute after:inset-0"
                     >
-                      <span className="card-raised-name">{main.name}</span>
+                      <span className="card-raised-name min-w-0 break-words">{main.name}</span>
                       <ArrowLeft
                         aria-hidden
                         className="card-raised-arrow size-5 shrink-0 ltr:rotate-180"
