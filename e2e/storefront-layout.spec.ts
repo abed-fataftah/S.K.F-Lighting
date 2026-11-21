@@ -174,9 +174,19 @@ async function scaleOf(locator: Locator): Promise<number> {
   return first.endsWith("%") ? Number.parseFloat(first) / 100 : Number.parseFloat(first);
 }
 
-/** Where the element's drawn top edge sits in the window, transforms included. */
-async function drawnTop(locator: Locator): Promise<number> {
-  return locator.evaluate((el) => el.getBoundingClientRect().top);
+/**
+ * How far the element's computed transform moves it down, in CSS px (negative is up; 0 for none).
+ * Read from the matrix, so a tilt or scale in the same transform does not blur it.
+ */
+async function liftOf(locator: Locator): Promise<number> {
+  const value = await locator.evaluate((el) => getComputedStyle(el).transform);
+  if (value === "none") return 0;
+  const numbers = value
+    .slice(value.indexOf("(") + 1, -1)
+    .split(",")
+    .map(Number);
+  // matrix(a, b, c, d, e, f) keeps the y move at f; matrix3d keeps it at m42, the 14th value.
+  return value.startsWith("matrix3d") ? numbers[13] : numbers[5];
 }
 
 // covers: AC-19 (spec 0029): hover colour and zoom take --dur-hover, which is 0 under reduced motion.
@@ -204,10 +214,9 @@ test.describe("hover timing", () => {
       await page.goto("/c");
       const card = page.getByTestId("category-list").locator("article").first();
       await expect(card).toBeVisible({ timeout: 15_000 });
-      const before = await drawnTop(card);
       await card.hover();
       await expect(card).toHaveCSS("border-top-color", "rgb(247, 147, 30)");
-      expect(Math.abs((await drawnTop(card)) - before)).toBeLessThan(1);
+      expect(await liftOf(card)).toBeCloseTo(0);
     });
   });
 });
@@ -454,12 +463,11 @@ test.describe("search and /c", () => {
     await page.goto("/c");
     const card = page.getByTestId("category-list").locator("article").first();
     await expect(card).toBeVisible({ timeout: 15_000 });
-    const before = await drawnTop(card);
+    expect(await liftOf(card)).toBeCloseTo(0);
     await card.hover();
     await expect(card).toHaveCSS("border-top-color", "rgb(247, 147, 30)");
-    // It rises once its transition settles: translateY(-8px), less what the rotateX tilt gives back
-    // at the top edge (about 3px drawn).
-    await expect.poll(async () => before - (await drawnTop(card))).toBeGreaterThan(1);
+    // translateY(-8px) once the transition settles.
+    await expect.poll(() => liftOf(card)).toBeCloseTo(-8);
   });
 });
 
