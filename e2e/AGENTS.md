@@ -8,7 +8,8 @@ Browser flows for every user facing path, in Arabic right to left, against the l
 
 | File | Owns |
 |---|---|
-| `../playwright.config.ts` | The projects (`phone`, `desktop`, `tablet`, then `homepage`, `settings`, `rate-limit` in order) and the two web servers |
+| `../playwright.config.ts` | The projects (`phone`, `desktop`, `tablet`, `small-phone`, `landscape`, `monitor`, then `homepage`, `settings`, `rate-limit` in order) and the two web servers |
+| `width-sweep.spec.ts` | The only spec on `small-phone` (320 by 568), `landscape` (844 by 390), and `monitor` (2560 by 1440): every storefront page at the widths spec 0029 left open (scope feature 39) |
 | `admin-setup.ts` | Global setup: makes the test accounts on the local Supabase, promotes admins with `pnpm admin:promote`, enrolls their authenticator |
 | `admin-auth.ts` | `adminAccounts()`, `signInAdmin()`, `totpCode()`, `serviceClient()`, `loadLocalEnv()` |
 | `a11y.ts` | `usePhoneWidth()`, `expectNoAxeViolations()`, `expectTouchTargets()`, `expectNoSidewaysScroll()`, `expectFocusOutline()` |
@@ -23,6 +24,7 @@ Browser flows for every user facing path, in Arabic right to left, against the l
 pnpm exec playwright test                          # on pnpm dev
 E2E_TARGET=preview pnpm exec playwright test       # on workerd, as CI does
 pnpm exec playwright test --project=phone e2e/cart.spec.ts
+pnpm exec playwright test --project=small-phone --project=landscape --project=monitor   # the width sweep
 ```
 
 ## Conventions
@@ -37,7 +39,7 @@ pnpm exec playwright test --project=phone e2e/cart.spec.ts
 
 - Dashboard and account flows skip themselves unless the local Supabase is running and `admin-setup.ts` made the accounts.
 - A flow that changes shared shop data (Home banners, WhatsApp number, delivery zones, policy pages) must run in its own serial project after the others and put the data back when it ends. Add it to the chain in `playwright.config.ts`, and to every parallel project's `testIgnore`.
-- `rate-limit.spec.ts` runs last on purpose: it spends the shared local IP's order allowance.
+- `rate-limit.spec.ts` runs last and sends its own IP. The local limiter counts in wall clock minute windows, so it waits for a fresh window when the current one is nearly over; six submits across a boundary would never be refused.
 
 ## Related specs
 

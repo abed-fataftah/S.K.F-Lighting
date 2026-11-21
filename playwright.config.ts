@@ -80,7 +80,7 @@ export default defineConfig({
       testMatch: /shop-settings\.spec\.ts/,
       dependencies: ["homepage"],
     },
-    // Last, alone: its submits spend the order allowance of the shared local IP (spec 0004 AC-10).
+    // Last, alone: it fills an order allowance on purpose (spec 0004 AC-10), on an IP of its own.
     {
       name: "rate-limit",
       use: { ...devices["Pixel 7"] },

@@ -106,7 +106,10 @@ const addressOf = (address: Address) => {
 export async function categoryMetadata(address: Address): Promise<Metadata> {
   const { page, parsed, query } = addressOf(address);
   const result = await loadCategoryHead(address.main, address.sub, page);
-  if (!result.ok || !result.data) return {};
+  // A failed read shows the error card under the layout's title; no category shows the not found
+  // card, so it gets the not found title (spec 0029 AC-17).
+  if (!result.ok) return {};
+  if (!result.data) return { title: (await getTranslations("PageTitles"))("notFound") };
   const data = result.data;
   const current = data.sub ?? data.main;
   const [t, meta, seo] = await Promise.all([
@@ -180,7 +183,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   if (!result.ok) {
     await reportError("category_head_read_failed", result.error);
     return (
-      <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+      <PageFrame width="form" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <PageErrorState heading="h1" title={t("errorTitle")} whatsappNumber={whatsappNumber} />
       </PageFrame>
     );

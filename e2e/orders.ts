@@ -1,4 +1,6 @@
 import type postgres from "postgres";
+import { routes } from "../src/lib/routes";
+import { localSql } from "./local-db";
 
 // Orders for the dashboard flows (spec 0014 AC-19), written straight to the local database the way
 // checkout writes them: the next number of the shop year, one line, and an unseen `created` event.
@@ -20,6 +22,30 @@ export type TestOrder = {
 };
 
 export type InsertedOrder = { readonly id: string; readonly number: string };
+
+/**
+ * The page of a dev seed product (`DEMO-%`, one size, in stock) for a flow that places a real
+ * storefront order. Never the first card on Home: that is often another worker's newest product,
+ * and the order line left on it makes that worker's cleanup fail on the `order_lines` foreign key.
+ */
+export async function orderableProductPath(): Promise<string> {
+  const sql = localSql();
+  try {
+    const [row] = await sql<{ slug: string }[]>`
+      select p.slug from products p
+      join product_variants v on v.product_id = p.id and v.archived_at is null
+      join categories c on c.id = p.category_id
+      left join categories m on m.id = c.parent_id
+      where p.status = 'active' and p.is_available and c.is_visible and coalesce(m.is_visible, true)
+        and p.code like 'DEMO-%'
+      group by p.id having count(*) = 1 and bool_and(v.is_available)
+      order by p.code limit 1`;
+    if (!row) throw new Error("No orderable product: run pnpm db:seed first");
+    return routes.product(row.slug);
+  } finally {
+    await sql.end();
+  }
+}
 
 /** A Palestinian mobile no other flow uses: `{ national, local, shown }`. */
 export function uniquePhone() {

@@ -61,7 +61,11 @@ export default async function CategoriesPage() {
   if (!result.ok) await reportError("navigation_read_failed", failureOf(result));
 
   return (
-    <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+    // A failed read leaves only the error card, so the page takes the narrow column (spec 0029 AC-17).
+    <PageFrame
+      width={result.ok ? "wide" : "form"}
+      className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8"
+    >
       <h1 className="type-title-l">{t("title")}</h1>
       {!result.ok ? (
         <PageErrorState title={t("categoriesErrorTitle")} whatsappNumber={whatsappNumber} />

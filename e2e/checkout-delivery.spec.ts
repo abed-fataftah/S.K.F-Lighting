@@ -5,6 +5,7 @@ import {
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
+import { orderableProductPath } from "./orders";
 import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-6, AC-7, AC-8, AC-10, AC-12 (spec 0012). Checkout on the dev seed (`pnpm db:seed`),
@@ -38,8 +39,7 @@ async function checkA11y(page: Page) {
 }
 
 async function openCheckout(page: Page) {
-  await page.goto("/");
-  await page.getByTestId("home-products").getByRole("link").first().click();
+  await page.goto(await orderableProductPath());
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.getByTestId("add-to-cart").click();
   await expect(page.getByRole("link", { name: "عرض السلة" })).toBeVisible();

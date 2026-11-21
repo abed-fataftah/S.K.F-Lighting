@@ -8,6 +8,7 @@ import {
   usePhoneWidth,
 } from "./a11y";
 import { localSql } from "./local-db";
+import { orderableProductPath } from "./orders";
 import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-1 to AC-8, AC-10, AC-11, AC-15 (spec 0025). On a phone sized right to left screen the
@@ -122,8 +123,7 @@ async function openSettings(page: Page) {
 }
 
 async function openCheckoutWithItem(page: Page) {
-  await page.goto("/");
-  await page.getByTestId("home-products").getByRole("link").first().click();
+  await page.goto(await orderableProductPath());
   await page.getByTestId("add-to-cart").click();
   await expect(page.getByRole("link", { name: "عرض السلة" })).toBeVisible();
   await page.goto("/checkout");
