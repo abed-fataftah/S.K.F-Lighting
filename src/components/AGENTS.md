@@ -25,6 +25,7 @@ Shared UI built from the approved design in `docs/design/`. `ui/` holds the shad
 - Wrap any number, code, or phone shown inside Arabic text in `<Ltr>`.
 - A new shared component gets a section on the gallery page so the Playwright and axe checks in `e2e/design-system.spec.ts` cover it.
 - Build every link from `routes` in `src/lib/routes.ts`, never a hand written path.
+- A storefront page whose read failed shows only the error card, so it renders `<PageFrame width="form">` (the centred 560 column), even when the page is `wide` on success (spec 0029 AC-17).
 
 ## Gotchas
 
