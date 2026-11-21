@@ -109,7 +109,7 @@ async function SearchResults({
     // Never the query: a shopper might type a phone number into search.
     await reportError("search_read_failed", result.error);
     return (
-      <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+      <PageFrame width="form" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <h1 className="type-title-l">{t("title")}</h1>
         <PageErrorState title={t("errorTitle")} whatsappNumber={whatsappNumber} />
       </PageFrame>
