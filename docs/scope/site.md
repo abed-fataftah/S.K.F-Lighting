@@ -56,7 +56,7 @@ spec [0029](../specs/0029-storefront-desktop-layout/index.md) · code in `src/co
   - [x] Buying: cart and checkout two columns, form and prose pages (AC-14, AC-17)
   - [x] Accounts: order details, my orders and drafts, quick order table, responsive sheet (AC-11, AC-15, AC-16, AC-18)
   - [x] Finish: drop `width="phone"`, axe and 200% zoom on all three widths, design docs updated (AC-21, AC-23)
-- [ ] Verify it: `/check verify storefront desktop & tablet layout`
+- [x] Verify it: `/check verify storefront desktop & tablet layout`
 - [ ] Test it: `/test storefront desktop & tablet layout`
 
 ### 38. Dashboard on phone and tablet · planned · needs a decision

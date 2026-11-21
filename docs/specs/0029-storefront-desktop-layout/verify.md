@@ -82,7 +82,7 @@ _Steps derived from spec 0029 acceptance criteria. Ticked by `/check verify` on 
 ## Commands
 - [x] `pnpm exec vitest run src/app/tailwind-lock.test.ts src/design-rules.test.ts src/components/page-frame.test.ts src/features/shell/nav.test.ts src/features/catalog/filters-form.test.ts` → all pass → AC-2, AC-3, AC-5, AC-10
 - [x] `pnpm exec playwright test e2e/shell.spec.ts e2e/storefront-layout.spec.ts --project=phone --project=tablet --project=desktop` → all pass → AC-1, AC-3 to AC-22
-- [ ] `pnpm exec playwright test --project=phone` → passes with no phone assertion changed → AC-1
+- [x] `pnpm exec playwright test --project=phone` → passes with no phone assertion changed → AC-1
 - [x] `pnpm exec playwright test e2e/homepage.spec.ts --project=homepage --no-deps` → passes, including the banner Home at 820 and 1280 → AC-13
 
 ## Acceptance-criteria coverage
