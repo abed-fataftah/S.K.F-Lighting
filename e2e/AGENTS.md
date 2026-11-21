@@ -39,7 +39,7 @@ pnpm exec playwright test --project=small-phone --project=landscape --project=mo
 
 - Dashboard and account flows skip themselves unless the local Supabase is running and `admin-setup.ts` made the accounts.
 - A flow that changes shared shop data (Home banners, WhatsApp number, delivery zones, policy pages) must run in its own serial project after the others and put the data back when it ends. Add it to the chain in `playwright.config.ts`, and to every parallel project's `testIgnore`.
-- `rate-limit.spec.ts` runs last on purpose: it spends the shared local IP's order allowance.
+- `rate-limit.spec.ts` runs last and sends its own IP. The local limiter counts in wall clock minute windows, so it waits for a fresh window when the current one is nearly over; six submits across a boundary would never be refused.
 
 ## Related specs
 
