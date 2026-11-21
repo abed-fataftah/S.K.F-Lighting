@@ -6,7 +6,7 @@ _Steps derived from spec 0029 acceptance criteria. Ticked by `/check verify` on 
 - [x] At 1280, open `/` → the strip, header, and footer black run edge to edge; the home content sits in the centred content box → AC-3
 - [x] At 1280 → the header is one row: logo, search (at most 640 wide), `حسابي`, cart; no menu button; Tab from the logo goes search, search button, `حسابي`, cart → AC-4, AC-21
 - [x] At 1280 → `حسابي` goes to `/account/orders`; the cart badge shows the line count → AC-4
-- [ ] At 1280, under the header → a black `nav` "الأقسام" with the navigation mains in the menu sheet's order; open one → its link has `aria-current="page"`, also on its sub category pages → AC-5
+- [x] At 1280, under the header → a black `nav` "الأقسام" with the navigation mains in the menu sheet's order; open one → its link has `aria-current="page"`, also on its sub category pages → AC-5
 - [x] At 1280 with more than 6 navigation mains → `المزيد` lists the rest, then `كل الأقسام` (to `/c`); Enter opens it, Escape closes it and focus returns to the button → AC-5
 - [x] Make the navigation read fail (stop the database) at 1280 → no category bar, the header still renders → AC-5
 - [x] At 1280 → no bottom bar, and the footer is the last thing on the page (no empty room under it) → AC-6
@@ -20,7 +20,7 @@ _Steps derived from spec 0029 acceptance criteria. Ticked by `/check verify` on 
 
 ### Slice 2: browsing
 - [x] At 1024 with about 16 navigation mains → the row holds only whole links, the rest sit in `المزيد` in the same order, then `كل الأقسام`; Space opens it → AC-5
-- [ ] Widen that window to 1280 → more links move into the row; narrow it again → they move back; with few mains that all fit → no `المزيد` button → AC-5
+- [x] Widen that window to 1280 → more links move into the row; narrow it again → they move back; with few mains that all fit → no `المزيد` button → AC-5
 - [x] A category at 1280 → a 260 wide filter column on the right, the grid in 3 columns beside it; no `تصفية` button → AC-9, AC-10
 - [x] In the column, press a size chip → the address gains `size=`, the count and grid reload, the page does not jump, focus stays on the chip → AC-10
 - [x] Type `١٥٠` in `من` → nothing applies yet; press Enter (or `تطبيق`) → `min=150` joins the chip in the address → AC-10
@@ -40,8 +40,8 @@ _Steps derived from spec 0029 acceptance criteria. Ticked by `/check verify` on 
 - [x] `/checkout` at 820 → one centred column at most 720 wide, the summary card last → AC-14
 - [x] `/checkout` at 1280 by 800 → contact, method, and pay cards on the right, the 360 wide summary on the left, sticky; at 1280 by 640 → not sticky → AC-14
 - [x] On `/checkout` at 1280, focus `ملاحظات (اختياري)` and press Tab → focus lands on `تأكيد وإرسال عبر واتساب` in the summary; clear the name and press it → the form is refused and focus goes back to `الاسم الكامل` → AC-14
-- [ ] At 1280, open `/orders/track`, `/account/sign-in`, `/account/reset-password`, `/account` (signed in), and an order confirmation `/checkout/done/<number>` → each is a centred column 560 wide inside the full shell → AC-17
-- [ ] Break a storefront read (stop the local database) and open a category at 1280 → the error card sits in the centred 560 column → AC-17
+- [x] At 1280, open `/orders/track`, `/account/sign-in`, `/account/reset-password`, `/account` (signed in), and an order confirmation `/checkout/done/<number>` → each is a centred column 560 wide inside the full shell → AC-17
+- [x] Break a storefront read (stop the local database) and open a category at 1280 → the error card sits in the centred 560 column → AC-17
 - [x] `/policies/terms` at 1280 → a centred column 720 wide → AC-17
 - [x] Open unknown addresses `/no-such-page` and `/account/nothing` at 390, 820, and 1280 → HTTP 404, the designed 404 card (404, `الصفحة غير موجودة`, home, browse, WhatsApp) in the centred 560 column inside the full shell (header, footer, bottom bar below lg), one `h1`, tab title `الصفحة غير موجودة | S.K.F للإنارة`, `noindex` → AC-17
 - [x] Open `/`, `/c`, `/cart`, `/orders/track` → each still its own page, never the 404 (the unknown address catch all only takes what no route matches) → AC-17
@@ -50,32 +50,32 @@ _Steps derived from spec 0029 acceptance criteria. Ticked by `/check verify` on 
 ### Slice 4: accounts
 - [x] Look up an order at `/orders/track`, then view it at 820 → one centred column at most 720 wide, in phone order: status, products, payment, buttons → AC-15
 - [x] The same order at 1280 → products and payment on the right, the timeline (360 wide) and the WhatsApp and cancel buttons on the left; payment sits right under products when the products card is the taller one; Tab still goes status badge, products, payment, then the buttons → AC-15, AC-21
-- [ ] Known look: with a one line order the timeline is taller than products, so a gap shows above the payment card at 1280 (both columns share row lines); worth a look in the designer pass → AC-15
+- [x] Known look: with a one line order the timeline is taller than products, so a gap shows above the payment card at 1280 (both columns share row lines); worth a look in the designer pass → AC-15
 - [x] Sign in as an electrician with two orders and two drafts; `/account/orders` and `/account/drafts` at 390 → cards one across; at 820 and 1280 → two across → AC-15
 - [x] Open a draft in quick order at 1280 → a header row (product, size, colour, quantity) over rows of line number, product, size, colour, quantity, unit price, line total, delete; every row lines up with the header, also for a product with no size or colour; the totals card 360 wide on the left under the table → AC-16
 - [x] In a row at 1280, focus the quantity and press Tab → focus moves to that row's delete button; a screen reader still reads each field's own label (`الكود أو اسم المنتج`, `الحجم`, `اللون`, `الكمية`) and not the header row → AC-16, AC-21
-- [ ] Clear a line's quantity and press send → the error shows under that row, the quantity has `aria-invalid` and `aria-describedby` pointing at it → AC-16
-- [ ] Build 30 lines at 1280 → add line is held at 30; save and send work as on a phone → AC-16
-- [ ] At 390, quick order → the line cards look as before, the delete button in each card's top corner; Tab now reaches it after the line's fields → AC-1, AC-16
+- [x] Clear a line's quantity and press send → the error shows under that row, the quantity has `aria-invalid` and `aria-describedby` pointing at it → AC-16
+- [x] Build 30 lines at 1280 → add line is held at 30; save and send work as on a phone → AC-16
+- [x] At 390, quick order → the line cards look as before, the delete button in each card's top corner; Tab now reaches it after the line's fields → AC-1, AC-16
 - [x] As an electrician, open add to draft on a product at 1280 → a centred dialog 560 wide with a border and rounded corners, fading in; narrow the window to 900 while it is open → it stays open and becomes the bottom sheet → AC-18, AC-11
-- [ ] Open an admin sheet (the dashboard menu) at 1280 → unchanged, still a side panel → AC-18
+- [x] Open an admin sheet (the dashboard menu) at 1280 → unchanged, still a side panel → AC-18
 
 ### Desktop polish (after the first verify)
 - [x] Home at 820 with more circles than fit → arrows on both sides, back disabled at the start; press next → the row slides, back enables, next disables at the end; the page never scrolls sideways → AC-13
 - [x] Home at 1280 and 1920 when every circle fits → one centred row, no arrows; hover a circle → yellow ring → AC-13, AC-19
 - [x] At 1280 → the category bar opens with a yellow `كل الأقسام` link (grid icon, divider) to `/c`; hover a category → a yellow bar grows under it and the name turns yellow → AC-5
 - [x] At 1280 → hover `حسابي` and the cart → they turn yellow; the search box gets a yellow edge on hover and focus → AC-19
-- [ ] Turn on reduced motion → the chandelier is still, and hovers change at once (no fade, no zoom) → AC-13, AC-19
+- [x] Turn on reduced motion → the chandelier is still, and hovers change at once (no fade, no zoom) → AC-13, AC-19
 - [x] At 390 → the footer, header, and circles carousel look as before (no new columns, no copyright line, no arrows row) → AC-1
 
 ## Value sourcing
-- [ ] Category bar names, slugs, order: reorder or hide a main in `/admin/categories` → the bar follows the menu sheet's list exactly → AC-5
-- [ ] Current category: open a sub (`/c/<main>/<sub>`) and an Arabic slug main → the parent main is marked; a product page marks none → AC-5
+- [x] Category bar names, slugs, order: reorder or hide a main in `/admin/categories` → the bar follows the menu sheet's list exactly → AC-5
+- [x] Current category: open a sub (`/c/<main>/<sub>`) and an Arabic slug main → the parent main is marked; a product page marks none → AC-5
 - [x] `المزيد`, `كل الأقسام`, nav label: read from `Shell.more`, `Shell.allCategories`, `Shell.menuCategories` → AC-5
-- [ ] Header account link: same label and target as the bottom bar's `حسابي` tab (`routes.accountOrders`) → AC-4
-- [ ] Header cart count: add two different products → both cart links (only one visible at a time) say 2 → AC-4
+- [x] Header account link: same label and target as the bottom bar's `حسابي` tab (`routes.accountOrders`) → AC-4
+- [x] Header cart count: add two different products → both cart links (only one visible at a time) say 2 → AC-4
 - [x] Widths and breakpoints: resize across 767/768 and 1023/1024 → layout switches exactly there; `sm:`/`xl:` classes produce no CSS → AC-2
-- [ ] Filter column choices, applied filters, scope: the column shows the same sizes, colours, and price placeholders as the filters screen for the same list, and opens on what the address applies → AC-10
+- [x] Filter column choices, applied filters, scope: the column shows the same sizes, colours, and price placeholders as the filters screen for the same list, and opens on what the address applies → AC-10
 - [x] `تطبيق` label from `Filters.applyPrice` → AC-10
 - [ ] Home side card words: the hero's `Home` keys; `تسوّق الآن` goes to the circles, or to the featured products when there are no circles, and hides with neither; WhatsApp opens the general message → AC-13
 
