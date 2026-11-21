@@ -27,12 +27,12 @@ _Steps derived from spec 0029 acceptance criteria. Ticked by `/check verify` on 
 - [x] Remove a chip from the applied chips row → the column's chip unpresses; `مسح الكل` → the plain category address and empty price fields → AC-10
 - [x] At 900, open `تصفية`, then widen to 1100 → the filters screen closes; same with the menu sheet → AC-11
 - [x] Search a word at 390, 820, 1280 → 2, 3, then 3 columns beside the filter column (4 if the results offer no filters) → AC-9, AC-10
-- [ ] `/c` at 390, 820, 1280 → category cards 1, 2, 3 across; hover a card at 1280 → ink border → AC-9, AC-19
+- [x] `/c` at 390, 820, 1280 → picture cards 2, 3, 4 across; hover a card at 1280 → it lifts with an orange border (the amendment of 2026-11-21) → AC-9, AC-19
 - [x] A product at 820 → one centred column at most 720 wide; at 1280 → gallery on the right (main image 520 high), purchase box on the left, breadcrumb above both, description and specs across below → AC-12
 - [x] At 1280 by 800, scroll a long product page → the purchase box stays 16px from the top; at 1280 by 640 → it scrolls away → AC-12
-- [ ] Home with no banners at 820 and 1280 → the hero spans the content width, words on the right, chandelier on the left; circles in one row of the same size, centred with no arrows when they fit, with no pause or yellow button; trust cards 2 by 2, then 4 in a row at 1280; featured 3, then 4 across → AC-9, AC-13
-- [ ] Home with a banner at 820 → the banner centred at most 720 wide; at 1280 → the banner in the right two thirds, a black side card in the left third with an `h2` headline, `تسوّق الآن`, and WhatsApp; the page `h1` is still the hidden shop name → AC-13
-- [ ] Inspect the gallery photo and a banner → `sizes` are `(min-width: 1024px) 680px, (min-width: 768px) 672px, (min-width: 480px) 448px, 100vw` and `(min-width: 1024px) 830px, (min-width: 768px) 720px, (min-width: 480px) 448px, 100vw` → AC-20
+- [x] Home with no banners at 820 and 1280 → the coverflow hero band spans the screen with the `h1` headline above it; the category cards wrap into rows with the pressed category's products under them, 3 then 4 across; no pause button; trust cards 2 by 2, then 4 in a row at 1280 (specs 0030 and 0031) → AC-9, AC-13
+- [x] Home with a banner at 820 and 1280 → the banner sits under the hero, centred at most 720 wide; no side card at any width; the page `h1` is the hero headline (spec 0030) → AC-13
+- [x] Inspect the gallery photo and a banner → `sizes` are `(min-width: 1024px) 680px, (min-width: 768px) 672px, (min-width: 480px) 448px, 100vw` and `(min-width: 768px) 720px, (min-width: 480px) 448px, 100vw` (the banner value from spec 0030 AC-12) → AC-20
 
 ### Slice 3: buying
 - [x] Add a product, open `/cart` at 820 → one centred column at most 720 wide, the summary under the lines → AC-14
@@ -77,7 +77,7 @@ _Steps derived from spec 0029 acceptance criteria. Ticked by `/check verify` on 
 - [x] Widths and breakpoints: resize across 767/768 and 1023/1024 → layout switches exactly there; `sm:`/`xl:` classes produce no CSS → AC-2
 - [x] Filter column choices, applied filters, scope: the column shows the same sizes, colours, and price placeholders as the filters screen for the same list, and opens on what the address applies → AC-10
 - [x] `تطبيق` label from `Filters.applyPrice` → AC-10
-- [ ] Home side card words: the hero's `Home` keys; `تسوّق الآن` goes to the circles, or to the featured products when there are no circles, and hides with neither; WhatsApp opens the general message → AC-13
+- [x] Home side card: removed by spec 0030, so no `home-side-card` renders at 820 or 1280, with or without a banner → AC-13
 
 ## Commands
 - [x] `pnpm exec vitest run src/app/tailwind-lock.test.ts src/design-rules.test.ts src/components/page-frame.test.ts src/features/shell/nav.test.ts src/features/catalog/filters-form.test.ts` → all pass → AC-2, AC-3, AC-5, AC-10
