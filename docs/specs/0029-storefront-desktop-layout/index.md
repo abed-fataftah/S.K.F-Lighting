@@ -1,7 +1,7 @@
 # 0029. Storefront desktop and tablet layout (O-1)
 
 **Date**: 2026-11-10
-**Status**: In Progress
+**Status**: Accepted
 **Amended**: 2026-11-18. Spec [0030](../0030-hero-product-coverflow/index.md) replaces AC-13 (a) and (b): the hero is the product coverflow at every width, and the banner side card is removed (banners sit centred at 720px from `md`).
 **Amended**: 2026-11-18. Spec [0031](../0031-home-category-cards-products/index.md) replaces AC-13 (c) (the desktop circle row): from `md` the category cards wrap into rows inside the content box, with the pressed category's products under them.
 **Amended**: 2026-11-21, recording the owner's request built on 2026-11-20. The `/c` categories page replaces its part of AC-9 and AC-19: the mains are raised picture cards, 2 across below `md` (also on phones, the one phone change to AC-1), 3 at `md`, and 4 at `lg`. A hovered or focused card lifts and tilts a little, gets an orange (`brand`) border and edge, zooms its photo, and sweeps a light across it; under reduced motion it changes colour only. The card's shadow tokens are the one allowed exception to the no shadow rule. Product cards keep the ink border hover.

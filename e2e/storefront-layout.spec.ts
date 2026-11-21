@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
 import { buildSearchText, sizeKey } from "../src/features/catalog/search-text";
 import { createCustomer, removeTestAccounts, signInCustomer, uniqueEmail } from "./accounts";
 import { adminAccounts } from "./admin-auth";
@@ -146,6 +146,69 @@ test.describe("category page", () => {
     await expect(card).toHaveCSS("border-top-color", "rgb(222, 222, 216)");
     await card.hover();
     await expect(card).toHaveCSS("border-top-color", "rgb(17, 17, 17)");
+  });
+
+  // covers: AC-19
+  test("zooms a hovered card's photo a little inside its frame", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "a pointer that hovers");
+    await openCategory(page);
+    const card = page
+      .getByTestId("product-card")
+      .filter({ has: page.locator("img") })
+      .first();
+    test.skip((await card.count()) === 0, "the seeded products have no photos");
+    const photo = card.locator("img").first();
+    expect(await scaleOf(photo)).toBe(1);
+    await card.hover();
+    await expect.poll(() => scaleOf(photo)).toBeGreaterThan(1);
+    // The frame clips the zoom, so the card itself keeps its size.
+    await expect(card).toHaveCSS("overflow", "hidden");
+  });
+});
+
+/** The element's computed `scale`, as one number (1 when unscaled). */
+async function scaleOf(locator: Locator): Promise<number> {
+  const value = await locator.evaluate((el) => getComputedStyle(el).scale);
+  if (value === "none") return 1;
+  const first = value.split(" ")[0];
+  return first.endsWith("%") ? Number.parseFloat(first) / 100 : Number.parseFloat(first);
+}
+
+/** Where the element's drawn top edge sits in the window, transforms included. */
+async function drawnTop(locator: Locator): Promise<number> {
+  return locator.evaluate((el) => el.getBoundingClientRect().top);
+}
+
+// covers: AC-19 (spec 0029): hover colour and zoom take --dur-hover, which is 0 under reduced motion.
+test.describe("hover timing", () => {
+  test("fades a card's hover over --dur-hover", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "a pointer that hovers");
+    await openCategory(page);
+    await expect(page.getByTestId("product-card").first()).toHaveCSS("transition-duration", "0.2s");
+  });
+
+  test.describe("with reduced motion", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("changes a card's hover at once", async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "a pointer that hovers");
+      await openCategory(page);
+      const card = page.getByTestId("product-card").first();
+      await expect(card).toHaveCSS("transition-duration", "0s");
+      await card.hover();
+      await expect(card).toHaveCSS("border-top-color", "rgb(17, 17, 17)");
+    });
+
+    test("keeps a hovered /c card still, with no lift", async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "a pointer that hovers");
+      await page.goto("/c");
+      const card = page.getByTestId("category-list").locator("article").first();
+      await expect(card).toBeVisible({ timeout: 15_000 });
+      const before = await drawnTop(card);
+      await card.hover();
+      await expect(card).toHaveCSS("border-top-color", "rgb(247, 147, 30)");
+      expect(Math.abs((await drawnTop(card)) - before)).toBeLessThan(1);
+    });
   });
 });
 
@@ -383,6 +446,20 @@ test.describe("search and /c", () => {
     expect(tracks).toBe({ phone: 2, tablet: 3, desktop: 4 }[testInfo.project.name]);
     await expectNoAxeViolations(page);
     await expectNoSidewaysScroll(page);
+  });
+
+  // covers: AC-19 (spec 0029, amended 2026-11-21): a hovered /c card lifts with an orange border.
+  test("lifts a hovered category card with an orange border", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "a pointer that hovers");
+    await page.goto("/c");
+    const card = page.getByTestId("category-list").locator("article").first();
+    await expect(card).toBeVisible({ timeout: 15_000 });
+    const before = await drawnTop(card);
+    await card.hover();
+    await expect(card).toHaveCSS("border-top-color", "rgb(247, 147, 30)");
+    // It rises once its transition settles: translateY(-8px), less what the rotateX tilt gives back
+    // at the top edge (about 3px drawn).
+    await expect.poll(async () => before - (await drawnTop(card))).toBeGreaterThan(1);
   });
 });
 
