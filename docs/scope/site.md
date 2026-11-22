@@ -83,7 +83,7 @@ spec [0032](../specs/0032-light-hero-orange-brand/index.md) · code in `src/app/
   - [x] Light hero: surface, marker, white tint, dots, arrows, fallback card and chandelier, loading shape, hero flows (AC-5 to AC-13, AC-15)
   - [x] Sample pictures command with guards and tests, run locally (AC-14, AC-15)
   - [x] Finish: full suites, axe at three widths, Home screenshots against the mockup (AC-13, AC-15)
-- [ ] Verify it: `/check verify light hero & orange brand`
+- [x] Verify it: `/check verify light hero & orange brand`
 - [ ] Test it: `/test light hero & orange brand`
 
 ## Launch
