@@ -20,6 +20,9 @@ test.beforeEach(async ({ page }, testInfo) => {
 /** Opens Home and skips when the coverflow has fewer than three products. */
 async function openHome(page: Page) {
   await page.goto("/");
+  // Home streams behind loading.tsx: at load the hero can still wait in React's hidden container,
+  // where boundingBox() gives null.
+  await expect(page.getByTestId("home-hero")).toBeVisible({ timeout: 15_000 });
   const list = page.getByTestId("home-products");
   const count = await list.locator("li").count();
   test.skip(count < 3, "needs three or more products on Home");
