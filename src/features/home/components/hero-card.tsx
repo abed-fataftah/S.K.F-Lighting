@@ -29,9 +29,11 @@ export function HeroCard({
       data-testid="home-hero"
     >
       <div className="relative mx-auto w-full max-w-(--content-max) px-5 pt-6.5 pb-5 md:px-(--page-pad) md:pt-8 md:pb-6">
-        {/* From md the content box is wide, so the chandelier moves in from the corner; from lg
-            it grows to fill the empty end of the box. */}
-        <HeroChandelier className="absolute -end-6.5 top-0 md:end-8 lg:end-16 lg:h-60 lg:w-75" />
+        {/* On a phone it is drawn at half size in the corner, so it hangs beside the headline and
+            never crosses the ink words on white. From md the content box is wide, so the
+            chandelier moves in from the corner at full size; from lg it grows to fill the empty
+            end of the box. */}
+        <HeroChandelier className="absolute -end-4 top-0 h-20 w-25 md:end-8 md:h-40 md:w-50 lg:end-16 lg:h-60 lg:w-75" />
         <div className="relative flex min-h-39 flex-col items-start justify-center">
           <h1 id="hero-title" className="flex flex-col type-hero">
             <span>{t("heroLine1")}</span>
