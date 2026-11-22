@@ -45,7 +45,7 @@ spec [0027](../specs/0027-visitor-stats-error-alerts/index.md) · code in `src/f
 - [ ] Verify it: `/check verify visitor stats & error alerts`
 - [ ] Test it: `/test visitor stats & error alerts`
 
-### 36. Storefront desktop & tablet layout · in-progress · from spec 0029
+### 36. Storefront desktop & tablet layout · done · from spec 0029
 Give every storefront page a real tablet and desktop layout (one row desktop header with a category bar, wider grids, a filter column, two column product, cart, and checkout, a quick order table) while phones stay exactly as they are.
 **Done when:** no storefront page shows the narrow 480px strip on a tablet or laptop, nothing scrolls sideways from 768 to 1920px wide, and every phone test passes unchanged.
 spec [0029](../specs/0029-storefront-desktop-layout/index.md) · code in `src/components/page-frame.tsx`, `src/app/tokens.css`, `src/features/shell/`, `src/features/catalog/components/`, `e2e/storefront-layout.spec.ts`
@@ -56,8 +56,8 @@ spec [0029](../specs/0029-storefront-desktop-layout/index.md) · code in `src/co
   - [x] Buying: cart and checkout two columns, form and prose pages (AC-14, AC-17)
   - [x] Accounts: order details, my orders and drafts, quick order table, responsive sheet (AC-11, AC-15, AC-16, AC-18)
   - [x] Finish: drop `width="phone"`, axe and 200% zoom on all three widths, design docs updated (AC-21, AC-23)
-- [ ] Verify it: `/check verify storefront desktop & tablet layout`
-- [ ] Test it: `/test storefront desktop & tablet layout`
+- [x] Verify it: `/check verify storefront desktop & tablet layout`
+- [x] Test it: `/test storefront desktop & tablet layout`
 
 ### 38. Dashboard on phone and tablet · planned · needs a decision
 Real phone and tablet layouts for every dashboard page, so you can run orders and products from your phone: the sidebar becomes a drawer or bottom bar, tables turn into cards or scroll inside their own box, and KPI cards, form rows, and detail columns stack. Desktop stays as designed.

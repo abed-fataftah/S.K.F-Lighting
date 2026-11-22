@@ -61,7 +61,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 33 | Return requests | Slice 10 | planned |
 | 34 | Returns & exchanges | Slice 10 | planned |
 | 35 | Dashboard home | Slice 4 | planned |
-| 36 | Storefront desktop & tablet layout | Slice 8 | in-progress |
+| 36 | Storefront desktop & tablet layout | Slice 8 | done |
 | 37 | Hero product coverflow | Slice 8 | in-progress |
 | 38 | Dashboard on phone and tablet | Slice 8 | planned |
 | 39 | Small phone, landscape & large monitor sweep | Slice 8 | in-progress |

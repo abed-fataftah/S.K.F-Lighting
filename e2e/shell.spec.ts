@@ -463,6 +463,42 @@ test.describe("tablet shell", () => {
   });
 });
 
+// covers: AC-19 (spec 0029): at lg the header's account link and cart turn orange on hover, and the
+// search box gets an orange edge on hover and on focus.
+test.describe("desktop header hover", () => {
+  const brand = "rgb(247, 147, 30)";
+
+  test("turns the account link and the cart orange on hover", async ({ page }, testInfo) => {
+    test.skip(!isDesktop(testInfo), "the one row header is lg only");
+    const header = page.locator("header").first();
+    const account = header.getByTestId("header-account");
+    const cart = header.getByRole("link", { name: "السلة", exact: true });
+
+    await expect(account).toHaveCSS("color", "rgb(255, 255, 255)");
+    await account.hover();
+    await expect(account).toHaveCSS("color", brand);
+
+    await expect(cart).toHaveCSS("color", "rgb(255, 255, 255)");
+    await cart.hover();
+    await expect(cart).toHaveCSS("color", brand);
+  });
+
+  test("gives the search box an orange edge on hover and on focus", async ({ page }, testInfo) => {
+    test.skip(!isDesktop(testInfo), "the edge is lg only");
+    const search = page.getByRole("searchbox", { name: "ابحث في المتجر" });
+    const box = page.locator("label", { has: search });
+
+    await expect(box).toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
+    await box.hover();
+    await expect(box).toHaveCSS("border-top-color", brand);
+
+    await page.mouse.move(0, 0);
+    await expect(box).toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)");
+    await search.focus();
+    await expect(box).toHaveCSS("border-top-color", brand);
+  });
+});
+
 // covers: AC-13, AC-21
 test.describe("with reduced motion", () => {
   test.use({ reducedMotion: "reduce" });

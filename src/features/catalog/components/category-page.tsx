@@ -183,7 +183,7 @@ export async function CategoryPage({ address }: { readonly address: Address }) {
   if (!result.ok) {
     await reportError("category_head_read_failed", result.error);
     return (
-      <PageFrame width="wide" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
+      <PageFrame width="form" className="flex flex-col gap-4 px-(--page-pad) pt-5 pb-8">
         <PageErrorState heading="h1" title={t("errorTitle")} whatsappNumber={whatsappNumber} />
       </PageFrame>
     );

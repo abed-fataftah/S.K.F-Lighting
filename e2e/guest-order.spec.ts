@@ -5,6 +5,7 @@ import {
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
+import { orderableProductPath } from "./orders";
 import { ownIpHeaders } from "./own-ip";
 
 // covers: AC-3 to AC-9, AC-11, AC-12, AC-14 (spec 0004); AC-9, AC-14 (spec 0005).
@@ -26,9 +27,8 @@ async function checkA11y(page: Page) {
   await expectNoSidewaysScroll(page);
 }
 
-async function addFirstProduct(page: Page) {
-  await page.goto("/");
-  await page.getByTestId("home-products").getByRole("link").first().click();
+async function addSeedProduct(page: Page) {
+  await page.goto(await orderableProductPath());
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.getByTestId("add-to-cart").click();
   await expect(page.getByRole("link", { name: "عرض السلة" })).toBeVisible();
@@ -42,7 +42,7 @@ test("a guest finds a product, checks out, and lands on WhatsApp with the order 
   await page.goto("/");
   await checkA11y(page);
 
-  await addFirstProduct(page);
+  await addSeedProduct(page);
   await checkA11y(page);
   // The header count follows the cookie.
   await expect(page.locator("header").getByRole("link", { name: /السلة،/ })).toBeVisible();
@@ -99,7 +99,7 @@ test("another browser cannot open a confirmation page", async ({ browser }) => {
 });
 
 test("the cart adds to a line and removes it", async ({ page }) => {
-  await addFirstProduct(page);
+  await addSeedProduct(page);
   const added = page.waitForResponse((response) => response.request().method() === "POST");
   await page.getByTestId("add-to-cart").click();
   await added;
@@ -112,7 +112,7 @@ test("the cart adds to a line and removes it", async ({ page }) => {
 });
 
 test("delivery shows the zone fee in the total", async ({ page }) => {
-  await addFirstProduct(page);
+  await addSeedProduct(page);
   await page.goto("/checkout");
   const total = page.getByTestId("checkout-total");
   const pickupTotal = await total.textContent();
