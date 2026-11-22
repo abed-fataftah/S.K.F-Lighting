@@ -33,7 +33,7 @@ spec [0018](../specs/0018-my-orders/index.md) · code in `src/app/[locale]/accou
   - [x] Load more and empty: 20 per step with the count line, the page cap, the empty card (AC-5, AC-6)
   - [x] Getting here: links both ways with `/account`, the account tab and the default after sign in move to My Orders (AC-7, AC-8)
   - [x] Finish: loading skeleton, the centered column on computers, Playwright on 390 and 1280 with axe (AC-9, AC-10, AC-11)
-- [ ] Verify it: `/check verify my orders`
+- [x] Verify it: `/check verify my orders`
 - [ ] Test it: `/test my orders`
 
 ### 20. Customers & roles · GA · in-progress
