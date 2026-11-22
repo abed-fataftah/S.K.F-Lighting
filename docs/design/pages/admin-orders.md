@@ -38,13 +38,13 @@ Arabic only. Keys are proposals for the translation file (`messages/ar.json` ass
 | `admin-orders.27` | استلام |
 | `admin-orders.28` | دفعة جزئية |
 | `admin-orders.29` | مدفوع |
-| `admin-orders.30` | الطلبات الجديدة مميّزة بنقطة صفراء. |
+| `admin-orders.30` | الطلبات الجديدة مميّزة بنقطة برتقالية. |
 | `admin-orders.31` | رقم الطلب أو رقم الهاتف |
 | `admin-orders.32` | قائمة الطلبات |
 
 ## Layout
 Desktop (1280) (designed):
-Header h1 "الطلبات". Filter card (padding 14, gap 12): search field "بحث" (placeholder "رقم الطلب أو رقم الهاتف"), select "النوع" (الكل، عميل، كهربائي), select "الاستلام" (الكل، توصيل، استلام من المعرض), then a row of status toggle chips (الكل، جديد، قيد التجهيز، جاهز، تم التسليم، ملغي). Orders table: columns رقم الطلب, العميل, الهاتف, النوع, الاستلام, الحالة, الدفع, الإجمالي, التاريخ. New orders have a 10px orange dot (1px ink border) before the number. Note under the table: "الطلبات الجديدة مميّزة بنقطة صفراء."
+Header h1 "الطلبات". Filter card (padding 14, gap 12): search field "بحث" (placeholder "رقم الطلب أو رقم الهاتف"), select "النوع" (الكل، عميل، كهربائي), select "الاستلام" (الكل، توصيل، استلام من المعرض), then a row of status toggle chips (الكل، جديد، قيد التجهيز، جاهز، تم التسليم، ملغي). Orders table: columns رقم الطلب, العميل, الهاتف, النوع, الاستلام, الحالة, الدفع, الإجمالي, التاريخ. New orders have a 10px orange dot (1px ink border) before the number. Note under the table: "الطلبات الجديدة مميّزة بنقطة برتقالية."
 
 Mobile (390) and tablet: not drawn. Rule: below 780px of width the sidebar wraps above the content at full width; the content keeps one column; KPI cards, form rows and detail columns stack; tables scroll sideways inside their own box.
 

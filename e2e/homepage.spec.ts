@@ -363,6 +363,13 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
       "background-color",
       "rgb(247, 147, 30)",
     );
+    // A band across the whole screen like the coverflow, not a card (spec 0032 AC-5, AC-11).
+    await expect(hero).toHaveCSS("border-top-left-radius", "0px");
+    await expect(hero).toHaveCSS("border-bottom-width", "1px");
+    await expect(hero).toHaveCSS("border-inline-start-width", "0px");
+    const box = await hero.boundingBox();
+    expect(box?.x).toBe(0);
+    expect(box?.width).toBe(width);
     await checkA11y(customer);
   }
   await shopper.close();
