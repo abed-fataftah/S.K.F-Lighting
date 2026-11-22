@@ -95,6 +95,26 @@ test.describe("routes outside the storefront", () => {
     });
   }
 
+  // Spec 0029 AC-17: a route that finds nothing shows the not found card, and its tab says so,
+  // never the bare site title.
+  for (const path of [
+    "/no-such-page",
+    "/c/no-such-category",
+    "/c/no-such-category/no-such-sub",
+    "/p/no-such-product",
+    "/policies/no-such-policy",
+  ]) {
+    test(`gives the not found title at ${path}`, async ({ page }) => {
+      const response = await page.goto(path);
+
+      expect(response?.status()).toBe(404);
+      await expect(
+        page.getByRole("heading", { level: 1, name: "الصفحة غير موجودة" }),
+      ).toBeVisible();
+      await expect(page).toHaveTitle("الصفحة غير موجودة | S.K.F للإنارة");
+    });
+  }
+
   test("serves /favicon.ico directly as an image", async ({ request }) => {
     const response = await request.get("/favicon.ico", { maxRedirects: 0 });
 

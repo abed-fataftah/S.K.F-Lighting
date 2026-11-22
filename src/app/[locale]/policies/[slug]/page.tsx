@@ -31,7 +31,10 @@ export async function generateMetadata({
     getTranslations("Metadata"),
     getTranslations("Seo"),
   ]);
-  const page = await loadPage(slug);
+  // Not loadPage: notFound() thrown here would leave the tab on the layout's title. The page
+  // below still throws it and shows the not found card (spec 0029 AC-17).
+  const page = isPolicySlug(slug) ? await getPolicyPage(slug) : null;
+  if (!page) return { title: t("notFound") };
   const { siteUrl } = parsePublicEnv();
   // The body as plain words, cut like a product's (spec 0026 AC-10).
   const description = summarize(stripMarkdown(page.body)) ?? meta("description");

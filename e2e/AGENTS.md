@@ -8,7 +8,8 @@ Browser flows for every user facing path, in Arabic right to left, against the l
 
 | File | Owns |
 |---|---|
-| `../playwright.config.ts` | The projects (`phone`, `desktop`, `tablet`, then `homepage`, `settings`, `rate-limit` in order) and the two web servers |
+| `../playwright.config.ts` | The projects (`phone`, `desktop`, `tablet`, `small-phone`, `landscape`, `monitor`, then `homepage`, `settings`, `rate-limit` in order) and the two web servers |
+| `width-sweep.spec.ts` | The only spec on `small-phone` (320 by 568), `landscape` (844 by 390), and `monitor` (2560 by 1440): every storefront page at the widths spec 0029 left open (scope feature 39) |
 | `admin-setup.ts` | Global setup: makes the test accounts on the local Supabase, promotes admins with `pnpm admin:promote`, enrolls their authenticator |
 | `admin-auth.ts` | `adminAccounts()`, `signInAdmin()`, `totpCode()`, `serviceClient()`, `loadLocalEnv()` |
 | `a11y.ts` | `usePhoneWidth()`, `expectNoAxeViolations()`, `expectTouchTargets()`, `expectNoSidewaysScroll()`, `expectFocusOutline()` |
@@ -23,6 +24,7 @@ Browser flows for every user facing path, in Arabic right to left, against the l
 pnpm exec playwright test                          # on pnpm dev
 E2E_TARGET=preview pnpm exec playwright test       # on workerd, as CI does
 pnpm exec playwright test --project=phone e2e/cart.spec.ts
+pnpm exec playwright test --project=small-phone --project=landscape --project=monitor   # the width sweep
 ```
 
 ## Conventions

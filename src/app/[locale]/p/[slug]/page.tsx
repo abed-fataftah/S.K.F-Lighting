@@ -47,10 +47,13 @@ const loadProduct = (slug: string) => getProductPage(decodeSlug(slug));
 export async function generateMetadata({
   params,
 }: PageProps<"/[locale]/p/[slug]">): Promise<Metadata> {
-  const product = await loadProduct((await params).slug);
-  if (!product) return {};
-  const [t, meta, catalog, seo] = await Promise.all([
+  const [product, t] = await Promise.all([
+    loadProduct((await params).slug),
     getTranslations("PageTitles"),
+  ]);
+  // The page shows the not found card, so the tab says so too (spec 0029 AC-17).
+  if (!product) return { title: t("notFound") };
+  const [meta, catalog, seo] = await Promise.all([
     getTranslations("Metadata"),
     getTranslations("Catalog"),
     getTranslations("Seo"),
