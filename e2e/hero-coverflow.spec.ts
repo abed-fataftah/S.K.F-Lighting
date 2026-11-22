@@ -1,12 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
+  expectFocusOutline,
   expectNoAxeViolations,
   expectNoSidewaysScroll,
   expectTouchTargets,
   usePhoneWidth,
 } from "./a11y";
 
-// covers: AC-3 to AC-10, AC-13 (spec 0030); AC-5, AC-6, AC-15 (spec 0032): the hero coverflow on the phone, tablet, and desktop
+// covers: AC-3 to AC-10, AC-13 (spec 0030); AC-5 to AC-10, AC-15 (spec 0032): the hero coverflow on the phone, tablet, and desktop
 // projects, against whatever Home shows (the picks, else the newest products). It needs three or
 // more products and changes nothing; the homepage flow covers the picks, the small counts, the
 // banners under the hero, and the fallback card.
@@ -20,6 +21,9 @@ test.beforeEach(async ({ page }, testInfo) => {
 /** Opens Home and skips when the coverflow has fewer than three products. */
 async function openHome(page: Page) {
   await page.goto("/");
+  // Home streams behind loading.tsx: at load the hero can still wait in React's hidden container,
+  // where boundingBox() gives null.
+  await expect(page.getByTestId("home-hero")).toBeVisible({ timeout: 15_000 });
   const list = page.getByTestId("home-products");
   const count = await list.locator("li").count();
   test.skip(count < 3, "needs three or more products on Home");
@@ -91,6 +95,83 @@ test("places the centre card and its neighbours for the width", async ({ page },
   await expectNoAxeViolations(page);
   await expectTouchTargets(page);
   await expectNoSidewaysScroll(page);
+});
+
+// The token values as the browser computes them (tokens.css).
+const rgb = {
+  white: "rgb(255, 255, 255)",
+  ink: "rgb(17, 17, 17)",
+  muted: "rgb(85, 85, 85)",
+  page: "rgb(245, 245, 243)",
+  brand: "rgb(247, 147, 30)",
+  controlBorder: "rgb(138, 138, 132)",
+} as const;
+
+test("draws the side cards, centre words, dots, arrows, and buttons for the white surface", async ({
+  page,
+}, testInfo) => {
+  // covers: AC-7, AC-8, AC-9, AC-10 (spec 0032)
+  const { list } = await openHome(page);
+  const hero = page.getByTestId("home-hero");
+
+  // A side card fades toward white, not black (AC-7): its tint layer is white and shows.
+  const tints = await list
+    .locator("li")
+    .nth(1)
+    .locator("[role=group] span[aria-hidden]")
+    .evaluateAll((spans) =>
+      spans.map((span) => {
+        const style = getComputedStyle(span);
+        return { bg: style.backgroundColor, opacity: Number(style.opacity) };
+      }),
+    );
+  const shown = tints.filter((tint) => tint.opacity > 0 && tint.bg !== "rgba(0, 0, 0, 0)");
+  expect(shown.length).toBeGreaterThan(0);
+  expect(shown.every((tint) => tint.bg === rgb.white)).toBe(true);
+
+  // The centre card's name is ink; its price is ink, or grey when out of stock (AC-8).
+  const link = list.getByRole("link");
+  const price = link.getByTestId("hero-price");
+  const name = price.locator("xpath=preceding-sibling::span");
+  await expect(name).toHaveCSS("color", rgb.ink);
+  const outOfStock = await link.getByText("غير متوفر").count();
+  await expect(price).toHaveCSS("color", outOfStock ? rgb.muted : rgb.ink);
+
+  // The centred dot is orange with an ink edge; the others have the grey control edge (AC-9).
+  const dots = page.getByTestId("hero-dots").getByRole("button");
+  const current = dots.nth(0).locator("span");
+  await expect(current).toHaveCSS("background-color", rgb.brand);
+  await expect(current).toHaveCSS("border-top-color", rgb.ink);
+  await expect(dots.nth(1).locator("span")).toHaveCSS("border-top-color", rgb.controlBorder);
+
+  // Inside the white hero the focus outline is the ink one of light surfaces, not orange (AC-9).
+  await dots.nth(1).focus();
+  await expectFocusOutline(dots.nth(1), "ink");
+
+  // The WhatsApp button keeps its green and the 52 high size; "تسوّق المجموعة", when the
+  // categories exist, is the brand fill under ink text at the same height (AC-10).
+  const whatsapp = hero.getByRole("link", { name: "اطلب استشارة" });
+  await expect(whatsapp).toHaveCSS("background-color", "rgb(30, 123, 79)");
+  expect(Math.round((await whatsapp.boundingBox())!.height)).toBe(52);
+  const shop = hero.getByRole("link", { name: "تسوّق المجموعة" });
+  if (await shop.count()) {
+    await expect(shop).toHaveCSS("background-color", rgb.brand);
+    await expect(shop).toHaveCSS("color", rgb.ink);
+    expect(Math.round((await shop.boundingBox())!.height)).toBe(52);
+  }
+
+  // From lg the arrows are white 44 by 44 circles with a grey edge and ink chevrons, page grey on
+  // hover (AC-9).
+  if (testInfo.project.name === "desktop") {
+    const next = hero.getByRole("button", { name: "المنتج التالي" });
+    await expect(next).toHaveCSS("background-color", rgb.white);
+    await expect(next).toHaveCSS("border-top-color", rgb.controlBorder);
+    await expect(next).toHaveCSS("color", rgb.ink);
+    const box = (await next.boundingBox())!;
+    expect([Math.round(box.width), Math.round(box.height)]).toEqual([44, 44]);
+    await next.hover();
+    await expect(next).toHaveCSS("background-color", rgb.page);
+  }
 });
 
 test("moves one step on a swipe, centres a side card on a tap, and opens the centred product", async ({

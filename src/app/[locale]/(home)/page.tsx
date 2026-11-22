@@ -18,7 +18,6 @@ import { heroChoice, shopNowTarget } from "@/features/home/home-rules";
 import { getDeliveryFees, getHomeSections } from "@/features/home/server/home";
 import { parsePublicEnv } from "@/lib/public-env";
 import { routes } from "@/lib/routes";
-import { cn } from "@/lib/utils";
 import { PageFrame } from "@/components/page-frame";
 
 // Home's own title names the town; its share tags use the shop image (spec 0026 AC-8).
@@ -77,13 +76,15 @@ export default async function HomePage() {
     <>
       {hero === "coverflow" ? (
         <HeroCoverflow products={featured} whatsappNumber={whatsappNumber} jumpTo={jumpTo} />
-      ) : null}
-      <PageFrame width="wide" className={cn("flex flex-col pb-8", hero === "card" && "pt-3.5")}>
+      ) : (
+        <HeroCard whatsappNumber={whatsappNumber} jumpTo={jumpTo} />
+      )}
+      <PageFrame width="wide" className="flex flex-col pb-8">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(store) }}
         />
-        {hero === "card" ? <HeroCard whatsappNumber={whatsappNumber} jumpTo={jumpTo} /> : null}
+
         {banners.length ? (
           // Under the hero (spec 0030 AC-12): the column's width below md, centred at most 720
           // wide from md.

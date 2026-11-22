@@ -1,7 +1,7 @@
 # 0032. Light hero and orange brand colour
 
 **Date**: 2026-11-19
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 

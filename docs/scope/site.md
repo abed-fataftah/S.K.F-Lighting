@@ -72,19 +72,19 @@ spec [0029](../specs/0029-storefront-desktop-layout/index.md) (the gaps it left 
   - [x] The `small-phone` (320 by 568), `landscape` (844 by 390), and `monitor` (2560 by 1440) Playwright projects, running the width sweep over every storefront page: no sideways scroll, axe, 44px targets, the shell parts on a sideways phone, the centred 1280 box and full width backgrounds on a monitor
   - [x] The two things that broke below 360px: the hero's button pair and a product card's add and WhatsApp buttons wrap, through the one `narrow` variant; everything else held as it was
 
-### 43. Light hero & orange brand · in-progress · from spec 0032
+### 43. Light hero & orange brand · done · from spec 0032
 The Home hero moves from the black band to a white surface, and the brand colour changes from yellow to orange (#F7931E) across the storefront, dashboard, logo, and link preview pictures; in code the colour is renamed `brand`. A dev only `pnpm media:samples` command gives local products and main categories glowing sample pictures until the real photos are uploaded.
 **Done when:** no `yellow` name or value is left in the code, the logo and share pictures are orange, the hero and its fallback card are white at 390, 820, and 1280px with the orange marker under line 2, axe passes, and `media:samples` fills local pictures and refuses a non local database.
-spec [0032](../specs/0032-light-hero-orange-brand/index.md)
+spec [0032](../specs/0032-light-hero-orange-brand/index.md) · code in `src/app/tokens.css`, `src/features/home/components/hero-coverflow.tsx`, `src/features/home/components/hero-card.tsx`, `src/features/home/components/hero-chandelier.tsx`, `src/app/[locale]/(home)/loading.tsx`, `public/brand/`, `src/features/catalog/media-samples.ts`, `scripts/media-samples.ts`
 - [x] Design it (spec): `/architect light hero and orange brand colour`
-- [ ] Build it: `/develop light hero & orange brand`
+- [x] Build it: `/develop light hero & orange brand`
   - [x] Brand token end to end: tokens, contrast table, every class, `cn()` names, gallery and Arabic copy, tests and docs (AC-1, AC-2, AC-4, AC-15)
   - [x] Logo and share pictures recoloured and made again (AC-3)
   - [x] Light hero: surface, marker, white tint, dots, arrows, fallback card and chandelier, loading shape, hero flows (AC-5 to AC-13, AC-15)
   - [x] Sample pictures command with guards and tests, run locally (AC-14, AC-15)
-  - [ ] Finish: full suites, axe at three widths, Home screenshots against the mockup (AC-13, AC-15)
-- [ ] Verify it: `/check verify light hero & orange brand`
-- [ ] Test it: `/test light hero & orange brand`
+  - [x] Finish: full suites, axe at three widths, Home screenshots against the mockup (AC-13, AC-15)
+- [x] Verify it: `/check verify light hero & orange brand`
+- [x] Test it: `/test light hero & orange brand`
 
 ## Launch
 

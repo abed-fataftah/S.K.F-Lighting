@@ -44,7 +44,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 16 | Order page & guest lookup | Slice 4 | in-progress |
 | 17 | Cancel before delivery | Slice 4 | in-progress |
 | 18 | Customer accounts | Slice 5 | in-progress |
-| 19 | My Orders | Slice 5 | in-progress |
+| 19 | My Orders | Slice 5 | done |
 | 20 | Customers & roles | Slice 5 | in-progress |
 | 21 | Electrician quick order & drafts | Slice 6 | in-progress |
 | 22 | Add to draft from the catalog | Slice 6 | in-progress |
@@ -68,14 +68,14 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 40 | Installable web app | Slice 11 | planned |
 | 41 | Google Play listing | Slice 11 | planned |
 | 42 | Home category cards & their products | Slice 8 | in-progress |
-| 43 | Light hero & orange brand | Slice 8 | in-progress |
+| 43 | Light hero & orange brand | Slice 8 | done |
 
 ## Areas
 
 - [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 6 of 6 done.
 - [Catalog](catalog.md): features 7 to 11, 25, 37, and 42 (products, import, categories, product page, search, homepage, hero coverflow, category cards). 4 of 8 done.
 - [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
-- [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 0 of 6 done.
+- [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 1 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.
 - [Site & launch](site.md): features 26, 28 to 30, 36, 38, 39, and 43 (settings and policies, search visibility, stats, desktop and tablet layout, dashboard on phone and tablet, the width sweep, light hero and orange brand, go live). 0 of 8 done.
 - [Loyalty](loyalty.md): features 31 and 32, after launch. 0 of 2 done.

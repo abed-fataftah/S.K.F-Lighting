@@ -534,6 +534,9 @@ test.describe("home", () => {
     await page.goto("/");
     const project = testInfo.project.name;
     const hero = page.getByTestId("home-hero");
+    // Home streams behind loading.tsx: at load the hero can still wait in React's hidden container,
+    // where boundingBox() gives null.
+    await expect(hero).toBeVisible({ timeout: 15_000 });
     const width = page.viewportSize()!.width;
     const heroBox = await hero.boundingBox();
     if (await page.getByTestId("home-products").count()) {

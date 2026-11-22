@@ -231,6 +231,8 @@ test.describe("a small phone", () => {
     // Below 360 (the `narrow` variant) the pairs that fit side by side at 390 wrap.
     await page.goto("/");
     const hero = page.getByTestId("home-hero");
+    // Home streams behind loading.tsx: wait for the hero to leave React's hidden container.
+    await expect(hero).toBeVisible({ timeout: 15_000 });
     const buttons = hero.locator("a[href*='wa.me'], a[href^='#']");
     if ((await buttons.count()) === 2) {
       const [first, second] = await Promise.all([box(buttons.nth(0)), box(buttons.nth(1))]);

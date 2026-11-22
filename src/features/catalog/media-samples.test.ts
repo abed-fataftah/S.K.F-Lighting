@@ -1,8 +1,11 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import {
   SAMPLE_DRAWINGS,
+  SAMPLE_SIZES,
   SAMPLE_TONES,
+  type SampleTarget,
   isLocalSupabaseUrl,
   pickSample,
   sampleSvg,
@@ -51,6 +54,17 @@ describe("pickSample", () => {
     expect(pickSample(id)).toEqual(pickSample(id));
   });
 
+  it("picks the drawing from sha256 byte 0 modulo 5 and the tone from byte 1 modulo 4 (AC-14)", () => {
+    const ids = Array.from({ length: 50 }, () => randomUUID());
+    for (const id of ids) {
+      const digest = createHash("sha256").update(id).digest();
+      expect(pickSample(id)).toEqual({
+        drawing: SAMPLE_DRAWINGS[digest[0] % 5],
+        tone: digest[1] % 4,
+      });
+    }
+  });
+
   it("uses all five drawings and all four tones over 200 ids", () => {
     const picks = Array.from({ length: 200 }, () => pickSample(randomUUID()));
     expect(new Set(picks.map((pick) => pick.drawing)).size).toBe(SAMPLE_DRAWINGS.length);
@@ -72,5 +86,32 @@ describe("sampleSvg", () => {
 
     const category = sampleSvg({ drawing: "bulb", target: "category", background: "a", glow: "b" });
     expect(category).toContain('width="800" height="800" viewBox="0 0 200 200"');
+  });
+
+  it("adds no colour of its own: every colour in the picture is one it was given", () => {
+    for (const drawing of SAMPLE_DRAWINGS) {
+      const svg = sampleSvg({ drawing, target: "product", background: "BG", glow: "GLOW" });
+      expect(svg).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+      expect(svg).not.toMatch(/rgb|hsl/i);
+    }
+  });
+
+  // The runner turns the SVG into WebP with sharp; a broken drawing would fail there.
+  it.each(
+    SAMPLE_DRAWINGS.flatMap((drawing) =>
+      (Object.keys(SAMPLE_SIZES) as SampleTarget[]).map((target) => ({ drawing, target })),
+    ),
+  )("renders the $drawing drawing as a $target WebP at its size", async ({ drawing, target }) => {
+    // Named colours stand in for the tokens.css values the runner passes.
+    const svg = sampleSvg({ drawing, target, background: "linen", glow: "orange" });
+    const { width, height } = SAMPLE_SIZES[target];
+
+    const webp = await sharp(Buffer.from(svg))
+      .resize(width, height)
+      .webp({ quality: 80 })
+      .toBuffer();
+    const meta = await sharp(webp).metadata();
+
+    expect(meta).toMatchObject({ format: "webp", width, height });
   });
 });
