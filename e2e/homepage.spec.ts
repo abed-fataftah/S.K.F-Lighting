@@ -352,6 +352,30 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
     "background-color",
     "rgb(247, 147, 30)",
   );
+  // Every solid part of the chandelier (chain, sleeves, crystals) shows on white: 1.5:1 or more.
+  // The faint glow circles carry their own low opacity and are left out (spec 0032 AC-11).
+  const faint = await hero
+    .locator("svg")
+    .first()
+    .evaluate((svg) => {
+      const channel = (v: number) => {
+        const c = v / 255;
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (colour: string) => {
+        const [r, g, b] = (colour.match(/\d+(\.\d+)?/g) ?? []).map(Number);
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+      };
+      return Array.from(svg.querySelectorAll("line, rect, path, circle"))
+        .filter((part) => !part.hasAttribute("opacity"))
+        .map((part) => {
+          const style = getComputedStyle(part);
+          const paint = style.fill !== "none" ? style.fill : style.stroke;
+          return { tag: part.tagName, paint, ratio: 1.05 / (luminance(paint) + 0.05) };
+        })
+        .filter((part) => part.ratio < 1.5);
+    });
+  expect(faint).toEqual([]);
   await checkA11y(customer);
   // The same light fallback on the tablet and desktop band (spec 0032 AC-13).
   for (const width of [820, 1280]) {
