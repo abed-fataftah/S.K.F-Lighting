@@ -22,7 +22,7 @@ spec [0017](../specs/0017-customer-accounts/index.md) · code in `src/features/a
 - [x] Review it (fresh model): `/check review customer accounts`
 - [ ] Document it: `/document customer accounts`
 
-### 19. My Orders · in-progress
+### 19. My Orders · done
 A page for registered customers and electricians listing their orders with status and remaining balance (and loyalty coins once Slice 9 ships).
 **Done when:** a signed in user sees only their own orders, each with status and what is still owed, and can open any one.
 spec [0018](../specs/0018-my-orders/index.md) · code in `src/app/[locale]/account/orders/`, `src/features/orders/` (`my-orders.ts`, `server/my-orders.ts`, `components/my-order*.tsx`)
@@ -34,7 +34,7 @@ spec [0018](../specs/0018-my-orders/index.md) · code in `src/app/[locale]/accou
   - [x] Getting here: links both ways with `/account`, the account tab and the default after sign in move to My Orders (AC-7, AC-8)
   - [x] Finish: loading skeleton, the centered column on computers, Playwright on 390 and 1280 with axe (AC-9, AC-10, AC-11)
 - [x] Verify it: `/check verify my orders`
-- [ ] Test it: `/test my orders`
+- [x] Test it: `/test my orders`
 
 ### 20. Customers & roles · GA · in-progress
 In the dashboard, view registered customers and their orders, and promote a regular user to electrician (or back).
