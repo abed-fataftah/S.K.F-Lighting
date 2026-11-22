@@ -353,5 +353,17 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
     "rgb(247, 147, 30)",
   );
   await checkA11y(customer);
+  // The same light fallback on the tablet and desktop band (spec 0032 AC-13).
+  for (const width of [820, 1280]) {
+    await customer.setViewportSize({ width, height: 900 });
+    await customer.goto("/");
+    await expect(hero.locator("svg").first()).toBeVisible();
+    await expect(hero).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(customer.locator("h1 span").nth(1)).toHaveCSS(
+      "background-color",
+      "rgb(247, 147, 30)",
+    );
+    await checkA11y(customer);
+  }
   await shopper.close();
 });

@@ -10,6 +10,7 @@ _Steps derived from spec 0032 acceptance criteria. `/check verify` runs these; `
 - [ ] Tab into the hero → the focus outline is ink (not orange) → AC-9
 - [ ] "تسوّق الآن" is orange with ink text, "اطلب عبر واتساب" is green; both 52px high → AC-10
 - [ ] Hide every product locally and open `/` → the fallback card is white with the marker, and the chandelier's chain, sleeves, and crystals all show on white → AC-11
+- [ ] With every product still hidden, open `/` at 820 and 1280px → the fallback is a white band with line 2 on the orange marker, and axe is clean → AC-11, AC-13
 - [ ] Throttle the network and open `/` → the loading hero is white with grey skeleton blocks in the same shape → AC-12
 - [ ] Look at the header, footer, bottom bar, cart badge, category cards, dashboard sidebar, and buttons → every former yellow is orange; tab through the black header → the focus outline is orange → AC-2
 - [ ] Open `/design-system` → 19 contrast pairs, including control border on brand tint at 3.07:1, with the Arabic copy saying "برتقالية" → AC-1, AC-2
