@@ -42,7 +42,8 @@ test.beforeAll(async () => {
   const sql = localSql();
   try {
     const [category] = await sql<{ id: string }[]>`
-      insert into categories (name, slug) values (${`عريض ${tag}`}, ${categorySlug}) returning id`;
+      insert into categories (name, slug, show_on_home)
+      values (${`طويل ${tag}`}, ${categorySlug}, false) returning id`;
     const photo = await tallPhoto();
     const storage = serviceClient().storage.from("product-media");
     for (const [name, code, available] of [
