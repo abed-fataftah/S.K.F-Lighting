@@ -14,6 +14,7 @@ import {
   type PointerEvent,
 } from "react";
 import { ImagePlaceholder } from "@/components/image-placeholder";
+import { coverLoader } from "@/image-loader";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,6 +45,9 @@ import { useReducedMotion } from "../motion";
 
 // The card width at each breakpoint (AC-2), as `--category-card` sets it.
 const SIZES = "(min-width: 1024px) 200px, (min-width: 768px) 180px, 140px";
+// The card is 4:5 over the category's 1:1 upload crop (spec 0011), so Supabase cuts the photo to
+// the card's shape at each width and the browser never enlarges it (scope feature 44).
+const cardPhoto = coverLoader(4 / 5);
 const tones = [1, 2, 3, 4] as const;
 /** A key driven fetch waits this long after the last key, so holding an arrow never fires one
  * request per card (AC-3). */
@@ -129,6 +133,7 @@ function CategoryCard({
           alt=""
           fill
           sizes={SIZES}
+          loader={cardPhoto}
           draggable={false}
           className="object-cover"
         />

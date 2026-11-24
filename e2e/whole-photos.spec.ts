@@ -1,11 +1,16 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import sharp from "sharp";
 import { adminAccounts, serviceClient } from "./admin-auth";
-import { usePhoneWidth } from "./a11y";
+import {
+  expectNoAxeViolations,
+  expectNoSidewaysScroll,
+  expectTouchTargets,
+  usePhoneWidth,
+} from "./a11y";
 import { localSql } from "./local-db";
 
 // covers: scope feature 44 (whole product photos in every frame) on the phone, tablet, and desktop
-// projects. A landscape photo (a shape no frame has) is uploaded for real, so the browser gets what
+// projects. A tall 1:2 photo (a shape no frame has at any width) is uploaded for real, so the browser gets what
 // Supabase renders: the category card and the cart tile receive it whole, at its own ratio, and
 // draw it contained; the hero's photos arrive at the ratio their rows store; an out of stock card
 // fades the photo while its frame keeps the product tone.
@@ -14,9 +19,9 @@ const accounts = adminAccounts();
 const tag = Date.now().toString(36);
 const CODE = `WHOLE-E2E-${tag.toUpperCase()}`;
 const categorySlug = `whole-e2e-${tag}`;
-const LAMP = `لمبة عريضة ${tag}`;
-const OUT = `لمبة منتهية ${tag}`;
-const PHOTO = { width: 400, height: 300 } as const;
+const LAMP = `ثريا طويلة ${tag}`;
+const OUT = `ثريا منتهية ${tag}`;
+const PHOTO = { width: 300, height: 600 } as const;
 const keys: string[] = [];
 
 test.beforeEach(async ({ page }, testInfo) => {
@@ -24,8 +29,8 @@ test.beforeEach(async ({ page }, testInfo) => {
   await usePhoneWidth(page, testInfo);
 });
 
-/** A plain landscape JPEG the render endpoint can resize. */
-const landscapePhoto = () =>
+/** A plain tall JPEG the render endpoint can resize. */
+const tallPhoto = () =>
   sharp({ create: { ...PHOTO, channels: 3, background: { r: 230, g: 140, b: 20 } } })
     .jpeg({ quality: 80 })
     .toBuffer();
@@ -36,7 +41,7 @@ test.beforeAll(async () => {
   try {
     const [category] = await sql<{ id: string }[]>`
       insert into categories (name, slug) values (${`عريض ${tag}`}, ${categorySlug}) returning id`;
-    const photo = await landscapePhoto();
+    const photo = await tallPhoto();
     const storage = serviceClient().storage.from("product-media");
     for (const [name, code, available] of [
       [LAMP, CODE, true],
@@ -51,7 +56,7 @@ test.beforeAll(async () => {
       await sql`
         insert into product_variants (product_id, price, is_default)
         values (${product.id}, ${12_000}, true)`;
-      const key = `products/${product.id}/e2e-wide.jpg`;
+      const key = `products/${product.id}/e2e-tall.jpg`;
       const { error } = await storage.upload(key, photo, { contentType: "image/jpeg" });
       if (error) throw new Error(`Could not upload the test photo: ${error.message}`);
       keys.push(key);
@@ -108,17 +113,41 @@ async function expectWhole(img: Locator, ratio: number) {
   return photo;
 }
 
-const landscape = PHOTO.width / PHOTO.height;
+const tall = PHOTO.width / PHOTO.height;
 const card = (page: Page, name: string) =>
   page.getByTestId("product-card").filter({ hasText: name });
 
-test("the category card and the cart tile show the whole landscape photo", async ({ page }) => {
+async function checkA11y(page: Page) {
+  await expectNoAxeViolations(page);
+  await expectTouchTargets(page);
+  await expectNoSidewaysScroll(page);
+}
+
+/**
+ * The frame (the img's own box, since the photo fills it) has a different shape from the photo,
+ * so a cover crop would have cut something, and the size `object-fit: contain` draws the photo
+ * at fits inside the frame with a band on one axis.
+ */
+function expectContainedInFrame(photo: {
+  readonly box: { readonly width: number; readonly height: number };
+  readonly ratio: number;
+}) {
+  const frameRatio = photo.box.width / photo.box.height;
+  expect(Math.abs(frameRatio - photo.ratio)).toBeGreaterThan(0.1);
+  const drawnWidth = Math.min(photo.box.width, photo.box.height * photo.ratio);
+  const drawnHeight = drawnWidth / photo.ratio;
+  expect(drawnWidth).toBeLessThanOrEqual(photo.box.width + 0.5);
+  expect(drawnHeight).toBeLessThanOrEqual(photo.box.height + 0.5);
+  expect(drawnWidth < photo.box.width - 0.5 || drawnHeight < photo.box.height - 0.5).toBe(true);
+}
+
+test("the category card and the cart tile show the whole tall photo", async ({ page }) => {
   await page.goto(`/c/${categorySlug}`);
   const lamp = card(page, LAMP);
   await expect(lamp).toBeVisible();
-  // The photo is wider than any frame, so contained it is the frame's width and shorter than it.
-  const onCard = await expectWhole(lamp.locator("img"), landscape);
-  expect(onCard.box.width).toBeGreaterThan(onCard.box.height);
+  const onCard = await expectWhole(lamp.locator("img"), tall);
+  expectContainedInFrame(onCard);
+  await checkA11y(page);
 
   await lamp.getByTestId("card-add-to-cart").click();
   await expect(lamp.getByTestId("card-add-to-cart")).toContainText("تمت الإضافة");
@@ -126,13 +155,14 @@ test("the category card and the cart tile show the whole landscape photo", async
   await page.goto("/cart");
   const line = page.getByTestId("cart-lines").getByRole("listitem").filter({ hasText: LAMP });
   await expect(line).toBeVisible();
-  await expectWhole(line.locator("img"), landscape);
+  expectContainedInFrame(await expectWhole(line.locator("img"), tall));
+  await checkA11y(page);
 });
 
 test("an out of stock card fades the photo and keeps the tone on its frame", async ({ page }) => {
   await page.goto(`/c/${categorySlug}`);
   const img = card(page, OUT).locator("img");
-  await expectWhole(img, landscape);
+  await expectWhole(img, tall);
   await expect(img).toHaveCSS("opacity", "0.45");
   await expect(img).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   const frameTone = await img.evaluate((el) => getComputedStyle(el.parentElement!).backgroundColor);
@@ -142,12 +172,18 @@ test("an out of stock card fades the photo and keeps the tone on its frame", asy
 test("the hero's photos arrive at the ratio their rows store", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("home-hero")).toBeVisible({ timeout: 15_000 });
-  const imgs = page.getByTestId("home-products").locator("img");
+  // The centred card and its shown neighbours only: a card hidden at the side loads lazily and
+  // may never load while it stays hidden.
+  const imgs = page
+    .getByTestId("home-products")
+    .locator("li")
+    .filter({ visible: true })
+    .locator("img");
   const count = await imgs.count();
-  test.skip(count === 0, "no product on Home has a photo");
+  test.skip(count === 0, "no product shown on Home has a photo");
   const sql = localSql();
   try {
-    for (let i = 0; i < Math.min(count, 3); i += 1) {
+    for (let i = 0; i < count; i += 1) {
       const photo = await receivedPhoto(imgs.nth(i));
       const [row] = await sql<{ width: number; height: number }[]>`
         select width, height from product_media where storage_key = ${photo.key}`;

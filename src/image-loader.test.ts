@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import supabaseImageLoader from "./image-loader";
+import supabaseImageLoader, { coverLoader } from "./image-loader";
 
 describe("supabaseImageLoader", () => {
   beforeEach(() => {
@@ -40,6 +40,25 @@ describe("supabaseImageLoader", () => {
     const large = supabaseImageLoader({ src: "products/p1/a.webp", width: 1080 });
 
     expect(small).not.toBe(large);
+  });
+
+  describe("coverLoader", () => {
+    it("asks for the frame's height at the requested width and a cover crop", () => {
+      const url = new URL(coverLoader(4 / 5)({ src: "categories/c1.webp", width: 384 }));
+
+      expect(url.searchParams.get("width")).toBe("384");
+      expect(url.searchParams.get("height")).toBe("480");
+      expect(url.searchParams.get("resize")).toBe("cover");
+      expect(url.searchParams.get("quality")).toBe("75");
+      expect(url.pathname).toBe("/storage/v1/render/image/public/product-media/categories/c1.webp");
+    });
+
+    it("rounds the height to whole pixels and keeps the given quality", () => {
+      const url = new URL(coverLoader(16 / 9)({ src: "banners/b1.webp", width: 750, quality: 60 }));
+
+      expect(url.searchParams.get("height")).toBe("422");
+      expect(url.searchParams.get("quality")).toBe("60");
+    });
   });
 
   it("keeps the object key path intact under the bucket", () => {
