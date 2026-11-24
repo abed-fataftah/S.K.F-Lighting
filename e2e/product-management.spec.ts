@@ -141,6 +141,11 @@ test("the owner adds a product with sizes, colours, and a photo, then hides, edi
   await expect(row.getByTestId("product-price").locator("bdi[dir=ltr]")).toHaveText("₪100");
   await expect(row.getByTestId("product-options")).toHaveText("2 أحجام · 2 ألوان");
   await expect(row.getByTestId("product-status")).toHaveText("متوفر");
+  // The photo tile keeps its size on a phone, where the table is wider than its scroll box and
+  // the global `img { max-width: 100% }` once shrank it to nothing (scope feature 44).
+  await expect
+    .poll(() => row.locator("img").evaluate((img) => img.getBoundingClientRect().width))
+    .toBe(44);
   await checkA11y(page);
 
   // Hide it: its shop page is gone at once; show it again.
