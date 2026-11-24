@@ -125,3 +125,6 @@ code in `src/features/catalog/components/product-card.tsx`, `src/features/home/c
   - [x] Line thumbnails (cart, order summary, draft combobox, homepage product picker, admin products table): same fit
   - [x] Self check: typecheck, lint, unit tests, and the Home, catalog, and cart flows on phone, tablet, and desktop
   - [x] Debug 2026-11-24: the crop came from the server, not the CSS. `src/image-loader.ts` sent `width` alone and the Supabase render endpoint's default `resize=cover` kept the full height and cut the width to the middle strip (a 1200 by 1500 photo at `width=300` came back 300 by 1500). The loader now sends `resize=contain`; unit test beside it
+  - [x] Playwright `e2e/whole-photos.spec.ts` on phone, tablet, and desktop: a landscape photo arrives whole and contained on the category card and the cart tile, the hero photos arrive at their stored ratio, and the out of stock fade dims the photo while the frame keeps its tone
+- [ ] Verify it: `/check verify whole product photos in every frame`
+- [ ] Test it: `/test whole product photos in every frame`

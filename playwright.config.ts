@@ -35,7 +35,7 @@ export default defineConfig({
         hasTouch: true,
       },
       testMatch:
-        /(shell|storefront-layout|hero-coverflow|home-category-cards|categories|search-filters|product-page|cart|checkout-delivery)\.spec\.ts/,
+        /(shell|storefront-layout|hero-coverflow|home-category-cards|categories|search-filters|product-page|cart|checkout-delivery|whole-photos)\.spec\.ts/,
     },
     // The widths spec 0029 left open (scope feature 39): a small phone, a phone held sideways,
     // and a large monitor. They run the width sweep only; every other flow keeps its three widths.

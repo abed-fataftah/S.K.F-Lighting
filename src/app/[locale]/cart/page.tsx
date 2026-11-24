@@ -100,18 +100,18 @@ export default async function CartPage() {
               <li key={line.variantId}>
                 <Card className="flex-row gap-3">
                   {line.imageKey ? (
-                    // Decorative: the product name sits beside it as a link.
-                    <Image
-                      src={line.imageKey}
-                      alt=""
-                      width={72}
-                      height={72}
-                      sizes="72px"
-                      className={cn(
-                        "size-18 shrink-0 rounded-tile bg-product-1 object-contain",
-                        !line.sellable && "opacity-45",
-                      )}
-                    />
+                    // Decorative: the product name sits beside it as a link. The tone is on the
+                    // tile, so a line that cannot be bought fades its photo and not its frame.
+                    <span className="size-18 shrink-0 overflow-hidden rounded-tile bg-product-1">
+                      <Image
+                        src={line.imageKey}
+                        alt=""
+                        width={72}
+                        height={72}
+                        sizes="72px"
+                        className={cn("size-full object-contain", !line.sellable && "opacity-45")}
+                      />
+                    </span>
                   ) : (
                     <ImagePlaceholder
                       tone={((index % 4) + 1) as 1 | 2 | 3 | 4}
