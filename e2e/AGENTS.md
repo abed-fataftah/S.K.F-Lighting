@@ -39,6 +39,8 @@ pnpm exec playwright test --project=small-phone --project=landscape --project=mo
 
 - Dashboard and account flows skip themselves unless the local Supabase is running and `admin-setup.ts` made the accounts.
 - A flow that changes shared shop data (Home banners, WhatsApp number, delivery zones, policy pages) must run in its own serial project after the others and put the data back when it ends. Add it to the chain in `playwright.config.ts`, and to every parallel project's `testIgnore`.
+- A product inserted straight into the database has a null `search_text`, so the storefront search, the quick order combobox, and the homepage picker never find it; set it (folded name, then the lower case code) or create the product through the dashboard.
+- The product flows leave their products on the local database with a 2 by 2 placeholder photo, which lands on Home's hero as the newest product; a check that reads a Home photo must leave tiny stored sizes out, as `whole-photos.spec.ts` does.
 - `rate-limit.spec.ts` runs last and sends its own IP. The local limiter counts in wall clock minute windows, so it waits for a fresh window when the current one is nearly over; six submits across a boundary would never be refused.
 
 ## Related specs
