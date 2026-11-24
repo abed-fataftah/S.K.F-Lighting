@@ -108,7 +108,7 @@ export default async function CartPage() {
                       height={72}
                       sizes="72px"
                       className={cn(
-                        "size-18 shrink-0 rounded-tile bg-product-1 object-cover",
+                        "size-18 shrink-0 rounded-tile bg-product-1 object-contain",
                         !line.sellable && "opacity-45",
                       )}
                     />

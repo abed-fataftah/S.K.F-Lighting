@@ -27,7 +27,7 @@ export function ProductLine({ product }: { readonly product: PickerProduct }) {
     <span className="flex min-w-0 flex-1 items-center gap-3">
       <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-btn bg-product-1">
         {product.imageKey ? (
-          <Image src={product.imageKey} alt="" fill sizes="44px" className="object-cover" />
+          <Image src={product.imageKey} alt="" fill sizes="44px" className="object-contain" />
         ) : (
           <Lamp aria-hidden className="size-5 text-on-dark-muted" strokeWidth={1.5} />
         )}

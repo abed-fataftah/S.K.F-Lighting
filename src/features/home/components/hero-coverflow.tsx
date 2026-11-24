@@ -106,7 +106,7 @@ function Picture({
           loading={index === 0 ? "eager" : "lazy"}
           fetchPriority={index === 0 ? "high" : undefined}
           draggable={false}
-          className={cn("object-cover", !product.inStock && "opacity-45")}
+          className={cn("object-contain", !product.inStock && "opacity-45")}
         />
       ) : (
         <ImagePlaceholder

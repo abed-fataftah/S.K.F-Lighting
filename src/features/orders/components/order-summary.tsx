@@ -35,7 +35,7 @@ export function OrderSummary(order: OrderSummaryProps) {
                   width={52}
                   height={52}
                   sizes="52px"
-                  className="size-(--size-tile-order) shrink-0 rounded-tile bg-product-1 object-cover"
+                  className="size-(--size-tile-order) shrink-0 rounded-tile bg-product-1 object-contain"
                 />
               ) : (
                 <ImagePlaceholder

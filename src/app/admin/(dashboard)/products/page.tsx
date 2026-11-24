@@ -201,7 +201,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
                         alt=""
                         width={44}
                         height={44}
-                        className="size-(--size-tile-table) rounded-btn bg-product-1 object-cover"
+                        className="size-(--size-tile-table) rounded-btn bg-product-1 object-contain"
                       />
                     ) : (
                       <ImagePlaceholder className="size-(--size-tile-table) rounded-btn [&_svg]:size-6" />

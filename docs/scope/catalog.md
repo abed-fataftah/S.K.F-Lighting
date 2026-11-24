@@ -115,3 +115,12 @@ spec [0031](../specs/0031-home-category-cards-products/index.md) · code in `src
   - [x] Finish: Playwright on phone, tablet, and desktop, the no JavaScript check, axe (AC-11)
 - [ ] Verify it: `/check verify home category cards with products`
 - [ ] Test it: `/test home category cards with products`
+
+### 44. Whole product photos in every frame · in-progress
+Product photos are uploaded whole, but the Home hero cards, product cards (Home, category, search, and related lists), and the cart, order, and draft thumbnails zoom and crop them to fill a fixed frame, so a box or bulb photo loses its edges. Show the full photo inside each frame on the product background instead; category cards and banners keep their chosen crop. Decided 2026-11-24: show the whole photo, no crop tool, no blurred fill.
+**Done when:** every product photo shows complete, uncropped, in the hero coverflow, every product card, and every line thumbnail at 390, 820, and 1280px, the hover zoom still stays inside the card, the product page gallery is unchanged, and the existing Home, catalog, and cart tests pass.
+code in `src/features/catalog/components/product-card.tsx`, `src/features/home/components/hero-coverflow.tsx`, and the cart, order, draft, picker, and admin table thumbnails
+- [x] Build it: `/develop whole product photos in every frame`
+  - [x] Hero coverflow and product card: the photo fits whole inside the frame on the product background, the hover zoom stays clipped
+  - [x] Line thumbnails (cart, order summary, draft combobox, homepage product picker, admin products table): same fit
+  - [x] Self check: typecheck, lint, unit tests, and the Home, catalog, and cart flows on phone, tablet, and desktop

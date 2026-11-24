@@ -22,7 +22,8 @@ const tones = [1, 2, 3, 4] as const;
 // WhatsApp button asks about availability (W4) instead of the product (W3). Electricians also get
 // the "add to draft" button in the photo's end corner (spec 0021 AC-3). On a device that can hover
 // the border turns ink and the photo zooms in a little inside its frame (spec 0029 AC-19;
-// Tailwind's hover: applies only there).
+// Tailwind's hover: applies only there). The photo shows whole on the product background, never
+// cropped to the frame (scope feature 44).
 export function ProductCard({
   product,
   index,
@@ -66,7 +67,7 @@ export function ProductCard({
                 fill
                 sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, (min-width: 480px) 240px, 50vw"
                 className={cn(
-                  "bg-product-1 object-cover transition-transform duration-(--dur-hover) group-hover/card:scale-104",
+                  "bg-product-1 object-contain transition-transform duration-(--dur-hover) group-hover/card:scale-104",
                   !product.inStock && "opacity-45",
                 )}
               />
