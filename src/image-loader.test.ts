@@ -14,8 +14,18 @@ describe("supabaseImageLoader", () => {
     const url = supabaseImageLoader({ src: "products/p1/a.webp", width: 640, quality: 80 });
 
     expect(url).toBe(
-      "https://project.supabase.co/storage/v1/render/image/public/product-media/products/p1/a.webp?width=640&quality=80",
+      "https://project.supabase.co/storage/v1/render/image/public/product-media/products/p1/a.webp?width=640&quality=80&resize=contain",
     );
+  });
+
+  // Regression (scope feature 44): without `resize=contain` the endpoint's default `cover` keeps
+  // the photo's full height and cuts the width to the middle strip, so every frame got a cropped
+  // photo no matter what CSS the frame used.
+  it("asks for resize=contain so a width alone scales the whole photo instead of cropping it", () => {
+    const url = new URL(supabaseImageLoader({ src: "products/p1/a.webp", width: 300 }));
+
+    expect(url.searchParams.get("resize")).toBe("contain");
+    expect(url.searchParams.has("height")).toBe(false);
   });
 
   it("defaults quality to 75 when next/image passes none", () => {

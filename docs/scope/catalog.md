@@ -124,3 +124,4 @@ code in `src/features/catalog/components/product-card.tsx`, `src/features/home/c
   - [x] Hero coverflow and product card: the photo fits whole inside the frame on the product background, the hover zoom stays clipped
   - [x] Line thumbnails (cart, order summary, draft combobox, homepage product picker, admin products table): same fit
   - [x] Self check: typecheck, lint, unit tests, and the Home, catalog, and cart flows on phone, tablet, and desktop
+  - [x] Debug 2026-11-24: the crop came from the server, not the CSS. `src/image-loader.ts` sent `width` alone and the Supabase render endpoint's default `resize=cover` kept the full height and cut the width to the middle strip (a 1200 by 1500 photo at `width=300` came back 300 by 1500). The loader now sends `resize=contain`; unit test beside it
