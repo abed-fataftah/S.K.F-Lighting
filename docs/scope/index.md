@@ -69,7 +69,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 41 | Google Play listing | Slice 11 | planned |
 | 42 | Home category cards & their products | Slice 8 | in-progress |
 | 43 | Light hero & orange brand | Slice 8 | done |
-| 44 | Whole product photos in every frame | Slice 8 | in-progress |
+| 44 | Whole product photos in every frame | Slice 8 | done |
 
 ## Areas
 

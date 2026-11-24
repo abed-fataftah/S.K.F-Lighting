@@ -106,6 +106,8 @@ async function receivedPhoto(img: Locator) {
 // The browser reports a photo's natural size in whole numbers after dividing by the srcset
 // density, so a small tile's ratio lands a little off; a cropped strip is off by 0.5 or more.
 const RATIO_TOLERANCE = 0.08;
+/** A stored side below this is a test placeholder, not a photo the hero can be judged by. */
+const TINY_PHOTO = 32;
 
 /** The photo came whole from Supabase, at the ratio its row stores, and is drawn contained. */
 async function expectWhole(img: Locator, ratio: number) {
@@ -185,17 +187,34 @@ test("the hero's photos arrive at the ratio their rows store", async ({ page }) 
   const count = await imgs.count();
   test.skip(count === 0, "no product shown on Home has a photo");
   const sql = localSql();
+  let checked = 0;
   try {
     for (let i = 0; i < count; i += 1) {
-      const photo = await receivedPhoto(imgs.nth(i));
+      const img = imgs.nth(i);
+      // The stored size first, from the `src` the server rendered: a placeholder photo another
+      // flow left behind (the product flows upload a 2 by 2 PNG) comes back 2 by 2, and the
+      // browser reports its natural width as 0 once divided by the srcset density, so it can
+      // prove nothing here and is left out.
+      const key = await img.evaluate((el) =>
+        decodeURIComponent(
+          (el as HTMLImageElement)
+            .getAttribute("src")!
+            .replace(/^.*product-media\//, "")
+            .split("?")[0],
+        ),
+      );
       const [row] = await sql<{ width: number; height: number }[]>`
-        select width, height from product_media where storage_key = ${photo.key}`;
-      test.skip(!row?.width || !row.height, "a Home photo has no stored size");
+        select width, height from product_media where storage_key = ${key}`;
+      if (!row?.width || !row.height || row.width < TINY_PHOTO || row.height < TINY_PHOTO) continue;
+      const photo = await receivedPhoto(img);
+      expect(photo.key).toBe(key);
       expect(photo.query).toContain("resize=contain");
       expect(photo.objectFit).toBe("contain");
       expect(Math.abs(photo.ratio - row.width / row.height)).toBeLessThan(RATIO_TOLERANCE);
+      checked += 1;
     }
   } finally {
     await sql.end();
   }
+  test.skip(checked === 0, "every photo shown on Home is a tiny placeholder from another flow");
 });
