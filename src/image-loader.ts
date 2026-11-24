@@ -19,8 +19,10 @@ export default function supabaseImageLoader({ src, width, quality }: ImageLoader
 /**
  * A loader for a frame that crops the photo to `aspect` (width over height) with `object-cover`
  * and may be taller than the photo, like Home's 4:5 category card over its 1:1 upload crop.
- * Supabase cuts the photo to the frame's shape at the requested width, so the browser gets the
- * frame's full height and never enlarges a photo shorter than the frame.
+ * Supabase cuts the photo to the frame's shape at the requested width, so a photo at least
+ * `width / aspect` tall arrives at the frame's full height and the browser has nothing to enlarge.
+ * Supabase never enlarges: a smaller photo comes back at its own size and `object-cover` still
+ * scales it up, as it did before.
  */
 export function coverLoader(aspect: number): ImageLoader {
   return ({ src, width, quality }) =>
@@ -42,9 +44,12 @@ function renderUrl(
   },
 ) {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // Each segment encoded, as `mediaObjectUrl` does, so a key with a space, `#`, or `?` still
+  // reaches the object and keeps the query intact.
+  const path = src.split("/").map(encodeURIComponent).join("/");
   const params = new URLSearchParams({ width: String(options.width) });
   if (options.height !== undefined) params.set("height", String(options.height));
   params.set("quality", String(options.quality));
   params.set("resize", options.resize);
-  return `${base}/storage/v1/render/image/public/product-media/${src}?${params}`;
+  return `${base}/storage/v1/render/image/public/product-media/${path}?${params}`;
 }

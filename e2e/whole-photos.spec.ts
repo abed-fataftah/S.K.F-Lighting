@@ -16,7 +16,9 @@ import { localSql } from "./local-db";
 // fades the photo while its frame keeps the product tone.
 
 const accounts = adminAccounts();
-const tag = Date.now().toString(36);
+// With the worker's pid, as accounts.ts does: the phone, tablet, and desktop workers each load
+// this file, and two of them can start in the same millisecond.
+const tag = `${Date.now().toString(36)}${process.pid.toString(36)}`;
 const CODE = `WHOLE-E2E-${tag.toUpperCase()}`;
 const categorySlug = `whole-e2e-${tag}`;
 const LAMP = `ثريا طويلة ${tag}`;

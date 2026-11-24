@@ -46,7 +46,8 @@ import { useReducedMotion } from "../motion";
 // The card width at each breakpoint (AC-2), as `--category-card` sets it.
 const SIZES = "(min-width: 1024px) 200px, (min-width: 768px) 180px, 140px";
 // The card is 4:5 over the category's 1:1 upload crop (spec 0011), so Supabase cuts the photo to
-// the card's shape at each width and the browser never enlarges it (scope feature 44).
+// the card's shape at each width; a photo tall enough for the width arrives at the card's full
+// height, with nothing left for the browser to enlarge (scope feature 44).
 const cardPhoto = coverLoader(4 / 5);
 const tones = [1, 2, 3, 4] as const;
 /** A key driven fetch waits this long after the last key, so holding an arrow never fires one

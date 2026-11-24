@@ -61,6 +61,17 @@ describe("supabaseImageLoader", () => {
     });
   });
 
+  it("encodes each key segment, so a space, hash, or question mark reaches the object", () => {
+    const url = new URL(supabaseImageLoader({ src: "products/p1/a b#1?.webp", width: 100 }));
+
+    expect(url.pathname).toBe(
+      "/storage/v1/render/image/public/product-media/products/p1/a%20b%231%3F.webp",
+    );
+    expect(url.hash).toBe("");
+    expect(url.searchParams.get("width")).toBe("100");
+    expect(url.searchParams.get("resize")).toBe("contain");
+  });
+
   it("keeps the object key path intact under the bucket", () => {
     const url = new URL(supabaseImageLoader({ src: "products/abc-123/f00d.png", width: 100 }));
 
