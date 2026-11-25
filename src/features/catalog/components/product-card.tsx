@@ -13,6 +13,7 @@ import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
 import type { CardProduct } from "../card-view";
+import { PhotoColour } from "./photo-colour";
 
 const tones = [1, 2, 3, 4] as const;
 
@@ -62,6 +63,10 @@ export function ProductCard({
           {product.imageKey ? (
             // Its own clip, so the hover zoom never spills over the words or the corner button.
             <span className="absolute inset-0 overflow-hidden bg-product-1">
+              <PhotoColour
+                imageKey={product.imageKey}
+                className={cn(!product.inStock && "opacity-45")}
+              />
               <Image
                 src={product.imageKey}
                 alt={product.name}

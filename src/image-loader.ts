@@ -34,13 +34,22 @@ export function coverLoader(aspect: number): ImageLoader {
     });
 }
 
+/**
+ * The photo's own average colour, as one pixel: `resize=fill` squeezes the whole photo into 1 by 1,
+ * so the pixel is the mean of every pixel, edges included. Stretched over a product frame behind
+ * the contained photo, it fills the space beside a tall or wide photo with the photo's tone, flat,
+ * with no blur (spec 0003). Every width the browser asks for gets the same tiny file.
+ */
+export const colourLoader: ImageLoader = ({ src }) =>
+  renderUrl(src, { width: 1, height: 1, quality: 75, resize: "fill" });
+
 function renderUrl(
   src: string,
   options: {
     readonly width: number;
     readonly height?: number;
     readonly quality: number;
-    readonly resize: "contain" | "cover";
+    readonly resize: "contain" | "cover" | "fill";
   },
 ) {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -117,7 +117,10 @@ test.describe("category page", () => {
 
   test("gives card photos the sizes of their new widths", async ({ page }) => {
     await openCategory(page);
-    const photo = page.getByTestId("product-card").locator("img").first();
+    const photo = page
+      .getByTestId("product-card")
+      .locator('img:not([data-testid="photo-colour"])')
+      .first();
     test.skip((await photo.count()) === 0, "the seeded products have no photos");
     await expect(photo).toHaveAttribute(
       "sizes",
@@ -157,7 +160,7 @@ test.describe("category page", () => {
       .filter({ has: page.locator("img") })
       .first();
     test.skip((await card.count()) === 0, "the seeded products have no photos");
-    const photo = card.locator("img").first();
+    const photo = card.locator('img:not([data-testid="photo-colour"])').first();
     expect(await scaleOf(photo)).toBe(1);
     await card.hover();
     await expect.poll(() => scaleOf(photo)).toBeGreaterThan(1);
@@ -516,7 +519,10 @@ test.describe("product page", () => {
 
   test("gives the gallery photo the sizes of its new width", async ({ page }) => {
     await openProduct(page);
-    const photo = page.getByTestId("product-gallery").locator("img").first();
+    const photo = page
+      .getByTestId("product-gallery")
+      .locator('img:not([data-testid="photo-colour"])')
+      .first();
     test.skip((await photo.count()) === 0, "the seeded product has no photos");
     await expect(photo).toHaveAttribute(
       "sizes",

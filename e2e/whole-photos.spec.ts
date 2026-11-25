@@ -119,6 +119,61 @@ async function expectWhole(img: Locator, ratio: number) {
 }
 
 const tall = PHOTO.width / PHOTO.height;
+/** The product photo itself, not the one pixel colour layer drawn behind it. */
+const PHOTO_IMG = 'img:not([data-testid="photo-colour"])';
+/** The test photo's flat colour, which its one pixel fill must match. */
+const PHOTO_RGB = [230, 140, 20] as const;
+
+/**
+ * The colour layer behind a photo: one pixel of the whole photo from Supabase, stretched over the
+ * whole frame, drawn under the photo, and the same colour as the photo (JPEG may shift it a little).
+ */
+async function expectColourFill(page: Page, frame: Locator) {
+  const fill = frame.getByTestId("photo-colour").first();
+  await fill.scrollIntoViewIfNeeded();
+  // Its natural width reads 0, not 1: the browser divides the one pixel by the srcset density.
+  // A decoded image is the proof it arrived.
+  await expect
+    .poll(
+      () =>
+        fill.evaluate((el) =>
+          (el as HTMLImageElement).decode().then(
+            () => true,
+            () => false,
+          ),
+        ),
+      { timeout: 20_000 },
+    )
+    .toBe(true);
+  const drawn = await fill.evaluate((el) => {
+    const image = el as HTMLImageElement;
+    const photo = image.parentElement!.querySelector<HTMLImageElement>(
+      'img:not([data-testid="photo-colour"])',
+    )!;
+    const own = image.getBoundingClientRect();
+    const frameBox = image.parentElement!.getBoundingClientRect();
+    return {
+      src: image.currentSrc,
+      own: { width: own.width, height: own.height },
+      frame: { width: frameBox.width, height: frameBox.height },
+      first: image.compareDocumentPosition(photo) & Node.DOCUMENT_POSITION_FOLLOWING,
+    };
+  });
+  const query = new URL(drawn.src).searchParams;
+  expect(query.get("width")).toBe("1");
+  expect(query.get("height")).toBe("1");
+  expect(query.get("resize")).toBe("fill");
+  expect(Math.abs(drawn.own.width - drawn.frame.width)).toBeLessThan(1);
+  expect(Math.abs(drawn.own.height - drawn.frame.height)).toBeLessThan(1);
+  expect(drawn.first).toBeTruthy();
+  const response = await page.request.get(drawn.src);
+  expect(response.ok()).toBe(true);
+  const pixel = await sharp(await response.body())
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  PHOTO_RGB.forEach((channel, i) => expect(Math.abs(pixel[i] - channel)).toBeLessThan(16));
+}
 const card = (page: Page, name: string) =>
   page.getByTestId("product-card").filter({ hasText: name });
 
@@ -150,7 +205,7 @@ test("the category card and the cart tile show the whole tall photo", async ({ p
   await page.goto(`/c/${categorySlug}`);
   const lamp = card(page, LAMP);
   await expect(lamp).toBeVisible();
-  const onCard = await expectWhole(lamp.locator("img"), tall);
+  const onCard = await expectWhole(lamp.locator(PHOTO_IMG), tall);
   expectContainedInFrame(onCard);
   await checkA11y(page);
 
@@ -160,15 +215,35 @@ test("the category card and the cart tile show the whole tall photo", async ({ p
   await page.goto("/cart");
   const line = page.getByTestId("cart-lines").getByRole("listitem").filter({ hasText: LAMP });
   await expect(line).toBeVisible();
-  expectContainedInFrame(await expectWhole(line.locator("img"), tall));
+  expectContainedInFrame(await expectWhole(line.locator(PHOTO_IMG), tall));
+  await checkA11y(page);
+});
+
+test("the card and the product page fill the space beside the photo with its colour", async ({
+  page,
+}) => {
+  await page.goto(`/c/${categorySlug}`);
+  const lamp = card(page, LAMP);
+  await expect(lamp).toBeVisible();
+  await expectColourFill(page, lamp);
+
+  await page.goto(`/p/${CODE.toLowerCase()}`);
+  const gallery = page.getByTestId("product-gallery");
+  await expect(gallery).toBeVisible();
+  // The tall photo is drawn whole in the wide gallery frame, with its colour on both sides.
+  expectContainedInFrame(
+    await expectWhole(gallery.getByTestId("gallery-photo").locator("img"), tall),
+  );
+  await expectColourFill(page, gallery);
   await checkA11y(page);
 });
 
 test("an out of stock card fades the photo and keeps the tone on its frame", async ({ page }) => {
   await page.goto(`/c/${categorySlug}`);
-  const img = card(page, OUT).locator("img");
+  const img = card(page, OUT).locator(PHOTO_IMG);
   await expectWhole(img, tall);
   await expect(img).toHaveCSS("opacity", "0.45");
+  await expect(card(page, OUT).getByTestId("photo-colour")).toHaveCSS("opacity", "0.45");
   await expect(img).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   const frameTone = await img.evaluate((el) => getComputedStyle(el.parentElement!).backgroundColor);
   expect(frameTone).not.toBe("rgba(0, 0, 0, 0)");
@@ -183,7 +258,7 @@ test("the hero's photos arrive at the ratio their rows store", async ({ page }) 
     .getByTestId("home-products")
     .locator("li")
     .filter({ visible: true })
-    .locator("img");
+    .locator(PHOTO_IMG);
   const count = await imgs.count();
   test.skip(count === 0, "no product shown on Home has a photo");
   const sql = localSql();

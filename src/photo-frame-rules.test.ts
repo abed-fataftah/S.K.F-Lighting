@@ -34,6 +34,13 @@ const productFrames: readonly string[] = [
   "features/catalog/components/media-section.tsx",
 ];
 
+/** The big frames, where the space beside a tall or wide photo shows: they fill it with its colour. */
+const colourFilledFrames: readonly string[] = [
+  "features/catalog/components/product-card.tsx",
+  "features/home/components/hero-coverflow.tsx",
+  "features/catalog/components/product-gallery.tsx",
+];
+
 function stripComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[\s;{}()])\/\/.*$/gm, "$1");
 }
@@ -94,6 +101,10 @@ describe("photo frame rules: the source", () => {
     const code = read(file);
     expect(code).toContain(CONTAIN);
     expect(code).not.toContain(COVER);
+  });
+
+  it.each(colourFilledFrames)("%s fills the space beside the photo with its colour", (file) => {
+    expect(read(file)).toMatch(/<PhotoColour\s[^>]*imageKey=/);
   });
 
   it("gives every image tile inside a table its own width", () => {

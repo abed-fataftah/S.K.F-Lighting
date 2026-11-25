@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import supabaseImageLoader from "@/image-loader";
 import { stepIndex, type GalleryItem } from "../product-view";
 import { FullScreenGallery } from "./full-screen-gallery";
+import { PhotoColour } from "./photo-colour";
 import { useStripPosition } from "./use-strip-position";
 
 const POSTER_WIDTH = 828;
@@ -89,6 +90,7 @@ export function ProductGallery({
               data-index={index}
               className="relative h-full w-full shrink-0 snap-center"
             >
+              {item.kind === "photo" ? <PhotoColour imageKey={item.key} /> : null}
               {item.kind === "photo" ? (
                 <button
                   type="button"

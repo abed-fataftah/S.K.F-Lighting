@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import supabaseImageLoader, { coverLoader } from "./image-loader";
+import supabaseImageLoader, { colourLoader, coverLoader } from "./image-loader";
 
 describe("supabaseImageLoader", () => {
   beforeEach(() => {
@@ -78,5 +78,22 @@ describe("supabaseImageLoader", () => {
     expect(url.pathname).toBe(
       "/storage/v1/render/image/public/product-media/products/abc-123/f00d.png",
     );
+  });
+
+  describe("colourLoader", () => {
+    // Scope feature 44: the frame's fill is the photo's average colour, so the whole photo must be
+    // squeezed into the pixel (`fill`), not its middle (`cover`) or a letterboxed copy (`contain`).
+    it("asks for the whole photo squeezed into one pixel, whatever width the browser asks for", () => {
+      for (const width of [16, 640, 3840]) {
+        const url = new URL(colourLoader({ src: "products/p1/a.webp", width }));
+
+        expect(url.pathname).toBe(
+          "/storage/v1/render/image/public/product-media/products/p1/a.webp",
+        );
+        expect(url.searchParams.get("width")).toBe("1");
+        expect(url.searchParams.get("height")).toBe("1");
+        expect(url.searchParams.get("resize")).toBe("fill");
+      }
+    });
   });
 });

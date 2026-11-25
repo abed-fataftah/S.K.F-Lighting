@@ -278,7 +278,7 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
   const heroPhoto = featured
     .locator("li")
     .filter({ has: customer.getByRole("link") })
-    .locator("img");
+    .locator('img:not([data-testid="photo-colour"])');
   await expect
     .poll(() => heroPhoto.evaluate((el) => (el as HTMLImageElement).naturalWidth))
     .toBeGreaterThan(0);

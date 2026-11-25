@@ -117,7 +117,7 @@ spec [0031](../specs/0031-home-category-cards-products/index.md) · code in `src
 - [ ] Test it: `/test home category cards with products`
 
 ### 44. Whole product photos in every frame · done
-Product photos are uploaded whole, but the Home hero cards, product cards (Home, category, search, and related lists), and the cart, order, and draft thumbnails zoom and crop them to fill a fixed frame, so a box or bulb photo loses its edges. Show the full photo inside each frame on the product background instead; category cards and banners keep their chosen crop. Decided 2026-11-24: show the whole photo, no crop tool, no blurred fill.
+Product photos are uploaded whole, but the Home hero cards, product cards (Home, category, search, and related lists), and the cart, order, and draft thumbnails zoom and crop them to fill a fixed frame, so a box or bulb photo loses its edges. Show the full photo inside each frame on the product background instead; category cards and banners keep their chosen crop. Decided 2026-11-24: show the whole photo, no crop tool, no blurred fill. Changed 2026-11-25: the space beside the photo in the product card, the hero coverflow, and the product page gallery takes the photo's own average colour (flat, no blur, spec 0003), on every screen size.
 **Done when:** every product photo shows complete, uncropped, in the hero coverflow, every product card, and every line thumbnail at 390, 820, and 1280px, the hover zoom still stays inside the card, the product page gallery is unchanged, and the existing Home, catalog, and cart tests pass.
 code in `src/features/catalog/components/product-card.tsx`, `src/features/home/components/hero-coverflow.tsx`, and the cart, order, draft, picker, and admin table thumbnails
 - [x] Build it: `/develop whole product photos in every frame`
@@ -126,5 +126,6 @@ code in `src/features/catalog/components/product-card.tsx`, `src/features/home/c
   - [x] Self check: typecheck, lint, unit tests, and the Home, catalog, and cart flows on phone, tablet, and desktop
   - [x] Debug 2026-11-24: the crop came from the server, not the CSS. `src/image-loader.ts` sent `width` alone and the Supabase render endpoint's default `resize=cover` kept the full height and cut the width to the middle strip (a 1200 by 1500 photo at `width=300` came back 300 by 1500). The loader now sends `resize=contain`; unit test beside it
   - [x] Playwright `e2e/whole-photos.spec.ts` on phone, tablet, and desktop: a tall 1:2 photo arrives whole and contained on the category card and the cart tile, the hero photos arrive at their stored ratio, and the out of stock fade dims the photo while the frame keeps its tone
+  - [x] Colour fill 2026-11-25: `PhotoColour` (`src/features/catalog/components/photo-colour.tsx`) stretches one pixel from `colourLoader` (`resize=fill` at 1 by 1, the whole photo's mean) behind the contained photo in the card, hero, and gallery; frame rule in `src/photo-frame-rules.test.ts`, Playwright proof of the pixel's source, size, place, and colour on phone, tablet, and desktop
 - [x] Verify it: `/check verify whole product photos in every frame`
 - [x] Test it: `/test whole product photos in every frame`

@@ -17,6 +17,7 @@ import { ImagePlaceholder } from "@/components/image-placeholder";
 import { Ltr } from "@/components/ltr";
 import { Button, ButtonLink } from "@/components/ui/button";
 import type { CardProduct } from "@/features/catalog/card-view";
+import { PhotoColour } from "@/features/catalog/components/photo-colour";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
@@ -98,16 +99,22 @@ function Picture({
   return (
     <div className="relative aspect-4/5 overflow-hidden rounded-card bg-product-1">
       {product.imageKey ? (
-        <Image
-          src={product.imageKey}
-          alt=""
-          fill
-          sizes={SIZES}
-          loading={index === 0 ? "eager" : "lazy"}
-          fetchPriority={index === 0 ? "high" : undefined}
-          draggable={false}
-          className={cn("object-contain", !product.inStock && "opacity-45")}
-        />
+        <>
+          <PhotoColour
+            imageKey={product.imageKey}
+            className={cn(!product.inStock && "opacity-45")}
+          />
+          <Image
+            src={product.imageKey}
+            alt=""
+            fill
+            sizes={SIZES}
+            loading={index === 0 ? "eager" : "lazy"}
+            fetchPriority={index === 0 ? "high" : undefined}
+            draggable={false}
+            className={cn("object-contain", !product.inStock && "opacity-45")}
+          />
+        </>
       ) : (
         <ImagePlaceholder
           tone={tones[index % tones.length]}
