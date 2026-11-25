@@ -289,7 +289,7 @@ function TileFrame({
           width={120}
           height={120}
           unoptimized={image.startsWith("blob:")}
-          className="size-full object-cover"
+          className="size-full object-contain"
         />
       ) : (
         <span className="flex size-full items-center justify-center text-on-dark-muted">

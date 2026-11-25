@@ -1,5 +1,6 @@
 import { expect as baseExpect, test, type Page } from "@playwright/test";
-import { adminAccounts, signInAdmin } from "./admin-auth";
+import sharp from "sharp";
+import { adminAccounts, serviceClient, signInAdmin } from "./admin-auth";
 import {
   expectNoAxeViolations,
   expectNoSidewaysScroll,
@@ -35,6 +36,11 @@ const LINKED = `عرض الثريات ${tag}`;
 const PLAIN = `عرض الأباجورات ${tag}`;
 const LINE = `سطر ${tag}`;
 
+// The first pick's real photo, tall 1:2 so no frame has its shape (scope feature 44): the hero
+// must receive it whole from Supabase and draw it contained.
+const HERO_PHOTO = { width: 300, height: 600 } as const;
+let heroPhotoKey: string | null = null;
+
 // The mains ticked for Home before the flow; the category card steps untick them in the editor.
 let homeMainIds: readonly string[] = [];
 // The products hidden to show the fallback hero; put back at the end.
@@ -62,6 +68,22 @@ async function seed() {
         await sql`
           insert into product_variants (product_id, price, is_default)
           values (${product.id}, ${20_000 + i * 100}, true)`;
+        if (i === 0) {
+          const key = `products/${product.id}/e2e-hero.jpg`;
+          const photo = await sharp({
+            create: { ...HERO_PHOTO, channels: 3, background: { r: 230, g: 140, b: 20 } },
+          })
+            .jpeg({ quality: 80 })
+            .toBuffer();
+          const { error } = await serviceClient()
+            .storage.from("product-media")
+            .upload(key, photo, { contentType: "image/jpeg" });
+          if (error) throw new Error(`Could not upload the hero photo: ${error.message}`);
+          heroPhotoKey = key;
+          await sql`
+            insert into product_media (product_id, kind, storage_key, width, height, sort)
+            values (${product.id}, 'image', ${key}, ${HERO_PHOTO.width}, ${HERO_PHOTO.height}, 0)`;
+        }
       }
     }
   } finally {
@@ -86,6 +108,7 @@ test.afterAll(async () => {
   } finally {
     await sql.end();
   }
+  if (heroPhotoKey) await serviceClient().storage.from("product-media").remove([heroPhotoKey]);
 });
 
 /** Replaces the picks with the products of these codes, in this order. */
@@ -248,6 +271,27 @@ test("the owner runs Home and a customer sees it", async ({ page, browser }, tes
   await expect(featured.locator("li")).toHaveCount(2);
   await expect(featured.getByRole("link")).toHaveCount(1);
   await expect(featured.getByRole("link")).toContainText(FEATURED[0]);
+
+  // The centred pick's photo came whole from Supabase, at its own 1:2 ratio, drawn contained in the
+  // 4:5 card (scope feature 44). The natural size is reported after the srcset density, so the
+  // ratio is checked loosely; a middle strip would be off by far more.
+  const heroPhoto = featured
+    .locator("li")
+    .filter({ has: customer.getByRole("link") })
+    .locator('img:not([data-testid="photo-colour"])');
+  await expect
+    .poll(() => heroPhoto.evaluate((el) => (el as HTMLImageElement).naturalWidth))
+    .toBeGreaterThan(0);
+  await expect(heroPhoto).toHaveCSS("object-fit", "contain");
+  const received = await heroPhoto.evaluate((el) => {
+    const image = el as HTMLImageElement;
+    return {
+      query: image.currentSrc.split("?")[1] ?? "",
+      ratio: image.naturalWidth / image.naturalHeight,
+    };
+  });
+  expect(received.query).toContain("resize=contain");
+  expect(Math.abs(received.ratio - HERO_PHOTO.width / HERO_PHOTO.height)).toBeLessThan(0.08);
   await expect(customer.getByRole("button", { name: FEATURED[1] })).toBeVisible();
   await checkA11y(customer);
 

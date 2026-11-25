@@ -69,11 +69,12 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 41 | Google Play listing | Slice 11 | planned |
 | 42 | Home category cards & their products | Slice 8 | in-progress |
 | 43 | Light hero & orange brand | Slice 8 | done |
+| 44 | Whole product photos in every frame | Slice 8 | done |
 
 ## Areas
 
 - [Foundations](foundations.md): features 1 to 6 (stack, tooling, data model, design system, languages, first order). 6 of 6 done.
-- [Catalog](catalog.md): features 7 to 11, 25, 37, and 42 (products, import, categories, product page, search, homepage, hero coverflow, category cards). 4 of 8 done.
+- [Catalog](catalog.md): features 7 to 11, 25, 37, 42, and 44 (products, import, categories, product page, search, homepage, hero coverflow, category cards, whole product photos). 4 of 9 done.
 - [Ordering](ordering.md): features 12 to 17 and 35 (cart, checkout, confirmation, order management, lookup, cancel, dashboard home). 2 of 7 done.
 - [Accounts & electricians](accounts.md): features 18 to 23 (accounts, My Orders, roles, quick order, drafts, price adjustments). 1 of 6 done.
 - [Payments & reports](payments.md): features 24 and 27 (payments and balances, sales reports). 0 of 2 done.

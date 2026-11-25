@@ -201,7 +201,9 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
                         alt=""
                         width={44}
                         height={44}
-                        className="size-(--size-tile-table) rounded-btn bg-product-1 object-cover"
+                        // `max-w-none`: the global `img { max-width: 100% }` counts as 0 when the
+                        // table overflows its scroll box on a phone, and the cell shrank the tile to nothing.
+                        className="size-(--size-tile-table) max-w-none rounded-btn bg-product-1 object-contain"
                       />
                     ) : (
                       <ImagePlaceholder className="size-(--size-tile-table) rounded-btn [&_svg]:size-6" />

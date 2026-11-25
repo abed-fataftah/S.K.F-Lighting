@@ -157,7 +157,7 @@ function SuggestionRow({ product }: { readonly product: QuickOrderProduct }) {
           width={40}
           height={40}
           sizes="40px"
-          className="size-10 shrink-0 rounded-btn bg-product-1 object-cover"
+          className="size-10 shrink-0 rounded-btn bg-product-1 object-contain"
         />
       ) : (
         <ImagePlaceholder className="size-10 shrink-0 rounded-btn [&_svg]:size-5" />

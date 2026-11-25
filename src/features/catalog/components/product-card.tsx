@@ -13,6 +13,7 @@ import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
 import type { CardProduct } from "../card-view";
+import { PhotoColour } from "./photo-colour";
 
 const tones = [1, 2, 3, 4] as const;
 
@@ -22,7 +23,9 @@ const tones = [1, 2, 3, 4] as const;
 // WhatsApp button asks about availability (W4) instead of the product (W3). Electricians also get
 // the "add to draft" button in the photo's end corner (spec 0021 AC-3). On a device that can hover
 // the border turns ink and the photo zooms in a little inside its frame (spec 0029 AC-19;
-// Tailwind's hover: applies only there).
+// Tailwind's hover: applies only there). The photo shows whole on the product background, never
+// cropped to the frame; the tone sits on the frame, not the photo, so an out of stock fade dims the
+// photo alone and the frame keeps its colour (scope feature 44).
 export function ProductCard({
   product,
   index,
@@ -59,14 +62,18 @@ export function ProductCard({
         <div className="relative h-(--h-card-image)">
           {product.imageKey ? (
             // Its own clip, so the hover zoom never spills over the words or the corner button.
-            <span className="absolute inset-0 overflow-hidden">
+            <span className="absolute inset-0 overflow-hidden bg-product-1">
+              <PhotoColour
+                imageKey={product.imageKey}
+                className={cn(!product.inStock && "opacity-45")}
+              />
               <Image
                 src={product.imageKey}
                 alt={product.name}
                 fill
                 sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, (min-width: 480px) 240px, 50vw"
                 className={cn(
-                  "bg-product-1 object-cover transition-transform duration-(--dur-hover) group-hover/card:scale-104",
+                  "object-contain transition-transform duration-(--dur-hover) group-hover/card:scale-104",
                   !product.inStock && "opacity-45",
                 )}
               />

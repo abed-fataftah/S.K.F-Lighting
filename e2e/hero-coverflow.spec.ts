@@ -81,7 +81,7 @@ test("places the centre card and its neighbours for the width", async ({ page },
   }
 
   // The centre image, when there is one, names its widths (AC-13) and the arrows show from lg.
-  const image = link.locator("img");
+  const image = link.locator('img:not([data-testid="photo-colour"])');
   if (await image.count()) {
     await expect(image).toHaveAttribute(
       "sizes",
